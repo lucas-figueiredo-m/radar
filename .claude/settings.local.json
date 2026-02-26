@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun:*)",
+      "Bash(npx:*)",
+      "Bash(xcrun simctl:*)",
+      "Bash(mkdir:*)",
+      "mcp__plugin_linear_linear__list_teams",
+      "mcp__plugin_linear_linear__save_project",
+      "mcp__plugin_linear_linear__create_document",
+      "mcp__plugin_linear_linear__save_milestone",
+      "mcp__plugin_linear_linear__list_issue_statuses",
+      "mcp__plugin_linear_linear__save_issue",
+      "mcp__plugin_linear_linear__list_milestones",
+      "mcp__plugin_linear_linear__list_issues"
+    ]
+  }
+}

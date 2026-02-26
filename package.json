@@ -1,0 +1,17 @@
+{
+  "name": "radar",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:app": "bun run --filter=radar-app dev",
+    "dev:devtools": "bun run --filter=@radar/devtools dev",
+    "build:devtools": "bun run --filter=@radar/devtools build",
+    "start:test-app": "bun run --filter=RadarTestApp start"
+  },
+  "engines": {
+    "node": ">= 22.11.0"
+  }
+}
