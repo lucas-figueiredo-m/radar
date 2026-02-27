@@ -6,12 +6,13 @@ import {
   Database,
   Terminal,
   Gauge,
+  Wrench,
   PanelLeftClose,
   PanelLeftOpen,
   type LucideIcon,
 } from 'lucide-react';
 
-type Tab = 'console' | 'network';
+type Tab = 'console' | 'network' | 'devtools';
 
 interface NavItem {
   id: Tab | string;
@@ -100,6 +101,42 @@ export const Sidebar = ({ tab, expanded, onTabChange, onToggle }: SidebarProps) 
 
     {/* Spacer */}
     <div className="flex-1" />
+
+    {/* Dev Tools (dev only) */}
+    {import.meta.env.DEV && (() => {
+      const isActive = tab === 'devtools';
+      return (
+        <button
+          title={expanded ? undefined : 'Dev Tools'}
+          onClick={() => onTabChange('devtools')}
+          className={`h-[var(--toolbar-height)] rounded-md border-none flex items-center gap-2.5 cursor-pointer ${
+            isActive ? 'bg-bg-surface-hover' : 'bg-transparent hover:bg-bg-surface'
+          }`}
+          style={{
+            padding: expanded ? '0 12px' : '0',
+            justifyContent: expanded ? 'flex-start' : 'center',
+            width: expanded ? 'auto' : 'var(--toolbar-height)',
+            margin: expanded ? '0 8px' : '0 auto',
+          }}
+        >
+          <Wrench
+            size={20}
+            className={isActive ? 'text-accent' : 'text-text-secondary'}
+            strokeWidth={1.5}
+            style={{ flexShrink: 0 }}
+          />
+          {expanded && (
+            <span
+              className={`text-[13px] whitespace-nowrap font-ui ${
+                isActive ? 'text-text-primary font-semibold' : 'text-text-secondary font-normal'
+              }`}
+            >
+              Dev Tools
+            </span>
+          )}
+        </button>
+      );
+    })()}
 
     {/* Toggle Button */}
     <button

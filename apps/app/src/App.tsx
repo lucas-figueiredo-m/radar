@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { ConsolePanel } from './components/ConsolePanel';
 import { NetworkPanel } from './components/NetworkPanel';
 import { StatusBar } from './components/StatusBar';
+import { DevToolsPanel } from './components/DevToolsPanel';
 import type { LogEntry, LogLevel } from './components/ConsolePanel';
 import type { NetworkEntry } from './components/NetworkPanel';
 
@@ -11,7 +12,7 @@ import type { NetworkEntry } from './components/NetworkPanel';
 const electron = (window as any).require?.('electron');
 const ipcRenderer = electron?.ipcRenderer;
 
-type Tab = 'console' | 'network';
+type Tab = 'console' | 'network' | 'devtools';
 
 let nextLogId = 0;
 
@@ -114,6 +115,32 @@ const App = () => {
 
   const filteredLogs = filter === 'all' ? logs : logs.filter((l) => l.level === filter);
 
+  const panels: Record<Tab, React.ReactNode> = {
+    console: (
+      <ConsolePanel
+        logs={logs}
+        connected={connected}
+        filter={filter}
+        onFilterChange={setFilter}
+      />
+    ),
+    network: (
+      <NetworkPanel
+        requests={requests}
+        connected={connected}
+        selectedRequest={selectedRequest}
+        onSelectRequest={setSelectedRequest}
+      />
+    ),
+    devtools: <DevToolsPanel />,
+  };
+
+  const statusLabels: Record<Tab, string> = {
+    console: `${filteredLogs.length} entries`,
+    network: `${requests.length} requests`,
+    devtools: 'Dev Tools',
+  };
+
   return (
     <div className="flex h-screen bg-bg-base text-text-primary font-mono text-[13px]">
       <Sidebar
@@ -126,31 +153,9 @@ const App = () => {
       <div className="flex flex-col flex-1 min-w-0">
         <Header connected={connected} onClear={handleClear} />
 
-        {tab === 'console' && (
-          <ConsolePanel
-            logs={logs}
-            connected={connected}
-            filter={filter}
-            onFilterChange={setFilter}
-          />
-        )}
+        {panels[tab]}
 
-        {tab === 'network' && (
-          <NetworkPanel
-            requests={requests}
-            connected={connected}
-            selectedRequest={selectedRequest}
-            onSelectRequest={setSelectedRequest}
-          />
-        )}
-
-        <StatusBar
-          label={
-            tab === 'console'
-              ? `${filteredLogs.length} entries`
-              : `${requests.length} requests`
-          }
-        />
+        <StatusBar label={statusLabels[tab]} />
       </div>
     </div>
   );

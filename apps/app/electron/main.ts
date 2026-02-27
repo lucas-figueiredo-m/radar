@@ -31,8 +31,15 @@ function createWindow() {
     win.loadFile(path.join(process.env.DIST!, 'index.html'));
   }
 
-  win.webContents.openDevTools();
 }
+
+ipcMain.on('radar:toggle-devtools', () => {
+  if (win?.webContents.isDevToolsOpened()) {
+    win.webContents.closeDevTools();
+  } else {
+    win?.webContents.openDevTools();
+  }
+});
 
 function startWebSocketServer() {
   wss = new WebSocketServer({ port: WS_PORT });
