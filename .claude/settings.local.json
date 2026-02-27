@@ -18,7 +18,8 @@
       "Bash(git:*)",
       "Bash(bunx:*)",
       "Bash(pgrep:*)",
-      "mcp__plugin_linear_linear__create_comment"
+      "mcp__plugin_linear_linear__create_comment",
+      "Bash(tree:*)"
     ]
   }
 }
