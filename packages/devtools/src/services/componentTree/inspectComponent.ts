@@ -1,11 +1,34 @@
-import type { InspectComponentResponse, SerializedEntry } from '@radar/types';
+import type {
+  InspectComponentResponse,
+  InspectedComponentData,
+  RenderedByEntry,
+  SerializedEntry,
+} from '@radar/types';
 import { fiberIdMap } from './fiberIdMap';
 import { getComponentName } from './getComponentName';
+import { getSourceFile } from './getSourceFile';
 import { serializeValue } from './serializeValue';
 import { serializeHooks } from './serializeHooks';
 import type { FiberNode } from './fiberTypes';
 
 const FUNCTION_COMPONENT = 0;
+const CLASS_COMPONENT = 1;
+const HOST_ROOT = 3;
+const CONTEXT_PROVIDER = 10;
+const FORWARD_REF = 11;
+const MEMO = 14;
+const SIMPLE_MEMO = 15;
+
+const USER_COMPONENT_TAGS = [
+  FUNCTION_COMPONENT,
+  CLASS_COMPONENT,
+  CONTEXT_PROVIDER,
+  FORWARD_REF,
+  MEMO,
+  SIMPLE_MEMO,
+];
+
+const MAX_RENDERED_BY_DEPTH = 10;
 
 const serializeProps = (fiber: FiberNode): SerializedEntry[] => {
   const props = fiber.memoizedProps;
@@ -20,6 +43,45 @@ const serializeProps = (fiber: FiberNode): SerializedEntry[] => {
       key,
       value: serializeValue(value),
     }));
+};
+
+const getSource = (
+  fiber: FiberNode,
+): InspectedComponentData['source'] | undefined => {
+  if (fiber._debugSource != null) {
+    return {
+      fileName: fiber._debugSource.fileName,
+      lineNumber: fiber._debugSource.lineNumber,
+      columnNumber: fiber._debugSource.columnNumber,
+    };
+  }
+
+  return undefined;
+};
+
+const getRenderedBy = (fiber: FiberNode): RenderedByEntry[] => {
+  const ancestors: RenderedByEntry[] = [];
+  let current = fiber.return;
+
+  while (current !== null && ancestors.length < MAX_RENDERED_BY_DEPTH) {
+    if (current.tag === HOST_ROOT) {
+      ancestors.push({ name: 'createRoot()' });
+      break;
+    }
+
+    if (USER_COMPONENT_TAGS.includes(current.tag)) {
+      const name = getComponentName(current);
+      if (name !== null) {
+        ancestors.push({
+          id: fiberIdMap.getFiberId(current),
+          name,
+        });
+      }
+    }
+    current = current.return;
+  }
+
+  return ancestors;
 };
 
 export const inspectComponent = (
@@ -41,6 +103,9 @@ export const inspectComponent = (
     const name = getComponentName(fiber) ?? 'Unknown';
     const props = serializeProps(fiber);
     const hooks = fiber.tag === FUNCTION_COMPONENT ? serializeHooks(fiber) : [];
+    const source = getSource(fiber);
+    const sourceFile = getSourceFile(fiber);
+    const renderedBy = getRenderedBy(fiber);
 
     return {
       type: 'inspectComponent',
@@ -51,6 +116,9 @@ export const inspectComponent = (
         name,
         props,
         hooks,
+        ...(source !== undefined && { source }),
+        ...(sourceFile !== undefined && { sourceFile }),
+        renderedBy,
       },
       timestamp: Date.now(),
     };

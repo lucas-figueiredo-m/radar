@@ -8,16 +8,24 @@ export type FiberComponentType = {
   __sourceFile?: string;
 };
 
+export type DebugSource = {
+  fileName: string;
+  lineNumber: number;
+  columnNumber: number;
+};
+
 export type FiberNode = {
   tag: number;
   type: FiberComponentType | string | null;
   child: FiberNode | null;
   sibling: FiberNode | null;
+  return: FiberNode | null;
   key: string | null;
   memoizedProps: Record<string, unknown> | null;
   memoizedState: MemoizedState | null;
   stateNode: unknown;
   _debugHookTypes: string[] | null;
+  _debugSource: DebugSource | null;
 };
 
 export type MemoizedState = {

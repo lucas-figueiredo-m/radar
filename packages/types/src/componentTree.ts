@@ -27,11 +27,16 @@ export type SerializedEntry = { key: string; value: SerializedValue };
 
 export type HookInfo = { type: string; index: number; value: SerializedValue };
 
+export type RenderedByEntry = { id?: string; name: string };
+
 export type InspectedComponentData = {
   id: string;
   name: string;
   props: SerializedEntry[];
   hooks: HookInfo[];
+  source?: { fileName: string; lineNumber?: number; columnNumber?: number };
+  sourceFile?: string;
+  renderedBy?: RenderedByEntry[];
 };
 
 export type InspectComponentRequest = {

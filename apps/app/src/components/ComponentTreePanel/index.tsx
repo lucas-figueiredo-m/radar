@@ -259,6 +259,7 @@ export const ComponentTreePanel = ({
           <ComponentInspector
             data={inspectedComponent}
             onClose={onClearInspection}
+            onInspectComponent={onInspectComponent}
           />
         )}
       </div>

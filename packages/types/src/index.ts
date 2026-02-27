@@ -7,6 +7,7 @@ export type {
   SerializedValue,
   SerializedEntry,
   HookInfo,
+  RenderedByEntry,
   InspectedComponentData,
   InspectComponentRequest,
   InspectComponentResponse,

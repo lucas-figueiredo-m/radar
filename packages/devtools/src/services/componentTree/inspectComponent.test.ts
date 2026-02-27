@@ -8,11 +8,13 @@ const makeFiber = (overrides: Partial<FiberNode> = {}): FiberNode => ({
   type: { name: 'TestComponent' },
   child: null,
   sibling: null,
+  return: null,
   key: null,
   memoizedProps: null,
   memoizedState: null,
   stateNode: null,
   _debugHookTypes: null,
+  _debugSource: null,
   ...overrides,
 });
 
