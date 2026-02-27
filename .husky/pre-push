@@ -1,0 +1,3 @@
+bun run --filter=radar-app lint
+bun run --filter=radar-app typecheck
+bun run --filter=radar-app test:run

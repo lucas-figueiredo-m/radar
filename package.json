@@ -9,9 +9,15 @@
     "dev:app": "bun run --filter=radar-app dev",
     "dev:devtools": "bun run --filter=@radar/devtools dev",
     "build:devtools": "bun run --filter=@radar/devtools build",
-    "start:test-app": "bun run --filter=RadarTestApp start"
+    "start:test-app": "bun run --filter=RadarTestApp start",
+    "prepare": "husky"
   },
   "engines": {
     "node": ">= 22.11.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.4.2",
+    "@commitlint/config-conventional": "^20.4.2",
+    "husky": "^9.1.7"
   }
 }
