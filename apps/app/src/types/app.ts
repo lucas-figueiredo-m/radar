@@ -1,1 +1,1 @@
-export type Tab = 'console' | 'network' | 'devtools';
+export type Tab = 'console' | 'network' | 'tree' | 'devtools';

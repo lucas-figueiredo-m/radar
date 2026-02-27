@@ -1,3 +1,4 @@
+export { countNodes } from './countNodes';
 export { formatTime } from './formatTime';
 export { formatDuration } from './formatDuration';
 export { formatGap } from './formatGap';

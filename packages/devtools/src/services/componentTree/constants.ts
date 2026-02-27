@@ -1,0 +1,1 @@
+export const COMPONENT_TREE_THROTTLE_MS = 500;

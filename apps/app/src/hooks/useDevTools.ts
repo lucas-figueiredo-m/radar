@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react';
 import type {
+  ComponentTreeMessage,
   ConsoleMessage,
   NetworkMessage,
   RadarMessage,
 } from '@radar/types';
 import { ipcRenderer } from '../services';
-import type { LogEntry, LogLevel, NetworkEntry } from '../types';
+import type { ComponentTreeState, LogEntry, LogLevel, NetworkEntry } from '../types';
 
 let nextLogId = 0;
 
 export const useDevTools = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [requests, setRequests] = useState<NetworkEntry[]>([]);
+  const [componentTree, setComponentTree] = useState<ComponentTreeState | null>(null);
   const [connected, setConnected] = useState(false);
   const [filter, setFilter] = useState<LogLevel | 'all'>('all');
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
@@ -62,6 +64,12 @@ export const useDevTools = () => {
             ),
           );
         }
+      } else if (message.type === 'componentTree') {
+        const msg: ComponentTreeMessage = message;
+        setComponentTree({
+          rootNodes: msg.rootNodes,
+          timestamp: msg.timestamp,
+        });
       }
     };
 
@@ -88,6 +96,8 @@ export const useDevTools = () => {
     setSelectedRequest(null);
   };
 
+  const clearComponentTree = () => setComponentTree(null);
+
   return {
     logs,
     filteredLogs,
@@ -97,7 +107,9 @@ export const useDevTools = () => {
     setFilter,
     selectedRequest,
     setSelectedRequest,
+    componentTree,
     clearLogs,
     clearRequests,
+    clearComponentTree,
   };
 };

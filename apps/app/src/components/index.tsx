@@ -1,3 +1,4 @@
+export { ComponentTreePanel } from './ComponentTreePanel';
 export { ConsolePanel } from './ConsolePanel';
 export { DetailRow } from './DetailRow';
 export { DetailSection } from './DetailSection';

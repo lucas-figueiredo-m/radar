@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   Sidebar,
   Header,
+  ComponentTreePanel,
   ConsolePanel,
   NetworkPanel,
   StatusBar,
@@ -9,6 +10,7 @@ import {
 } from './components';
 import { useDevTools } from './hooks';
 import type { Tab } from './types';
+import { countNodes } from './utils';
 
 const App = () => {
   const [tab, setTab] = useState<Tab>('console');
@@ -23,13 +25,17 @@ const App = () => {
     setFilter,
     selectedRequest,
     setSelectedRequest,
+    componentTree,
     clearLogs,
     clearRequests,
+    clearComponentTree,
   } = useDevTools();
 
   const handleClear = () => {
     if (tab === 'console') {
       clearLogs();
+    } else if (tab === 'tree') {
+      clearComponentTree();
     } else {
       clearRequests();
     }
@@ -57,12 +63,16 @@ const App = () => {
         onSelectRequest={setSelectedRequest}
       />
     ),
+    tree: <ComponentTreePanel tree={componentTree} connected={connected} />,
     devtools: <DevToolsPanel />,
   };
 
   const statusLabels: Record<Tab, string> = {
     console: `${filteredLogs.length} entries`,
     network: `${requests.length} requests`,
+    tree: componentTree
+      ? `${countNodes(componentTree.rootNodes)} components`
+      : '0 components',
     devtools: 'Dev Tools',
   };
 

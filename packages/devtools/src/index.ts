@@ -1,4 +1,4 @@
-import { patchConsole, patchFetch } from './services';
+import { patchConsole, patchFetch, installComponentTreeHook } from './services';
 import { createConnection } from './connection';
 import { DEFAULT_HOST, DEFAULT_PORT } from './constants';
 import type { RadarConfig } from './config';
@@ -13,6 +13,7 @@ export const init = (config: RadarConfig = {}) => {
   const originalConsole = patchConsole(send);
 
   patchFetch(send);
+  installComponentTreeHook(send);
   connect(host, port, originalConsole);
 
   originalConsole.log('[radar] devtools initialized');
