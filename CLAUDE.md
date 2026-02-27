@@ -12,6 +12,7 @@
  - **NEVER** type cast to any type. Use proper type annotations instead.
  - **ALWAYS** use barrel files to export components, hooks, etc.
  - **PREFER** named exports over default exports.
+ - **NEVER** use `interface`. **ALWAYS** use `type` for object type declarations.
  - EVERY file must export ONLY ONE thing.
 </code-style>
 
@@ -24,7 +25,7 @@
  - **Types files**: camelCase. e.g. `network.ts`, `console.ts`.
  - **Constants files**: `constants.ts` inside the folder that owns them.
  - **Constants**: UPPER_SNAKE_CASE. e.g. `LEVEL_STYLES`, `METHOD_COLORS`, `NAV_ITEMS`.
- - **Types/Interfaces**: PascalCase. e.g. `LogEntry`, `NetworkEntry`, `SidebarProps`.
+ - **Types**: PascalCase. e.g. `LogEntry`, `NetworkEntry`, `SidebarProps`.
  - **Props types**: PascalCase, suffixed with `Props`. e.g. `HeaderProps`, `ConsolePanelProps`.
  - **Barrel files**: `index.ts` or `index.tsx`.
 </naming-conventions>
