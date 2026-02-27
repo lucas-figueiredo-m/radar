@@ -45,6 +45,16 @@
   --color-method-put: #FBBF24;
   --color-method-delete: #F87171;
 
+  /* ─── Syntax Highlighting (Catppuccin Mocha) ────────── */
+  --color-syntax-string: #a6e3a1;
+  --color-syntax-number: #89b4fa;
+  --color-syntax-boolean: #cba6f7;
+  --color-syntax-null: #585b70;
+  --color-syntax-key: #cdd6f4;
+  --color-syntax-function: #fab387;
+  --color-syntax-symbol: #94e2d5;
+  --color-syntax-bracket: #6c7086;
+
   /* ─── Special ────────────────────────────────────────── */
   --color-recording: #EF4444;
 

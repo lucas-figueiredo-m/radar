@@ -74,6 +74,11 @@ function AppContent() {
           color="#3b82f6"
           onPress={() => console.debug('Debug data:', { user: 'test', items: [1, 2, 3] })}
         />
+        <Button
+          title="console.log (large object)"
+          color="#6366f1"
+          onPress={() => console.log('User profile:', { id: 12345, name: 'Jane Doe', email: 'jane@example.com', role: 'admin', active: true, loginCount: 847, lastLogin: '2026-02-27T10:30:00Z' })}
+        />
       </View>
 
       <Text style={styles.sectionTitle}>Network</Text>

@@ -39,6 +39,15 @@ export const colors = {
   'method-put': 'var(--color-method-put)',
   'method-delete': 'var(--color-method-delete)',
 
+  'syntax-string': 'var(--color-syntax-string)',
+  'syntax-number': 'var(--color-syntax-number)',
+  'syntax-boolean': 'var(--color-syntax-boolean)',
+  'syntax-null': 'var(--color-syntax-null)',
+  'syntax-key': 'var(--color-syntax-key)',
+  'syntax-function': 'var(--color-syntax-function)',
+  'syntax-symbol': 'var(--color-syntax-symbol)',
+  'syntax-bracket': 'var(--color-syntax-bracket)',
+
   recording: 'var(--color-recording)',
 } as const;
 
@@ -82,6 +91,15 @@ export const colorValues = {
   'method-post': '#4ADE80',
   'method-put': '#FBBF24',
   'method-delete': '#F87171',
+
+  'syntax-string': '#a6e3a1',
+  'syntax-number': '#89b4fa',
+  'syntax-boolean': '#cba6f7',
+  'syntax-null': '#585b70',
+  'syntax-key': '#cdd6f4',
+  'syntax-function': '#fab387',
+  'syntax-symbol': '#94e2d5',
+  'syntax-bracket': '#6c7086',
 
   recording: '#EF4444',
 } as const;

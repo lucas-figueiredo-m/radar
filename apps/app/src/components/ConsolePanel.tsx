@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { Fragment, useEffect, useRef, useState, useCallback } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { colorValues } from '@radar/design-system';
+import { ValueRenderer } from './ValueRenderer';
 
 type LogLevel = 'log' | 'warn' | 'error' | 'debug';
 
@@ -135,7 +136,7 @@ export const ConsolePanel = ({ logs, connected, filter, onFilterChange }: Consol
         ) : (
           filteredLogs.map((entry) => {
             const s = LEVEL_STYLES[entry.level];
-            const formattedText = entry.args.map(formatArg).join(' ');
+            const plainText = entry.args.map(formatArg).join(' ');
             return (
               <div
                 key={entry.id}
@@ -154,13 +155,15 @@ export const ConsolePanel = ({ logs, connected, filter, onFilterChange }: Consol
                 >
                   {s.label}
                 </span>
-                <span
-                  className="whitespace-pre-wrap break-all flex-1 font-mono"
-                  style={{ color: s.color }}
-                >
-                  {formattedText}
+                <span className="whitespace-pre-wrap break-all flex-1 font-mono">
+                  {entry.args.map((arg, i) => (
+                    <Fragment key={i}>
+                      {i > 0 && ' '}
+                      <ValueRenderer value={arg} inline={true} />
+                    </Fragment>
+                  ))}
                 </span>
-                <CopyButton text={formattedText} />
+                <CopyButton text={plainText} />
               </div>
             );
           })
