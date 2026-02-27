@@ -30,7 +30,7 @@ export const ValueRenderer = ({ value, inline = true }: ValueRendererProps) => {
     // Top-level inline strings (direct console.log args) stay default text color
     // Nested strings (inside objects/arrays) render in green with quotes
     if (inline) return <span style={{ color: colorValues['text-primary'] }}>{value}</span>;
-    return <span style={{ color: SYNTAX_COLORS.string }}>"{value}"</span>;
+    return <span style={{ color: SYNTAX_COLORS.string }}>&quot;{value}&quot;</span>;
   }
 
   if (typeof value === 'number') return <span style={{ color: SYNTAX_COLORS.number }}>{value}</span>;

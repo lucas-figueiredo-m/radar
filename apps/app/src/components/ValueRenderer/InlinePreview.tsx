@@ -7,7 +7,7 @@ export type InlinePreviewProps = {
 export const InlinePreview = ({ value }: InlinePreviewProps) => {
   if (value === null) return <span style={{ color: SYNTAX_COLORS.null }}>null</span>;
   if (value === undefined) return <span style={{ color: SYNTAX_COLORS.undefined }}>undefined</span>;
-  if (typeof value === 'string') return <span style={{ color: SYNTAX_COLORS.string }}>"{value}"</span>;
+  if (typeof value === 'string') return <span style={{ color: SYNTAX_COLORS.string }}>&quot;{value}&quot;</span>;
   if (typeof value === 'number') return <span style={{ color: SYNTAX_COLORS.number }}>{value}</span>;
   if (typeof value === 'boolean') return <span style={{ color: SYNTAX_COLORS.boolean }}>{String(value)}</span>;
   if (Array.isArray(value))
