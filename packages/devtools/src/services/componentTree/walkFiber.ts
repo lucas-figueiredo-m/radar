@@ -42,9 +42,7 @@ const getComponentName = (fiber: FiberNode): string | null => {
     // React 18: fiber.type = Context.Provider, fiber.type._context = Context
     // React 19: fiber.type = Context directly
     const contextName =
-      fiber.type._context?.displayName ??
-      fiber.type.displayName ??
-      'Context';
+      fiber.type._context?.displayName ?? fiber.type.displayName ?? 'Context';
     return `${contextName}.Provider`;
   }
 
