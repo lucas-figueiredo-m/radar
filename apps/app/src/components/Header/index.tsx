@@ -6,10 +6,14 @@ type HeaderProps = {
 export const Header = ({ connected, onClear }: HeaderProps) => (
   <div className="flex items-center justify-between px-4 h-[var(--toolbar-height)] border-b border-border-default shrink-0 bg-bg-header">
     <div className="flex items-center gap-3">
-      <span className="text-sm font-semibold font-display text-text-primary">Radar</span>
+      <span className="text-sm font-semibold font-display text-text-primary">
+        Radar
+      </span>
       <span className="text-xs text-text-tertiary">v0.1.0</span>
       <span className="text-xs text-text-disabled">&mdash;</span>
-      <span className="text-xs text-text-tertiary">iPhone 15 Pro &mdash; iOS 17.2 /</span>
+      <span className="text-xs text-text-tertiary">
+        iPhone 15 Pro &mdash; iOS 17.2 /
+      </span>
     </div>
     <div className="flex items-center gap-3">
       <div className="flex items-center gap-1.5">

@@ -1,7 +1,7 @@
 import type { LogEntry, GroupedLogEntry } from '../types';
 
 const logContentKey = (entry: LogEntry): string =>
-  `${entry.level}:${entry.args.map((a) => JSON.stringify(a)).join('|')}`;
+  `${entry.level}:${entry.args.map(a => JSON.stringify(a)).join('|')}`;
 
 export const groupConsecutiveLogs = (logs: LogEntry[]): GroupedLogEntry[] => {
   const groups: GroupedLogEntry[] = [];

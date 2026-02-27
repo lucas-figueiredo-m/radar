@@ -20,7 +20,10 @@ export const ObjectEntry = ({ value }: ObjectEntryProps) => {
           className="cursor-pointer select-none"
         >
           <span style={{ color: SYNTAX_COLORS.bracket }}>{'{ '}</span>
-          <span className="text-[11px]" style={{ color: colorValues['text-tertiary'] }}>
+          <span
+            className="text-[11px]"
+            style={{ color: colorValues['text-tertiary'] }}
+          >
             ▼ {entries.length} {entries.length === 1 ? 'key' : 'keys'}
           </span>
         </span>
@@ -46,7 +49,10 @@ export const ObjectEntry = ({ value }: ObjectEntryProps) => {
       className="inline-flex max-w-full cursor-pointer items-baseline gap-1"
       onClick={() => setExpanded(true)}
     >
-      <span className="shrink-0 text-[11px] select-none" style={{ color: colorValues['text-tertiary'] }}>
+      <span
+        className="shrink-0 text-[11px] select-none"
+        style={{ color: colorValues['text-tertiary'] }}
+      >
         ▶
       </span>
       <span className="truncate">
@@ -60,7 +66,9 @@ export const ObjectEntry = ({ value }: ObjectEntryProps) => {
           </Fragment>
         ))}
         {hasOverflow && (
-          <span style={{ color: SYNTAX_COLORS.bracket }}>, ...+{entries.length - 3}</span>
+          <span style={{ color: SYNTAX_COLORS.bracket }}>
+            , ...+{entries.length - 3}
+          </span>
         )}
         <span style={{ color: SYNTAX_COLORS.bracket }}>{' }'}</span>
       </span>

@@ -11,8 +11,8 @@ type ParsedFrame = {
 const parseStackTrace = (stack: string): ParsedFrame[] => {
   return stack
     .split('\n')
-    .filter((line) => line.trimStart().startsWith('at '))
-    .map((line) => {
+    .filter(line => line.trimStart().startsWith('at '))
+    .map(line => {
       const trimmed = line.trim();
       // Pattern: "at functionName (file:line:col)"
       const withFn = trimmed.match(/^at\s+(.+?)\s+\((.+):(\d+):(\d+)\)$/);
@@ -50,23 +50,30 @@ export const ErrorEntry = ({ message, stack }: ErrorEntryProps) => {
 
   return (
     <span className="inline-flex flex-col">
-      <span style={{ color: colorValues['status-error'] }}>Error: {message}</span>
+      <span style={{ color: colorValues['status-error'] }}>
+        Error: {message}
+      </span>
       {frames.length > 0 && (
         <>
           <span
-            onClick={() => setExpanded((prev) => !prev)}
+            onClick={() => setExpanded(prev => !prev)}
             className="cursor-pointer select-none text-[11px]"
             style={{ color: colorValues['text-tertiary'] }}
           >
-            {expanded ? '▼' : '▶'} {expanded ? 'Hide' : 'Show'} stack trace ({frames.length}{' '}
-            {frames.length === 1 ? 'frame' : 'frames'})
+            {expanded ? '▼' : '▶'} {expanded ? 'Hide' : 'Show'} stack trace (
+            {frames.length} {frames.length === 1 ? 'frame' : 'frames'})
           </span>
           {expanded && (
             <span className="flex flex-col pl-2 pt-0.5 text-[11px]">
               {frames.map((frame, i) => (
                 <span key={i}>
-                  <span style={{ color: colorValues['text-primary'] }}>{frame.functionName}</span>
-                  <span style={{ color: colorValues['text-tertiary'] }} className="hover:underline">
+                  <span style={{ color: colorValues['text-primary'] }}>
+                    {frame.functionName}
+                  </span>
+                  <span
+                    style={{ color: colorValues['text-tertiary'] }}
+                    className="hover:underline"
+                  >
                     {' '}
                     {frame.fileName}:{frame.line}:{frame.column}
                   </span>

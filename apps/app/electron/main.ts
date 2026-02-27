@@ -30,7 +30,6 @@ function createWindow() {
   } else {
     win.loadFile(path.join(process.env.DIST!, 'index.html'));
   }
-
 }
 
 ipcMain.on('radar:toggle-devtools', () => {
@@ -48,11 +47,11 @@ function startWebSocketServer() {
     console.log(`[radar] WebSocket server listening on port ${WS_PORT}`);
   });
 
-  wss.on('connection', (socket) => {
+  wss.on('connection', socket => {
     console.log('[radar] Client connected');
     win?.webContents.send('radar:connection', { connected: true });
 
-    socket.on('message', (data) => {
+    socket.on('message', data => {
       try {
         const message = JSON.parse(data.toString());
         win?.webContents.send('radar:message', message);
@@ -67,7 +66,7 @@ function startWebSocketServer() {
     });
   });
 
-  wss.on('error', (err) => {
+  wss.on('error', err => {
     console.error('[radar] WebSocket server error:', err);
   });
 }

@@ -1,8 +1,4 @@
-import {
-  Wrench,
-  PanelLeftClose,
-  PanelLeftOpen,
-} from 'lucide-react';
+import { Wrench, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import type { Tab } from '../../types';
 import { NAV_ITEMS } from './constants';
 
@@ -13,10 +9,18 @@ export type SidebarProps = {
   onToggle: () => void;
 };
 
-export const Sidebar = ({ tab, expanded, onTabChange, onToggle }: SidebarProps) => (
+export const Sidebar = ({
+  tab,
+  expanded,
+  onTabChange,
+  onToggle,
+}: SidebarProps) => (
   <div
     className="shrink-0 flex flex-col gap-1 py-3 bg-bg-secondary border-r border-border-default transition-[width] duration-150 ease-in-out overflow-hidden"
-    style={{ width: expanded ? 'var(--sidebar-expanded)' : 'var(--sidebar-width)', alignItems: expanded ? 'stretch' : 'center' }}
+    style={{
+      width: expanded ? 'var(--sidebar-expanded)' : 'var(--sidebar-width)',
+      alignItems: expanded ? 'stretch' : 'center',
+    }}
   >
     {/* Logo */}
     <div
@@ -30,12 +34,14 @@ export const Sidebar = ({ tab, expanded, onTabChange, onToggle }: SidebarProps) 
         R
       </div>
       {expanded && (
-        <span className="text-sm font-bold text-text-primary whitespace-nowrap">Radar</span>
+        <span className="text-sm font-bold text-text-primary whitespace-nowrap">
+          Radar
+        </span>
       )}
     </div>
 
     {/* Nav Items */}
-    {NAV_ITEMS.map((item) => {
+    {NAV_ITEMS.map(item => {
       const isActive = item.enabled && tab === item.id;
       const Icon = item.icon;
       return (
@@ -46,8 +52,14 @@ export const Sidebar = ({ tab, expanded, onTabChange, onToggle }: SidebarProps) 
             if (item.enabled) onTabChange(item.id as Tab);
           }}
           className={`h-[var(--toolbar-height)] rounded-md border-none flex items-center gap-2.5 ${
-            isActive ? 'bg-bg-surface-hover' : 'bg-transparent hover:bg-bg-surface'
-          } ${item.enabled ? 'cursor-pointer opacity-100' : 'cursor-default opacity-40'}`}
+            isActive
+              ? 'bg-bg-surface-hover'
+              : 'bg-transparent hover:bg-bg-surface'
+          } ${
+            item.enabled
+              ? 'cursor-pointer opacity-100'
+              : 'cursor-default opacity-40'
+          }`}
           style={{
             padding: expanded ? '0 12px' : '0',
             justifyContent: expanded ? 'flex-start' : 'center',
@@ -64,7 +76,9 @@ export const Sidebar = ({ tab, expanded, onTabChange, onToggle }: SidebarProps) 
           {expanded && (
             <span
               className={`text-[13px] whitespace-nowrap font-ui ${
-                isActive ? 'text-text-primary font-semibold' : 'text-text-secondary font-normal'
+                isActive
+                  ? 'text-text-primary font-semibold'
+                  : 'text-text-secondary font-normal'
               }`}
             >
               {item.label}
@@ -78,40 +92,45 @@ export const Sidebar = ({ tab, expanded, onTabChange, onToggle }: SidebarProps) 
     <div className="flex-1" />
 
     {/* Dev Tools (dev only) */}
-    {import.meta.env.DEV && (() => {
-      const isActive = tab === 'devtools';
-      return (
-        <button
-          title={expanded ? undefined : 'Dev Tools'}
-          onClick={() => onTabChange('devtools')}
-          className={`h-[var(--toolbar-height)] rounded-md border-none flex items-center gap-2.5 cursor-pointer ${
-            isActive ? 'bg-bg-surface-hover' : 'bg-transparent hover:bg-bg-surface'
-          }`}
-          style={{
-            padding: expanded ? '0 12px' : '0',
-            justifyContent: expanded ? 'flex-start' : 'center',
-            width: expanded ? 'auto' : 'var(--toolbar-height)',
-            margin: expanded ? '0 8px' : '0 auto',
-          }}
-        >
-          <Wrench
-            size={20}
-            className={isActive ? 'text-accent' : 'text-text-secondary'}
-            strokeWidth={1.5}
-            style={{ flexShrink: 0 }}
-          />
-          {expanded && (
-            <span
-              className={`text-[13px] whitespace-nowrap font-ui ${
-                isActive ? 'text-text-primary font-semibold' : 'text-text-secondary font-normal'
-              }`}
-            >
-              Dev Tools
-            </span>
-          )}
-        </button>
-      );
-    })()}
+    {import.meta.env.DEV &&
+      (() => {
+        const isActive = tab === 'devtools';
+        return (
+          <button
+            title={expanded ? undefined : 'Dev Tools'}
+            onClick={() => onTabChange('devtools')}
+            className={`h-[var(--toolbar-height)] rounded-md border-none flex items-center gap-2.5 cursor-pointer ${
+              isActive
+                ? 'bg-bg-surface-hover'
+                : 'bg-transparent hover:bg-bg-surface'
+            }`}
+            style={{
+              padding: expanded ? '0 12px' : '0',
+              justifyContent: expanded ? 'flex-start' : 'center',
+              width: expanded ? 'auto' : 'var(--toolbar-height)',
+              margin: expanded ? '0 8px' : '0 auto',
+            }}
+          >
+            <Wrench
+              size={20}
+              className={isActive ? 'text-accent' : 'text-text-secondary'}
+              strokeWidth={1.5}
+              style={{ flexShrink: 0 }}
+            />
+            {expanded && (
+              <span
+                className={`text-[13px] whitespace-nowrap font-ui ${
+                  isActive
+                    ? 'text-text-primary font-semibold'
+                    : 'text-text-secondary font-normal'
+                }`}
+              >
+                Dev Tools
+              </span>
+            )}
+          </button>
+        );
+      })()}
 
     {/* Toggle Button */}
     <button
@@ -126,9 +145,17 @@ export const Sidebar = ({ tab, expanded, onTabChange, onToggle }: SidebarProps) 
       }}
     >
       {expanded ? (
-        <PanelLeftClose size={20} className="text-text-secondary" strokeWidth={1.5} />
+        <PanelLeftClose
+          size={20}
+          className="text-text-secondary"
+          strokeWidth={1.5}
+        />
       ) : (
-        <PanelLeftOpen size={20} className="text-text-secondary" strokeWidth={1.5} />
+        <PanelLeftOpen
+          size={20}
+          className="text-text-secondary"
+          strokeWidth={1.5}
+        />
       )}
       {expanded && (
         <span className="text-[13px] text-text-secondary whitespace-nowrap font-ui">

@@ -7,7 +7,10 @@ type NetworkDetailPanelProps = {
   onClose: () => void;
 };
 
-export const NetworkDetailPanel = ({ request, onClose }: NetworkDetailPanelProps) => (
+export const NetworkDetailPanel = ({
+  request,
+  onClose,
+}: NetworkDetailPanelProps) => (
   <div className="w-[var(--detail-panel-width)] overflow-auto p-4 shrink-0">
     <div className="flex justify-between items-center mb-4">
       <span className="text-sm font-semibold">Request Detail</span>
@@ -28,21 +31,22 @@ export const NetworkDetailPanel = ({ request, onClose }: NetworkDetailPanelProps
           request.status
             ? `${request.status} ${request.statusText ?? ''}`
             : request.pending
-              ? 'Pending...'
-              : 'Failed'
+            ? 'Pending...'
+            : 'Failed'
         }
       />
       <DetailRow label="Duration" value={formatDuration(request.duration)} />
       <DetailRow label="Time" value={formatTime(request.timestamp)} />
     </DetailSection>
 
-    {request.requestHeaders && Object.keys(request.requestHeaders).length > 0 && (
-      <DetailSection title="Request Headers">
-        {Object.entries(request.requestHeaders).map(([k, v]) => (
-          <DetailRow key={k} label={k} value={v} />
-        ))}
-      </DetailSection>
-    )}
+    {request.requestHeaders &&
+      Object.keys(request.requestHeaders).length > 0 && (
+        <DetailSection title="Request Headers">
+          {Object.entries(request.requestHeaders).map(([k, v]) => (
+            <DetailRow key={k} label={k} value={v} />
+          ))}
+        </DetailSection>
+      )}
 
     {request.requestBody !== undefined && (
       <DetailSection title="Request Body">
@@ -54,13 +58,14 @@ export const NetworkDetailPanel = ({ request, onClose }: NetworkDetailPanelProps
       </DetailSection>
     )}
 
-    {request.responseHeaders && Object.keys(request.responseHeaders).length > 0 && (
-      <DetailSection title="Response Headers">
-        {Object.entries(request.responseHeaders).map(([k, v]) => (
-          <DetailRow key={k} label={k} value={v} />
-        ))}
-      </DetailSection>
-    )}
+    {request.responseHeaders &&
+      Object.keys(request.responseHeaders).length > 0 && (
+        <DetailSection title="Response Headers">
+          {Object.entries(request.responseHeaders).map(([k, v]) => (
+            <DetailRow key={k} label={k} value={v} />
+          ))}
+        </DetailSection>
+      )}
 
     {request.responseBody !== undefined && (
       <DetailSection title="Response Body">

@@ -23,7 +23,10 @@ export const ArrayEntry = ({ value }: ArrayEntryProps) => {
           className="cursor-pointer select-none"
         >
           <span style={{ color: SYNTAX_COLORS.bracket }}>{'[ '}</span>
-          <span className="text-[11px]" style={{ color: colorValues['text-tertiary'] }}>
+          <span
+            className="text-[11px]"
+            style={{ color: colorValues['text-tertiary'] }}
+          >
             ▼ {value.length} {value.length === 1 ? 'item' : 'items'}
           </span>
         </span>
@@ -47,7 +50,10 @@ export const ArrayEntry = ({ value }: ArrayEntryProps) => {
       className="inline-flex max-w-full cursor-pointer items-baseline gap-1"
       onClick={() => setExpanded(true)}
     >
-      <span className="shrink-0 text-[11px] select-none" style={{ color: colorValues['text-tertiary'] }}>
+      <span
+        className="shrink-0 text-[11px] select-none"
+        style={{ color: colorValues['text-tertiary'] }}
+      >
         ▶
       </span>
       <span className="truncate">
@@ -59,7 +65,9 @@ export const ArrayEntry = ({ value }: ArrayEntryProps) => {
           </Fragment>
         ))}
         {value.length > 3 && (
-          <span style={{ color: SYNTAX_COLORS.bracket }}>, ...+{value.length - 3}</span>
+          <span style={{ color: SYNTAX_COLORS.bracket }}>
+            , ...+{value.length - 3}
+          </span>
         )}
         <span style={{ color: SYNTAX_COLORS.bracket }}>{']'}</span>
       </span>

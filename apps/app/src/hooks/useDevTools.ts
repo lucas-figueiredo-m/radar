@@ -14,7 +14,7 @@ export const useDevTools = () => {
   useEffect(() => {
     const onMessage = (_event: unknown, message: Record<string, unknown>) => {
       if (message.type === 'console') {
-        setLogs((prev) => [
+        setLogs(prev => [
           ...prev,
           {
             id: nextLogId++,
@@ -40,7 +40,7 @@ export const useDevTools = () => {
         };
 
         if (msg.event === 'request') {
-          setRequests((prev) => [
+          setRequests(prev => [
             ...prev,
             {
               id: msg.id,
@@ -53,8 +53,8 @@ export const useDevTools = () => {
             },
           ]);
         } else if (msg.event === 'response') {
-          setRequests((prev) =>
-            prev.map((r) =>
+          setRequests(prev =>
+            prev.map(r =>
               r.id === msg.id
                 ? {
                     ...r,
@@ -85,7 +85,8 @@ export const useDevTools = () => {
     };
   }, []);
 
-  const filteredLogs = filter === 'all' ? logs : logs.filter((l) => l.level === filter);
+  const filteredLogs =
+    filter === 'all' ? logs : logs.filter(l => l.level === filter);
 
   const clearLogs = () => setLogs([]);
 

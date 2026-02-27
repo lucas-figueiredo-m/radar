@@ -7,7 +7,7 @@ export const DevToolsPanel = () => {
 
   const handleToggleInspector = () => {
     ipcRenderer?.send('radar:toggle-devtools');
-    setInspectorOpen((prev) => !prev);
+    setInspectorOpen(prev => !prev);
   };
 
   return (

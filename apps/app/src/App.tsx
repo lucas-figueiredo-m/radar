@@ -72,7 +72,7 @@ const App = () => {
         tab={tab}
         expanded={sidebarExpanded}
         onTabChange={handleTabChange}
-        onToggle={() => setSidebarExpanded((prev) => !prev)}
+        onToggle={() => setSidebarExpanded(prev => !prev)}
       />
 
       <div className="flex flex-col flex-1 min-w-0">
