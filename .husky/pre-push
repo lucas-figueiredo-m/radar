@@ -1,3 +1,6 @@
 bun run --filter=radar-app lint
 bun run --filter=radar-app typecheck
 bun run --filter=radar-app test:run
+bun run --filter=@radar/devtools typecheck
+bun run --filter=@radar/devtools lint
+bun run --filter=@radar/devtools test:run
