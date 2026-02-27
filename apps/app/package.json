@@ -39,6 +39,8 @@
     "electron": "^34.0.0",
     "electron-builder": "^25.1.0",
     "eslint": "^8.19.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-react": "^7.37.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "jsdom": "^28.1.0",
