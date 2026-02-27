@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import type { ComponentTreeNode, InspectedComponentData } from '@radar/types';
 import type { ComponentTreeState } from '../../types';
@@ -6,16 +6,21 @@ import {
   countNodes,
   collectSourceFiles,
   filterTreeBySource,
+  buildSearchRegex,
+  searchTreeNodes,
 } from '../../utils';
 import { ComponentInspector } from '..';
 import { TreeNode } from './TreeNode';
 import { FileFilterSelect } from './FileFilterSelect';
+import { SearchBar } from './SearchBar';
 import { DEFAULT_EXPAND_DEPTH } from './constants';
 
 export { TreeNode } from './TreeNode';
 export type { TreeNodeProps } from './TreeNode';
 export { FileFilterSelect } from './FileFilterSelect';
 export type { FileFilterSelectProps } from './FileFilterSelect';
+export { SearchBar } from './SearchBar';
+export type { SearchBarProps } from './SearchBar';
 export { DEFAULT_EXPAND_DEPTH } from './constants';
 
 export type ComponentTreePanelProps = {
@@ -42,6 +47,8 @@ const collectNodeIds = (
 const collectAllNodeIds = (nodes: ComponentTreeNode[]): string[] =>
   nodes.flatMap(node => [node.id, ...collectAllNodeIds(node.children)]);
 
+const EMPTY_SET = new Set<string>();
+
 export const ComponentTreePanel = ({
   tree,
   connected,
@@ -55,6 +62,9 @@ export const ComponentTreePanel = ({
   const [selectedSourceFile, setSelectedSourceFile] = useState<string | null>(
     null,
   );
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const treeContainerRef = useRef<HTMLDivElement>(null);
 
   const sourceFiles = useMemo(
     () => (tree ? collectSourceFiles(tree.rootNodes) : []),
@@ -66,6 +76,29 @@ export const ComponentTreePanel = ({
     if (!selectedSourceFile) return tree.rootNodes;
     return filterTreeBySource(tree.rootNodes, selectedSourceFile);
   }, [tree, selectedSourceFile]);
+
+  const searchRegex = useMemo(
+    () => buildSearchRegex(searchQuery),
+    [searchQuery],
+  );
+
+  const searchResult = useMemo(
+    () => searchTreeNodes(displayedRootNodes, searchRegex),
+    [displayedRootNodes, searchRegex],
+  );
+
+  const matchNodeIdSet = useMemo(
+    () =>
+      searchResult.matchIds.length > 0
+        ? new Set(searchResult.matchIds)
+        : EMPTY_SET,
+    [searchResult.matchIds],
+  );
+
+  const currentMatchId =
+    searchResult.matchIds.length > 0
+      ? searchResult.matchIds[currentMatchIndex] ?? null
+      : null;
 
   useEffect(() => {
     if (selectedSourceFile && !sourceFiles.includes(selectedSourceFile)) {
@@ -80,6 +113,33 @@ export const ComponentTreePanel = ({
       setHasAutoExpanded(true);
     }
   }, [tree, hasAutoExpanded]);
+
+  // Reset match index when matches change
+  useEffect(() => {
+    setCurrentMatchIndex(0);
+  }, [searchResult.matchIds]);
+
+  // Auto-expand ancestors of matches
+  useEffect(() => {
+    if (searchResult.ancestorIds.size > 0) {
+      setExpandedNodes(prev => {
+        const next = new Set(prev);
+        for (const id of searchResult.ancestorIds) {
+          next.add(id);
+        }
+        return next.size === prev.size ? prev : next;
+      });
+    }
+  }, [searchResult.ancestorIds]);
+
+  // Scroll to current match
+  useEffect(() => {
+    if (!currentMatchId || !treeContainerRef.current) return;
+    const el = treeContainerRef.current.querySelector(
+      `[data-node-id="${currentMatchId}"]`,
+    );
+    el?.scrollIntoView({ block: 'nearest' });
+  }, [currentMatchId]);
 
   const handleToggleNode = useCallback((id: string) => {
     setExpandedNodes(prev => {
@@ -103,6 +163,20 @@ export const ComponentTreePanel = ({
     setExpandedNodes(new Set());
   }, []);
 
+  const handlePrevMatch = useCallback(() => {
+    if (searchResult.matchIds.length === 0) return;
+    setCurrentMatchIndex(prev =>
+      prev <= 0 ? searchResult.matchIds.length - 1 : prev - 1,
+    );
+  }, [searchResult.matchIds.length]);
+
+  const handleNextMatch = useCallback(() => {
+    if (searchResult.matchIds.length === 0) return;
+    setCurrentMatchIndex(prev =>
+      prev >= searchResult.matchIds.length - 1 ? 0 : prev + 1,
+    );
+  }, [searchResult.matchIds.length]);
+
   const nodeCount = countNodes(displayedRootNodes);
 
   return (
@@ -123,6 +197,14 @@ export const ComponentTreePanel = ({
         >
           <Minimize2 size={14} />
         </button>
+        <SearchBar
+          query={searchQuery}
+          onQueryChange={setSearchQuery}
+          currentMatchIndex={currentMatchIndex}
+          totalMatches={searchResult.matchIds.length}
+          onPrevMatch={handlePrevMatch}
+          onNextMatch={handleNextMatch}
+        />
         {sourceFiles.length > 0 && (
           <FileFilterSelect
             files={sourceFiles}
@@ -130,7 +212,7 @@ export const ComponentTreePanel = ({
             onSelectFile={setSelectedSourceFile}
           />
         )}
-        <span className="text-text-tertiary text-xs ml-auto">
+        <span className="text-text-tertiary text-xs ml-auto whitespace-nowrap">
           {nodeCount} components
         </span>
       </div>
@@ -139,6 +221,7 @@ export const ComponentTreePanel = ({
       <div className="flex-1 flex overflow-hidden">
         {/* Tree */}
         <div
+          ref={treeContainerRef}
           className={`flex-1 overflow-auto ${
             inspectedComponent ? 'border-r border-border-default' : ''
           }`}
@@ -163,6 +246,9 @@ export const ComponentTreePanel = ({
                 onToggleNode={handleToggleNode}
                 selectedNodeId={selectedComponentId}
                 onSelectNode={onInspectComponent}
+                searchRegex={searchRegex}
+                matchNodeIds={matchNodeIdSet}
+                currentMatchId={currentMatchId}
               />
             ))
           )}

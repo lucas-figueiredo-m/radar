@@ -1,6 +1,9 @@
+export { buildSearchRegex } from './buildSearchRegex';
 export { collectSourceFiles } from './collectSourceFiles';
 export { countNodes } from './countNodes';
 export { filterTreeBySource } from './filterTreeBySource';
+export type { SearchTreeResult } from './searchTreeNodes';
+export { searchTreeNodes } from './searchTreeNodes';
 export { formatTime } from './formatTime';
 export { formatDuration } from './formatDuration';
 export { formatGap } from './formatGap';
