@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState, useCallback } from 'react';
+import { Fragment, useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { colorValues } from '@radar/design-system';
 import { ValueRenderer } from './ValueRenderer';
@@ -11,6 +11,43 @@ interface LogEntry {
   args: unknown[];
   timestamp: number;
 }
+
+interface GroupedLogEntry {
+  key: string;
+  entries: LogEntry[];
+  level: LogLevel;
+  args: unknown[];
+  firstTimestamp: number;
+  lastTimestamp: number;
+  count: number;
+}
+
+const logContentKey = (entry: LogEntry): string =>
+  `${entry.level}:${entry.args.map((a) => JSON.stringify(a)).join('|')}`;
+
+const groupConsecutiveLogs = (logs: LogEntry[]): GroupedLogEntry[] => {
+  const groups: GroupedLogEntry[] = [];
+  for (const entry of logs) {
+    const key = logContentKey(entry);
+    const last = groups[groups.length - 1];
+    if (last && last.key === key) {
+      last.entries.push(entry);
+      last.lastTimestamp = entry.timestamp;
+      last.count++;
+    } else {
+      groups.push({
+        key,
+        entries: [entry],
+        level: entry.level,
+        args: entry.args,
+        firstTimestamp: entry.timestamp,
+        lastTimestamp: entry.timestamp,
+        count: 1,
+      });
+    }
+  }
+  return groups;
+};
 
 const LEVEL_STYLES: Record<LogLevel, { bg: string; color: string; label: string }> = {
   log:   { bg: colorValues['bg-surface'],      color: colorValues['text-primary'],   label: 'LOG' },
@@ -94,7 +131,21 @@ interface ConsolePanelProps {
 
 export const ConsolePanel = ({ logs, connected, filter, onFilterChange }: ConsolePanelProps) => {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
   const filteredLogs = filter === 'all' ? logs : logs.filter((l) => l.level === filter);
+  const grouped = useMemo(() => groupConsecutiveLogs(filteredLogs), [filteredLogs]);
+
+  const toggleGroup = useCallback((index: number) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -134,36 +185,74 @@ export const ConsolePanel = ({ logs, connected, filter, onFilterChange }: Consol
               : 'Waiting for React Native app to connect on port 8347...'}
           </div>
         ) : (
-          filteredLogs.map((entry) => {
-            const s = LEVEL_STYLES[entry.level];
-            const plainText = entry.args.map(formatArg).join(' ');
+          grouped.map((group, groupIndex) => {
+            const s = LEVEL_STYLES[group.level];
+            const plainText = group.args.map(formatArg).join(' ');
+            const isExpanded = expandedGroups.has(groupIndex);
+
             return (
-              <div
-                key={entry.id}
-                className="group flex gap-2.5 px-4 py-1.5 border-b border-border-subtle items-start"
-                style={{ background: s.bg }}
-              >
-                <span className="text-text-disabled text-[11px] shrink-0 min-w-[85px] pt-px">
-                  {formatTime(entry.timestamp)}
-                </span>
-                <span
-                  className="text-[10px] font-semibold px-[5px] py-[2px] rounded-sm shrink-0 min-w-[30px] text-center"
-                  style={{
-                    color: s.color,
-                    background: s.color + '20',
-                  }}
+              <div key={group.entries[0].id}>
+                {/* Main row */}
+                <div
+                  className="group flex gap-2.5 px-4 py-1.5 border-b border-border-subtle items-start"
+                  style={{ background: s.bg }}
                 >
-                  {s.label}
-                </span>
-                <span className="whitespace-pre-wrap break-all flex-1 font-mono">
-                  {entry.args.map((arg, i) => (
-                    <Fragment key={i}>
-                      {i > 0 && ' '}
-                      <ValueRenderer value={arg} inline={true} />
-                    </Fragment>
+                  <span className="text-text-disabled text-[11px] shrink-0 min-w-[85px] pt-px">
+                    {formatTime(group.firstTimestamp)}
+                  </span>
+                  <span
+                    className="text-[10px] font-semibold px-[5px] py-[2px] rounded-sm shrink-0 min-w-[30px] text-center"
+                    style={{
+                      color: s.color,
+                      background: s.color + '20',
+                    }}
+                  >
+                    {s.label}
+                  </span>
+                  <span className="whitespace-pre-wrap break-all flex-1 font-mono">
+                    {group.args.map((arg, i) => (
+                      <Fragment key={i}>
+                        {i > 0 && ' '}
+                        <ValueRenderer value={arg} inline={true} />
+                      </Fragment>
+                    ))}
+                  </span>
+                  {group.count > 1 && (
+                    <button
+                      onClick={() => toggleGroup(groupIndex)}
+                      className="shrink-0 text-[10px] font-bold px-1.5 py-[1px] rounded-full cursor-pointer select-none"
+                      style={{
+                        background: s.color + '30',
+                        color: s.color,
+                      }}
+                    >
+                      x{group.count}
+                    </button>
+                  )}
+                  <CopyButton text={plainText} />
+                </div>
+
+                {/* Expanded individual entries */}
+                {isExpanded &&
+                  group.entries.slice(1).map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="group flex gap-2.5 px-4 py-1.5 border-b border-border-subtle items-start pl-8 opacity-70"
+                      style={{ background: s.bg }}
+                    >
+                      <span className="text-text-disabled text-[11px] shrink-0 min-w-[85px] pt-px">
+                        {formatTime(entry.timestamp)}
+                      </span>
+                      <span className="whitespace-pre-wrap break-all flex-1 font-mono">
+                        {entry.args.map((arg, i) => (
+                          <Fragment key={i}>
+                            {i > 0 && ' '}
+                            <ValueRenderer value={arg} inline={true} />
+                          </Fragment>
+                        ))}
+                      </span>
+                    </div>
                   ))}
-                </span>
-                <CopyButton text={plainText} />
               </div>
             );
           })
