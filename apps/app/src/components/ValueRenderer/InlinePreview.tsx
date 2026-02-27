@@ -1,8 +1,8 @@
 import { SYNTAX_COLORS } from './constants';
 
-export interface InlinePreviewProps {
+export type InlinePreviewProps = {
   value: unknown;
-}
+};
 
 export const InlinePreview = ({ value }: InlinePreviewProps) => {
   if (value === null) return <span style={{ color: SYNTAX_COLORS.null }}>null</span>;

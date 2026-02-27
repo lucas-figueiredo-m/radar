@@ -1,13 +1,13 @@
 export type LogLevel = 'log' | 'warn' | 'error' | 'debug';
 
-export interface LogEntry {
+export type LogEntry = {
   id: number;
   level: LogLevel;
   args: unknown[];
   timestamp: number;
-}
+};
 
-export interface GroupedLogEntry {
+export type GroupedLogEntry = {
   key: string;
   entries: LogEntry[];
   level: LogLevel;
@@ -15,4 +15,4 @@ export interface GroupedLogEntry {
   firstTimestamp: number;
   lastTimestamp: number;
   count: number;
-}
+};

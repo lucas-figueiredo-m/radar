@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 
-interface DetailSectionProps {
+type DetailSectionProps = {
   title: string;
   children: ReactNode;
-}
+};
 
 export const DetailSection = ({ title, children }: DetailSectionProps) => (
   <div className="mb-4">

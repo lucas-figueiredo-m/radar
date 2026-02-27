@@ -1,4 +1,4 @@
-export interface NetworkEntry {
+export type NetworkEntry = {
   id: string;
   method: string;
   url: string;
@@ -11,4 +11,4 @@ export interface NetworkEntry {
   responseBody?: unknown;
   timestamp: number;
   pending: boolean;
-}
+};

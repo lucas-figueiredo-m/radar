@@ -20,12 +20,12 @@ import { CopyButton } from './CopyButton';
 export { CopyButton } from './CopyButton';
 export type { CopyButtonProps } from './CopyButton';
 
-export interface ConsolePanelProps {
+export type ConsolePanelProps = {
   logs: LogEntry[];
   connected: boolean;
   filter: LogLevel | 'all';
   onFilterChange: (level: LogLevel | 'all') => void;
-}
+};
 
 export const ConsolePanel = ({
   logs,

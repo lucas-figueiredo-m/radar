@@ -1,7 +1,7 @@
-interface HeaderProps {
+type HeaderProps = {
   connected: boolean;
   onClear: () => void;
-}
+};
 
 export const Header = ({ connected, onClear }: HeaderProps) => (
   <div className="flex items-center justify-between px-4 h-[var(--toolbar-height)] border-b border-border-default shrink-0 bg-bg-header">

@@ -4,12 +4,12 @@ import { NetworkDetailPanel } from '..';
 import { METHOD_COLORS, statusColor, formatDuration, truncateUrl, urlHost } from '../../utils';
 import type { NetworkEntry } from '../../types';
 
-interface NetworkPanelProps {
+type NetworkPanelProps = {
   requests: NetworkEntry[];
   connected: boolean;
   selectedRequest: string | null;
   onSelectRequest: (id: string | null) => void;
-}
+};
 
 export const NetworkPanel = ({
   requests,

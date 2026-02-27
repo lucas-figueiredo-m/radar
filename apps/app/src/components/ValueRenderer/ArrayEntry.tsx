@@ -4,9 +4,9 @@ import { SYNTAX_COLORS } from './constants';
 import { InlinePreview } from './InlinePreview';
 import { ValueRenderer } from './index';
 
-export interface ArrayEntryProps {
+export type ArrayEntryProps = {
   value: unknown[];
-}
+};
 
 export const ArrayEntry = ({ value }: ArrayEntryProps) => {
   const [expanded, setExpanded] = useState(false);

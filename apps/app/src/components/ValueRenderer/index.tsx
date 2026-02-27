@@ -17,10 +17,10 @@ export type { ArrayEntryProps } from './ArrayEntry';
 const isErrorObject = (arg: object): arg is { __type: 'Error'; message: string; stack?: string } =>
   '__type' in arg && (arg as Record<string, unknown>).__type === 'Error';
 
-export interface ValueRendererProps {
+export type ValueRendererProps = {
   value: unknown;
   inline?: boolean;
-}
+};
 
 export const ValueRenderer = ({ value, inline = true }: ValueRendererProps) => {
   if (value === null) return <span style={{ color: SYNTAX_COLORS.null }}>null</span>;

@@ -2,10 +2,10 @@ import { DetailSection, DetailRow } from '..';
 import { formatTime, formatDuration } from '../../utils';
 import type { NetworkEntry } from '../../types';
 
-interface NetworkDetailPanelProps {
+type NetworkDetailPanelProps = {
   request: NetworkEntry;
   onClose: () => void;
-}
+};
 
 export const NetworkDetailPanel = ({ request, onClose }: NetworkDetailPanelProps) => (
   <div className="w-[var(--detail-panel-width)] overflow-auto p-4 shrink-0">

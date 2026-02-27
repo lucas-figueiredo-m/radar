@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
 import { colorValues } from '@radar/design-system';
 
-interface ParsedFrame {
+type ParsedFrame = {
   functionName: string;
   fileName: string;
   line: number;
   column: number;
-}
+};
 
 const parseStackTrace = (stack: string): ParsedFrame[] => {
   return stack
@@ -39,10 +39,10 @@ const parseStackTrace = (stack: string): ParsedFrame[] => {
     .filter((frame): frame is ParsedFrame => frame !== null);
 };
 
-export interface ErrorEntryProps {
+export type ErrorEntryProps = {
   message: string;
   stack?: string;
-}
+};
 
 export const ErrorEntry = ({ message, stack }: ErrorEntryProps) => {
   const [expanded, setExpanded] = useState(false);

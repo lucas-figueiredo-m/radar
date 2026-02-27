@@ -1,7 +1,7 @@
-export interface DetailRowProps {
+export type DetailRowProps = {
   label: string;
   value: string;
-}
+};
 
 export const DetailRow = ({ label, value }: DetailRowProps) => (
   <div className="flex gap-2.5 py-[3px] text-xs">

@@ -6,12 +6,12 @@ import {
 import type { Tab } from '../../types';
 import { NAV_ITEMS } from './constants';
 
-export interface SidebarProps {
+export type SidebarProps = {
   tab: Tab;
   expanded: boolean;
   onTabChange: (tab: Tab) => void;
   onToggle: () => void;
-}
+};
 
 export const Sidebar = ({ tab, expanded, onTabChange, onToggle }: SidebarProps) => (
   <div

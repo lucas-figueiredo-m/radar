@@ -3,9 +3,9 @@ import { colorValues } from '@radar/design-system';
 import { SYNTAX_COLORS } from './constants';
 import { ValueRenderer } from './index';
 
-export interface ObjectEntryProps {
+export type ObjectEntryProps = {
   value: Record<string, unknown>;
-}
+};
 
 export const ObjectEntry = ({ value }: ObjectEntryProps) => {
   const [expanded, setExpanded] = useState(false);
