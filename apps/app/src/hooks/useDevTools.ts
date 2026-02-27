@@ -6,14 +6,21 @@ import type {
   RadarMessage,
 } from '@radar/types';
 import { ipcRenderer } from '../services';
-import type { ComponentTreeState, LogEntry, LogLevel, NetworkEntry } from '../types';
+import type {
+  ComponentTreeState,
+  LogEntry,
+  LogLevel,
+  NetworkEntry,
+} from '../types';
 
 let nextLogId = 0;
 
 export const useDevTools = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [requests, setRequests] = useState<NetworkEntry[]>([]);
-  const [componentTree, setComponentTree] = useState<ComponentTreeState | null>(null);
+  const [componentTree, setComponentTree] = useState<ComponentTreeState | null>(
+    null,
+  );
   const [connected, setConnected] = useState(false);
   const [filter, setFilter] = useState<LogLevel | 'all'>('all');
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
