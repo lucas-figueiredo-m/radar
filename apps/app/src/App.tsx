@@ -1,4 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
+import {
+  Smartphone,
+  GitBranch,
+  Activity,
+  Wifi,
+  Database,
+  Terminal,
+  Gauge,
+  PanelLeftClose,
+  PanelLeftOpen,
+  type LucideIcon,
+} from 'lucide-react';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const electron = (window as any).require?.('electron');
@@ -8,6 +20,25 @@ const ipcRenderer = electron?.ipcRenderer;
 
 type Tab = 'console' | 'network';
 type LogLevel = 'log' | 'warn' | 'error' | 'debug';
+
+// ─── Sidebar Config ──────────────────────────────────────
+
+interface NavItem {
+  id: Tab | string;
+  icon: LucideIcon;
+  label: string;
+  enabled: boolean;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { id: 'device',    icon: Smartphone, label: 'Device View',     enabled: false },
+  { id: 'tree',      icon: GitBranch,  label: 'Components Tree', enabled: false },
+  { id: 'profiler',  icon: Activity,   label: 'Profiler',        enabled: false },
+  { id: 'network',   icon: Wifi,       label: 'Network',         enabled: true },
+  { id: 'storage',   icon: Database,   label: 'Storage',         enabled: false },
+  { id: 'console',   icon: Terminal,   label: 'Console',         enabled: true },
+  { id: 'metrics',   icon: Gauge,      label: 'Native Metrics',  enabled: false },
+];
 
 interface LogEntry {
   id: number;
@@ -106,6 +137,7 @@ function App() {
   const [connected, setConnected] = useState(false);
   const [filter, setFilter] = useState<LogLevel | 'all'>('all');
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const logBottomRef = useRef<HTMLDivElement>(null);
   const netBottomRef = useRef<HTMLDivElement>(null);
 
@@ -176,52 +208,157 @@ function App() {
   const selected = requests.find(r => r.id === selectedRequest);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#1e1e2e', color: '#cdd6f4', fontFamily: 'SF Mono, Menlo, Monaco, monospace', fontSize: 13 }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid #313244', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, fontFamily: 'SF Pro Display, -apple-system, sans-serif' }}>Radar</h1>
-          <div style={{ display: 'flex', gap: 2 }}>
-            {([['console', 'Console'], ['network', 'Network']] as const).map(([t, label]) => (
-              <button
-                key={t}
-                onClick={() => { setTab(t); setSelectedRequest(null); }}
-                style={{
-                  padding: '5px 14px',
-                  background: tab === t ? '#45475a' : 'transparent',
-                  border: 'none',
-                  borderRadius: 5,
-                  color: tab === t ? '#cdd6f4' : '#6c7086',
-                  cursor: 'pointer',
+    <div style={{ display: 'flex', height: '100vh', background: '#1e1e2e', color: '#cdd6f4', fontFamily: 'SF Mono, Menlo, Monaco, monospace', fontSize: 13 }}>
+      {/* Sidebar */}
+      <div style={{
+        width: sidebarExpanded ? 220 : 56,
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: sidebarExpanded ? 'stretch' : 'center',
+        gap: 4,
+        padding: '12px 0',
+        background: '#16162a',
+        borderRight: '1px solid #2e2e50',
+        transition: 'width 150ms ease',
+        overflow: 'hidden',
+      }}>
+        {/* Logo */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          marginBottom: 12,
+          padding: sidebarExpanded ? '0 12px' : 0,
+          justifyContent: sidebarExpanded ? 'flex-start' : 'center',
+        }}>
+          <div style={{
+            width: 32,
+            height: 32,
+            borderRadius: 6,
+            background: '#6c6cff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: 16,
+            fontWeight: 700,
+            color: '#fff',
+            flexShrink: 0,
+          }}>
+            R
+          </div>
+          {sidebarExpanded && (
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#cdd6f4', whiteSpace: 'nowrap' }}>Radar</span>
+          )}
+        </div>
+
+        {/* Nav Items */}
+        {NAV_ITEMS.map(item => {
+          const isActive = item.enabled && tab === item.id;
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.id}
+              title={sidebarExpanded ? undefined : item.label}
+              onClick={() => {
+                if (item.enabled) {
+                  setTab(item.id as Tab);
+                  setSelectedRequest(null);
+                }
+              }}
+              style={{
+                height: 40,
+                borderRadius: 4,
+                border: 'none',
+                background: isActive ? '#222240' : 'transparent',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                cursor: item.enabled ? 'pointer' : 'default',
+                opacity: item.enabled ? 1 : 0.4,
+                padding: sidebarExpanded ? '0 12px' : 0,
+                justifyContent: sidebarExpanded ? 'flex-start' : 'center',
+                width: sidebarExpanded ? 'auto' : 40,
+                margin: sidebarExpanded ? '0 8px' : '0 auto',
+              }}
+            >
+              <Icon size={20} color={isActive ? '#6c6cff' : '#9898b0'} strokeWidth={1.5} style={{ flexShrink: 0 }} />
+              {sidebarExpanded && (
+                <span style={{
                   fontSize: 13,
-                  fontWeight: tab === t ? 600 : 400,
-                  fontFamily: 'SF Pro Display, -apple-system, sans-serif',
-                }}
-              >
-                {label}
-                <span style={{ marginLeft: 6, fontSize: 11, color: '#585b70' }}>
-                  {t === 'console' ? logs.length : requests.length}
+                  color: isActive ? '#cdd6f4' : '#9898b0',
+                  fontWeight: isActive ? 600 : 400,
+                  whiteSpace: 'nowrap',
+                  fontFamily: 'Inter, -apple-system, sans-serif',
+                }}>
+                  {item.label}
                 </span>
-              </button>
-            ))}
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: connected ? '#a6e3a1' : '#f38ba8' }} />
-            <span style={{ fontSize: 12, color: '#6c7086' }}>{connected ? 'Connected' : 'Waiting for app...'}</span>
-          </div>
-          <button
-            onClick={() => { tab === 'console' ? setLogs([]) : setRequests([]); setSelectedRequest(null); }}
-            style={{ padding: '4px 10px', background: '#313244', border: 'none', borderRadius: 4, color: '#cdd6f4', cursor: 'pointer', fontSize: 12 }}
-          >
-            Clear
-          </button>
-        </div>
+              )}
+            </button>
+          );
+        })}
+
+        {/* Spacer */}
+        <div style={{ flex: 1 }} />
+
+        {/* Toggle Button */}
+        <button
+          onClick={() => setSidebarExpanded(prev => !prev)}
+          title={sidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
+          style={{
+            height: 40,
+            borderRadius: 4,
+            border: 'none',
+            background: 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            cursor: 'pointer',
+            padding: sidebarExpanded ? '0 12px' : 0,
+            justifyContent: sidebarExpanded ? 'flex-start' : 'center',
+            width: sidebarExpanded ? 'auto' : 40,
+            margin: sidebarExpanded ? '0 8px' : '0 auto',
+          }}
+        >
+          {sidebarExpanded
+            ? <PanelLeftClose size={20} color="#9898b0" strokeWidth={1.5} />
+            : <PanelLeftOpen size={20} color="#9898b0" strokeWidth={1.5} />
+          }
+          {sidebarExpanded && (
+            <span style={{ fontSize: 13, color: '#9898b0', whiteSpace: 'nowrap', fontFamily: 'Inter, -apple-system, sans-serif' }}>
+              Collapse
+            </span>
+          )}
+        </button>
       </div>
 
-      {/* Console tab */}
-      {tab === 'console' && (
+      {/* Main Content */}
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', height: 40, borderBottom: '1px solid #2e2e50', flexShrink: 0, background: '#000' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 14, fontWeight: 600, fontFamily: 'SF Pro Display, -apple-system, sans-serif', color: '#cdd6f4' }}>Radar</span>
+            <span style={{ fontSize: 12, color: '#6c7086' }}>v0.1.0</span>
+            <span style={{ fontSize: 12, color: '#585b70' }}>—</span>
+            <span style={{ fontSize: 12, color: '#6c7086' }}>iPhone 15 Pro — iOS 17.2 /</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: connected ? '#a6e3a1' : '#f38ba8' }} />
+              <span style={{ fontSize: 12, color: '#6c7086' }}>{connected ? 'Connected' : 'Waiting for app...'}</span>
+            </div>
+            <button
+              onClick={() => { tab === 'console' ? setLogs([]) : setRequests([]); setSelectedRequest(null); }}
+              style={{ padding: '4px 10px', background: '#313244', border: 'none', borderRadius: 4, color: '#cdd6f4', cursor: 'pointer', fontSize: 12 }}
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        {/* Console tab */}
+        {tab === 'console' && (
         <>
           <div style={{ display: 'flex', gap: 4, padding: '8px 16px', borderBottom: '1px solid #313244', flexShrink: 0 }}>
             {(['all', 'log', 'warn', 'error', 'debug'] as const).map(level => (
@@ -266,8 +403,8 @@ function App() {
         </>
       )}
 
-      {/* Network tab */}
-      {tab === 'network' && (
+        {/* Network tab */}
+        {tab === 'network' && (
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
           {/* Request list */}
           <div style={{ flex: selectedRequest ? 1 : 1, overflow: 'auto', borderRight: selectedRequest ? '1px solid #313244' : 'none' }}>
@@ -384,10 +521,11 @@ function App() {
         </div>
       )}
 
-      {/* Status bar */}
-      <div style={{ padding: '6px 16px', borderTop: '1px solid #313244', fontSize: 11, color: '#585b70', flexShrink: 0, display: 'flex', justifyContent: 'space-between' }}>
-        <span>{tab === 'console' ? `${filteredLogs.length} entries` : `${requests.length} requests`}</span>
-        <span>ws://localhost:8347</span>
+        {/* Status bar */}
+        <div style={{ padding: '6px 16px', borderTop: '1px solid #313244', fontSize: 11, color: '#585b70', flexShrink: 0, display: 'flex', justifyContent: 'space-between' }}>
+          <span>{tab === 'console' ? `${filteredLogs.length} entries` : `${requests.length} requests`}</span>
+          <span>ws://localhost:8347</span>
+        </div>
       </div>
     </div>
   );
