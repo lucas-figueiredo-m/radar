@@ -3,7 +3,9 @@ import { collectSourceFiles } from './collectSourceFiles';
 import type { ComponentTreeNode } from '@radar/types';
 
 const makeNode = (
-  overrides: Partial<ComponentTreeNode> & { children?: ComponentTreeNode[] } = {},
+  overrides: Partial<ComponentTreeNode> & {
+    children?: ComponentTreeNode[];
+  } = {},
 ): ComponentTreeNode => ({
   id: '1',
   name: 'Component',

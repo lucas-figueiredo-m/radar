@@ -3,7 +3,9 @@ import { filterTreeBySource } from './filterTreeBySource';
 import type { ComponentTreeNode } from '@radar/types';
 
 const makeNode = (
-  overrides: Partial<ComponentTreeNode> & { children?: ComponentTreeNode[] } = {},
+  overrides: Partial<ComponentTreeNode> & {
+    children?: ComponentTreeNode[];
+  } = {},
 ): ComponentTreeNode => ({
   id: '1',
   name: 'Component',
@@ -18,7 +20,11 @@ describe('filterTreeBySource', () => {
   });
 
   it('returns matching root nodes with full children', () => {
-    const child = makeNode({ id: '2', name: 'Button', source: 'src/Button.tsx' });
+    const child = makeNode({
+      id: '2',
+      name: 'Button',
+      source: 'src/Button.tsx',
+    });
     const root = makeNode({
       id: '1',
       name: 'App',
@@ -34,7 +40,11 @@ describe('filterTreeBySource', () => {
   });
 
   it('promotes matching descendants when parent does not match', () => {
-    const nested = makeNode({ id: '3', name: 'Button', source: 'src/Button.tsx' });
+    const nested = makeNode({
+      id: '3',
+      name: 'Button',
+      source: 'src/Button.tsx',
+    });
     const middle = makeNode({
       id: '2',
       name: 'Wrapper',
@@ -59,8 +69,16 @@ describe('filterTreeBySource', () => {
   });
 
   it('returns multiple matching subtrees', () => {
-    const btn1 = makeNode({ id: '2', name: 'Button1', source: 'src/Button.tsx' });
-    const btn2 = makeNode({ id: '3', name: 'Button2', source: 'src/Button.tsx' });
+    const btn1 = makeNode({
+      id: '2',
+      name: 'Button1',
+      source: 'src/Button.tsx',
+    });
+    const btn2 = makeNode({
+      id: '3',
+      name: 'Button2',
+      source: 'src/Button.tsx',
+    });
     const root = makeNode({
       id: '1',
       name: 'App',
@@ -75,7 +93,11 @@ describe('filterTreeBySource', () => {
   });
 
   it('handles nodes without source', () => {
-    const child = makeNode({ id: '2', name: 'Button', source: 'src/Button.tsx' });
+    const child = makeNode({
+      id: '2',
+      name: 'Button',
+      source: 'src/Button.tsx',
+    });
     const root = makeNode({
       id: '1',
       name: 'App',
