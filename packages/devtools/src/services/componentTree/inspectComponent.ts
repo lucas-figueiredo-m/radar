@@ -15,7 +15,6 @@ const serializeProps = (fiber: FiberNode): SerializedEntry[] => {
   }
 
   return Object.entries(props)
-    .filter(([key]) => key !== 'children')
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, value]) => ({
       key,

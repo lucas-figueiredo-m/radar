@@ -7,9 +7,21 @@ const PREVIEW_KEYS = 3;
 
 const isReactElement = (value: object): boolean => '$$typeof' in value;
 
-type ReactElementLike = {
-  type?: { displayName?: string; name?: string } | string;
-};
+type ElementType =
+  | {
+      displayName?: string;
+      name?: string;
+      $$typeof?: symbol;
+      render?: { displayName?: string; name?: string };
+      type?: { displayName?: string; name?: string };
+    }
+  | ((...args: unknown[]) => unknown)
+  | string;
+
+type ReactElementLike = { type?: ElementType };
+
+const FORWARD_REF_TYPEOF = Symbol.for('react.forward_ref');
+const MEMO_TYPEOF = Symbol.for('react.memo');
 
 const getElementTypeName = (value: ReactElementLike): string => {
   const elementType = value.type;
@@ -18,11 +30,24 @@ const getElementTypeName = (value: ReactElementLike): string => {
     return elementType;
   }
 
+  if (typeof elementType === 'function') {
+    const fn = elementType as { displayName?: string; name?: string };
+    return fn.displayName ?? fn.name ?? 'Unknown';
+  }
+
   if (
     elementType !== null &&
     elementType !== undefined &&
     typeof elementType === 'object'
   ) {
+    if (elementType.$$typeof === FORWARD_REF_TYPEOF) {
+      return 'ForwardRef';
+    }
+
+    if (elementType.$$typeof === MEMO_TYPEOF) {
+      return 'Memo';
+    }
+
     return elementType.displayName ?? elementType.name ?? 'Unknown';
   }
 
