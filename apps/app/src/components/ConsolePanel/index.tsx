@@ -1,57 +1,49 @@
-import { Fragment, useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { Copy, Check } from 'lucide-react';
+import {
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
 import { colorValues } from '@radar/design-system';
-import { ValueRenderer } from './ValueRenderer';
-import { groupConsecutiveLogs, formatArg, LEVEL_STYLES } from '../utils';
-import { formatTime } from '../utils';
-import type { LogEntry, LogLevel } from '../types';
+import { ValueRenderer } from '..';
+import {
+  groupConsecutiveLogs,
+  formatArg,
+  LEVEL_STYLES,
+  formatTime,
+} from '../../utils';
+import type { LogEntry, LogLevel } from '../../types';
+import { CopyButton } from './CopyButton';
 
-const CopyButton = ({ text }: { text: string }) => {
-  const [copied, setCopied] = useState(false);
+export { CopyButton } from './CopyButton';
+export type { CopyButtonProps } from './CopyButton';
 
-  const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1000);
-    });
-  }, [text]);
-
-  return (
-    <button
-      onClick={handleCopy}
-      className="shrink-0 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-150 flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-bg-elevated cursor-pointer"
-      aria-label="Copy log entry"
-    >
-      {copied ? (
-        <>
-          <Check size={14} className="text-status-success" />
-          <span className="text-[11px] text-status-success">Copied</span>
-        </>
-      ) : (
-        <>
-          <Copy size={14} className="text-text-tertiary" />
-          <span className="text-[11px] text-text-tertiary">Copy</span>
-        </>
-      )}
-    </button>
-  );
-};
-
-interface ConsolePanelProps {
+export interface ConsolePanelProps {
   logs: LogEntry[];
   connected: boolean;
   filter: LogLevel | 'all';
   onFilterChange: (level: LogLevel | 'all') => void;
 }
 
-export const ConsolePanel = ({ logs, connected, filter, onFilterChange }: ConsolePanelProps) => {
+export const ConsolePanel = ({
+  logs,
+  connected,
+  filter,
+  onFilterChange,
+}: ConsolePanelProps) => {
   const bottomRef = useRef<HTMLDivElement>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
-  const filteredLogs = filter === 'all' ? logs : logs.filter((l) => l.level === filter);
-  const grouped = useMemo(() => groupConsecutiveLogs(filteredLogs), [filteredLogs]);
+  const filteredLogs =
+    filter === 'all' ? logs : logs.filter(l => l.level === filter);
+  const grouped = useMemo(
+    () => groupConsecutiveLogs(filteredLogs),
+    [filteredLogs],
+  );
 
   const toggleGroup = useCallback((index: number) => {
-    setExpandedGroups((prev) => {
+    setExpandedGroups(prev => {
       const next = new Set(prev);
       if (next.has(index)) {
         next.delete(index);
@@ -70,7 +62,7 @@ export const ConsolePanel = ({ logs, connected, filter, onFilterChange }: Consol
     <>
       {/* Filter bar */}
       <div className="flex gap-1 px-4 py-2 border-b border-border-subtle shrink-0">
-        {(['all', 'log', 'warn', 'error', 'debug'] as const).map((level) => (
+        {(['all', 'log', 'warn', 'error', 'debug'] as const).map(level => (
           <button
             key={level}
             onClick={() => onFilterChange(level)}
@@ -86,7 +78,9 @@ export const ConsolePanel = ({ logs, connected, filter, onFilterChange }: Consol
                   : LEVEL_STYLES[level].color,
             }}
           >
-            {level} {level !== 'all' && `(${logs.filter((l) => l.level === level).length})`}
+            {level}{' '}
+            {level !== 'all' &&
+              `(${logs.filter(l => l.level === level).length})`}
           </button>
         ))}
       </div>
@@ -149,7 +143,7 @@ export const ConsolePanel = ({ logs, connected, filter, onFilterChange }: Consol
 
                 {/* Expanded individual entries */}
                 {isExpanded &&
-                  group.entries.slice(1).map((entry) => (
+                  group.entries.slice(1).map(entry => (
                     <div
                       key={entry.id}
                       className="group flex gap-2.5 px-4 py-1.5 border-b border-border-subtle items-start pl-8 opacity-70"

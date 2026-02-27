@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ToggleLeft, ToggleRight } from 'lucide-react';
-import { ipcRenderer } from '../services';
+import { ipcRenderer } from '../../services';
 
 export const DevToolsPanel = () => {
   const [inspectorOpen, setInspectorOpen] = useState(false);

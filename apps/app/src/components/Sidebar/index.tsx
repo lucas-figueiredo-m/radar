@@ -1,36 +1,12 @@
 import {
-  Smartphone,
-  GitBranch,
-  Activity,
-  Wifi,
-  Database,
-  Terminal,
-  Gauge,
   Wrench,
   PanelLeftClose,
   PanelLeftOpen,
-  type LucideIcon,
 } from 'lucide-react';
-import type { Tab } from '../types';
+import type { Tab } from '../../types';
+import { NAV_ITEMS } from './constants';
 
-interface NavItem {
-  id: Tab | string;
-  icon: LucideIcon;
-  label: string;
-  enabled: boolean;
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { id: 'device',   icon: Smartphone, label: 'Device View',     enabled: false },
-  { id: 'tree',     icon: GitBranch,  label: 'Components Tree', enabled: false },
-  { id: 'profiler', icon: Activity,   label: 'Profiler',        enabled: false },
-  { id: 'network',  icon: Wifi,       label: 'Network',         enabled: true },
-  { id: 'storage',  icon: Database,   label: 'Storage',         enabled: false },
-  { id: 'console',  icon: Terminal,   label: 'Console',         enabled: true },
-  { id: 'metrics',  icon: Gauge,      label: 'Native Metrics',  enabled: false },
-];
-
-interface SidebarProps {
+export interface SidebarProps {
   tab: Tab;
   expanded: boolean;
   onTabChange: (tab: Tab) => void;

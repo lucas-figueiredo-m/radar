@@ -1,7 +1,6 @@
-import { DetailSection } from './DetailSection';
-import { DetailRow } from './DetailRow';
-import { formatTime, formatDuration } from '../utils';
-import type { NetworkEntry } from '../types';
+import { DetailSection, DetailRow } from '..';
+import { formatTime, formatDuration } from '../../utils';
+import type { NetworkEntry } from '../../types';
 
 interface NetworkDetailPanelProps {
   request: NetworkEntry;

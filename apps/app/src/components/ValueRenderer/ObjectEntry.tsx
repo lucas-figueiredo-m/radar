@@ -1,0 +1,69 @@
+import { Fragment, useState } from 'react';
+import { colorValues } from '@radar/design-system';
+import { SYNTAX_COLORS } from './constants';
+import { ValueRenderer } from './index';
+
+export interface ObjectEntryProps {
+  value: Record<string, unknown>;
+}
+
+export const ObjectEntry = ({ value }: ObjectEntryProps) => {
+  const [expanded, setExpanded] = useState(false);
+  const entries = Object.entries(value);
+  const hasOverflow = entries.length > 3;
+
+  if (expanded) {
+    return (
+      <div className="flex flex-col">
+        <span
+          onClick={() => setExpanded(false)}
+          className="cursor-pointer select-none"
+        >
+          <span style={{ color: SYNTAX_COLORS.bracket }}>{'{ '}</span>
+          <span className="text-[11px]" style={{ color: colorValues['text-tertiary'] }}>
+            ▼ {entries.length} {entries.length === 1 ? 'key' : 'keys'}
+          </span>
+        </span>
+        <div className="flex flex-col pl-[2ch]">
+          {entries.map(([k, v], i) => (
+            <div key={k}>
+              <span style={{ color: SYNTAX_COLORS.key }}>{k}</span>
+              <span style={{ color: SYNTAX_COLORS.bracket }}>: </span>
+              <ValueRenderer value={v} inline={false} />
+              {i < entries.length - 1 && (
+                <span style={{ color: SYNTAX_COLORS.bracket }}>,</span>
+              )}
+            </div>
+          ))}
+        </div>
+        <span style={{ color: SYNTAX_COLORS.bracket }}>{'}'}</span>
+      </div>
+    );
+  }
+
+  return (
+    <span
+      className="inline-flex max-w-full cursor-pointer items-baseline gap-1"
+      onClick={() => setExpanded(true)}
+    >
+      <span className="shrink-0 text-[11px] select-none" style={{ color: colorValues['text-tertiary'] }}>
+        ▶
+      </span>
+      <span className="truncate">
+        <span style={{ color: SYNTAX_COLORS.bracket }}>{'{ '}</span>
+        {entries.slice(0, 3).map(([k, v], i) => (
+          <Fragment key={k}>
+            {i > 0 && <span style={{ color: SYNTAX_COLORS.bracket }}>, </span>}
+            <span style={{ color: SYNTAX_COLORS.key }}>{k}</span>
+            <span style={{ color: SYNTAX_COLORS.bracket }}>: </span>
+            <ValueRenderer value={v} inline={false} />
+          </Fragment>
+        ))}
+        {hasOverflow && (
+          <span style={{ color: SYNTAX_COLORS.bracket }}>, ...+{entries.length - 3}</span>
+        )}
+        <span style={{ color: SYNTAX_COLORS.bracket }}>{' }'}</span>
+      </span>
+    </span>
+  );
+};

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Sidebar } from './components/Sidebar';
-import { Header } from './components/Header';
-import { ConsolePanel } from './components/ConsolePanel';
-import { NetworkPanel } from './components/NetworkPanel';
-import { StatusBar } from './components/StatusBar';
-import { DevToolsPanel } from './components/DevToolsPanel';
+import {
+  Sidebar,
+  Header,
+  ConsolePanel,
+  NetworkPanel,
+  StatusBar,
+  DevToolsPanel,
+} from './components';
 import { useDevTools } from './hooks';
 import type { Tab } from './types';
 

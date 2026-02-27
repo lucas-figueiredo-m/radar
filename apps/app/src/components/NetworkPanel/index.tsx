@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { colorValues } from '@radar/design-system';
-import { NetworkDetailPanel } from './NetworkDetailPanel';
-import { METHOD_COLORS, statusColor, formatDuration, truncateUrl, urlHost } from '../utils';
-import type { NetworkEntry } from '../types';
+import { NetworkDetailPanel } from '..';
+import { METHOD_COLORS, statusColor, formatDuration, truncateUrl, urlHost } from '../../utils';
+import type { NetworkEntry } from '../../types';
 
 interface NetworkPanelProps {
   requests: NetworkEntry[];
