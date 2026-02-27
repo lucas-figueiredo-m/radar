@@ -1,5 +1,6 @@
 export { formatTime } from './formatTime';
 export { formatDuration } from './formatDuration';
+export { formatGap } from './formatGap';
 export { formatArg } from './formatArg';
 export { groupConsecutiveLogs } from './groupConsecutiveLogs';
 export { LEVEL_STYLES } from './levelStyles';

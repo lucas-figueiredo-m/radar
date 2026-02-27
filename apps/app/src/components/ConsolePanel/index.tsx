@@ -16,9 +16,14 @@ import {
 } from '../../utils';
 import type { LogEntry, LogLevel } from '../../types';
 import { CopyButton } from './CopyButton';
+import { TimeGapSeparator } from './TimeGapSeparator';
+import { TIME_GAP_THRESHOLD_MS } from './constants';
 
 export { CopyButton } from './CopyButton';
 export type { CopyButtonProps } from './CopyButton';
+export { TimeGapSeparator } from './TimeGapSeparator';
+export type { TimeGapSeparatorProps } from './TimeGapSeparator';
+export { TIME_GAP_THRESHOLD_MS } from './constants';
 
 export type ConsolePanelProps = {
   logs: LogEntry[];
@@ -98,9 +103,16 @@ export const ConsolePanel = ({
             const s = LEVEL_STYLES[group.level];
             const plainText = group.args.map(formatArg).join(' ');
             const isExpanded = expandedGroups.has(groupIndex);
+            const prevGroup = grouped[groupIndex - 1];
+            const gapMs = prevGroup
+              ? group.firstTimestamp - prevGroup.lastTimestamp
+              : 0;
 
             return (
               <div key={group.entries[0].id}>
+                {gapMs >= TIME_GAP_THRESHOLD_MS && (
+                  <TimeGapSeparator gapMs={gapMs} />
+                )}
                 {/* Main row */}
                 <div
                   className="group flex gap-2.5 px-4 py-1.5 border-b border-border-subtle items-start"
