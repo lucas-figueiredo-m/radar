@@ -14,8 +14,8 @@ export const HooksSection = ({ hooks }: HooksSectionProps) => (
       <span className="text-text-tertiary text-xs">No hooks</span>
     ) : (
       hooks.map(hook => (
-        <div key={hook.index} className="flex items-start gap-2 py-0.5 text-xs">
-          <span className="text-text-tertiary">{hook.index}</span>
+        <div key={hook.index} className="py-0.5 text-xs">
+          <span className="text-text-tertiary">{hook.index}</span>{' '}
           <span
             style={{
               color:
@@ -23,7 +23,7 @@ export const HooksSection = ({ hooks }: HooksSectionProps) => (
             }}
           >
             {hook.type}
-          </span>
+          </span>{' '}
           <SerializedValueRenderer value={hook.value} />
         </div>
       ))
