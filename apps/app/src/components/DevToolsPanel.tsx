@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { ToggleLeft, ToggleRight } from 'lucide-react';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const electron = (window as any).require?.('electron');
-const ipcRenderer = electron?.ipcRenderer;
+import { ipcRenderer } from '../services';
 
 export const DevToolsPanel = () => {
   const [inspectorOpen, setInspectorOpen] = useState(false);

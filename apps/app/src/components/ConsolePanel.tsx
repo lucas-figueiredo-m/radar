@@ -2,94 +2,9 @@ import { Fragment, useEffect, useRef, useState, useCallback, useMemo } from 'rea
 import { Copy, Check } from 'lucide-react';
 import { colorValues } from '@radar/design-system';
 import { ValueRenderer } from './ValueRenderer';
-
-type LogLevel = 'log' | 'warn' | 'error' | 'debug';
-
-interface LogEntry {
-  id: number;
-  level: LogLevel;
-  args: unknown[];
-  timestamp: number;
-}
-
-interface GroupedLogEntry {
-  key: string;
-  entries: LogEntry[];
-  level: LogLevel;
-  args: unknown[];
-  firstTimestamp: number;
-  lastTimestamp: number;
-  count: number;
-}
-
-const logContentKey = (entry: LogEntry): string =>
-  `${entry.level}:${entry.args.map((a) => JSON.stringify(a)).join('|')}`;
-
-const groupConsecutiveLogs = (logs: LogEntry[]): GroupedLogEntry[] => {
-  const groups: GroupedLogEntry[] = [];
-  for (const entry of logs) {
-    const key = logContentKey(entry);
-    const last = groups[groups.length - 1];
-    if (last && last.key === key) {
-      last.entries.push(entry);
-      last.lastTimestamp = entry.timestamp;
-      last.count++;
-    } else {
-      groups.push({
-        key,
-        entries: [entry],
-        level: entry.level,
-        args: entry.args,
-        firstTimestamp: entry.timestamp,
-        lastTimestamp: entry.timestamp,
-        count: 1,
-      });
-    }
-  }
-  return groups;
-};
-
-const LEVEL_STYLES: Record<LogLevel, { bg: string; color: string; label: string }> = {
-  log:   { bg: colorValues['bg-surface'],      color: colorValues['text-primary'],   label: 'LOG' },
-  warn:  { bg: colorValues['status-warning-bg'], color: colorValues['status-warning'], label: 'WRN' },
-  error: { bg: colorValues['status-error-bg'],   color: colorValues['status-error'],   label: 'ERR' },
-  debug: { bg: colorValues['bg-surface'],      color: colorValues['status-info'],    label: 'DBG' },
-};
-
-const formatArg = (arg: unknown): string => {
-  if (arg === null) return 'null';
-  if (arg === undefined) return 'undefined';
-  if (typeof arg === 'string') return arg;
-  if (typeof arg === 'number' || typeof arg === 'boolean') return String(arg);
-  if (
-    typeof arg === 'object' &&
-    arg !== null &&
-    '__type' in (arg as Record<string, unknown>) &&
-    (arg as Record<string, unknown>).__type === 'Error'
-  ) {
-    const err = arg as { message: string; stack?: string };
-    return `Error: ${err.message}${err.stack ? '\n' + err.stack : ''}`;
-  }
-  try {
-    return JSON.stringify(arg, null, 2);
-  } catch {
-    return String(arg);
-  }
-};
-
-const formatTime = (ts: number): string => {
-  const d = new Date(ts);
-  return (
-    d.toLocaleTimeString('en-US', {
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }) +
-    '.' +
-    String(d.getMilliseconds()).padStart(3, '0')
-  );
-};
+import { groupConsecutiveLogs, formatArg, LEVEL_STYLES } from '../utils';
+import { formatTime } from '../utils';
+import type { LogEntry, LogLevel } from '../types';
 
 const CopyButton = ({ text }: { text: string }) => {
   const [copied, setCopied] = useState(false);
@@ -262,5 +177,3 @@ export const ConsolePanel = ({ logs, connected, filter, onFilterChange }: Consol
     </>
   );
 };
-
-export type { LogEntry, LogLevel };

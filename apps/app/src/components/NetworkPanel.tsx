@@ -1,60 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { colorValues } from '@radar/design-system';
 import { NetworkDetailPanel } from './NetworkDetailPanel';
-
-interface NetworkEntry {
-  id: string;
-  method: string;
-  url: string;
-  status?: number;
-  statusText?: string;
-  duration?: number;
-  requestHeaders?: Record<string, string>;
-  requestBody?: unknown;
-  responseHeaders?: Record<string, string>;
-  responseBody?: unknown;
-  timestamp: number;
-  pending: boolean;
-}
-
-const METHOD_COLORS: Record<string, string> = {
-  GET: colorValues['method-get'],
-  POST: colorValues['method-post'],
-  PUT: colorValues['method-put'],
-  PATCH: colorValues['method-put'],
-  DELETE: colorValues['method-delete'],
-};
-
-const statusColor = (status?: number): string => {
-  if (!status || status === 0) return colorValues['status-error'];
-  if (status < 300) return colorValues['status-success'];
-  if (status < 400) return colorValues['status-warning'];
-  return colorValues['status-error'];
-};
-
-const formatDuration = (ms?: number): string => {
-  if (ms === undefined) return '...';
-  if (ms < 1000) return `${ms}ms`;
-  return `${(ms / 1000).toFixed(2)}s`;
-};
-
-const truncateUrl = (url: string): string => {
-  try {
-    const u = new URL(url);
-    const path = u.pathname + u.search;
-    return path.length > 60 ? path.slice(0, 60) + '...' : path;
-  } catch {
-    return url.length > 60 ? url.slice(0, 60) + '...' : url;
-  }
-};
-
-const urlHost = (url: string): string => {
-  try {
-    return new URL(url).host;
-  } catch {
-    return '';
-  }
-};
+import { METHOD_COLORS, statusColor, formatDuration, truncateUrl, urlHost } from '../utils';
+import type { NetworkEntry } from '../types';
 
 interface NetworkPanelProps {
   requests: NetworkEntry[];
@@ -144,5 +92,3 @@ export const NetworkPanel = ({
     </div>
   );
 };
-
-export type { NetworkEntry };

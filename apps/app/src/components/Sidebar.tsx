@@ -11,8 +11,7 @@ import {
   PanelLeftOpen,
   type LucideIcon,
 } from 'lucide-react';
-
-type Tab = 'console' | 'network' | 'devtools';
+import type { Tab } from '../types';
 
 interface NavItem {
   id: Tab | string;

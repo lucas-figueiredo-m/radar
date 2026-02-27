@@ -10,4 +10,7 @@
  - **NEVER** use class components. Use functional components instead.
  - **NEVER** use `any` , `unknown` or `never`. **ALWAYS** type things properly.
  - **NEVER** type cast to any type. Use proper type annotations instead.
+ - **ALWAYS** use barrel files to export components, hooks, etc.
+ - **PREFER** named exports over default exports.
+ - EVERY file must export ONLY ONE thing.
 </code-style

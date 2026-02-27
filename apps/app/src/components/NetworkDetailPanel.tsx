@@ -1,26 +1,7 @@
 import { DetailSection } from './DetailSection';
 import { DetailRow } from './DetailRow';
-import type { NetworkEntry } from './NetworkPanel';
-
-const formatTime = (ts: number): string => {
-  const d = new Date(ts);
-  return (
-    d.toLocaleTimeString('en-US', {
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }) +
-    '.' +
-    String(d.getMilliseconds()).padStart(3, '0')
-  );
-};
-
-const formatDuration = (ms?: number): string => {
-  if (ms === undefined) return '...';
-  if (ms < 1000) return `${ms}ms`;
-  return `${(ms / 1000).toFixed(2)}s`;
-};
+import { formatTime, formatDuration } from '../utils';
+import type { NetworkEntry } from '../types';
 
 interface NetworkDetailPanelProps {
   request: NetworkEntry;

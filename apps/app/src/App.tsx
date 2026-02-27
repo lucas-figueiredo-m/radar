@@ -5,14 +5,8 @@ import { ConsolePanel } from './components/ConsolePanel';
 import { NetworkPanel } from './components/NetworkPanel';
 import { StatusBar } from './components/StatusBar';
 import { DevToolsPanel } from './components/DevToolsPanel';
-import type { LogEntry, LogLevel } from './components/ConsolePanel';
-import type { NetworkEntry } from './components/NetworkPanel';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const electron = (window as any).require?.('electron');
-const ipcRenderer = electron?.ipcRenderer;
-
-type Tab = 'console' | 'network' | 'devtools';
+import { ipcRenderer } from './services';
+import type { LogEntry, LogLevel, NetworkEntry, Tab } from './types';
 
 let nextLogId = 0;
 
