@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Maximize2, Minimize2 } from 'lucide-react';
-import type { ComponentTreeNode } from '@radar/types';
+import type { ComponentTreeNode, InspectedComponentData } from '@radar/types';
 import type { ComponentTreeState } from '../../types';
 import { countNodes } from '../../utils';
+import { ComponentInspector } from '..';
 import { TreeNode } from './TreeNode';
 import { DEFAULT_EXPAND_DEPTH } from './constants';
 
@@ -13,6 +14,10 @@ export { DEFAULT_EXPAND_DEPTH } from './constants';
 export type ComponentTreePanelProps = {
   tree: ComponentTreeState | null;
   connected: boolean;
+  selectedComponentId: string | null;
+  inspectedComponent: InspectedComponentData | null;
+  onInspectComponent: (id: string) => void;
+  onClearInspection: () => void;
 };
 
 const collectNodeIds = (
@@ -33,6 +38,10 @@ const collectAllNodeIds = (nodes: ComponentTreeNode[]): string[] =>
 export const ComponentTreePanel = ({
   tree,
   connected,
+  selectedComponentId,
+  inspectedComponent,
+  onInspectComponent,
+  onClearInspection,
 }: ComponentTreePanelProps) => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [hasAutoExpanded, setHasAutoExpanded] = useState(false);
@@ -70,7 +79,7 @@ export const ComponentTreePanel = ({
   const nodeCount = tree ? countNodes(tree.rootNodes) : 0;
 
   return (
-    <>
+    <div className="flex-1 flex flex-col overflow-hidden">
       {/* Toolbar */}
       <div className="flex items-center gap-2 px-4 py-2 border-b border-border-subtle shrink-0">
         <button
@@ -92,26 +101,43 @@ export const ComponentTreePanel = ({
         </span>
       </div>
 
-      {/* Tree content */}
-      <div className="flex-1 overflow-auto">
-        {tree === null ? (
-          <div className="flex items-center justify-center h-full text-text-tertiary">
-            {connected
-              ? 'No component tree yet. Waiting for React to render...'
-              : 'Waiting for React Native app to connect on port 8347...'}
-          </div>
-        ) : (
-          tree.rootNodes.map(node => (
-            <TreeNode
-              key={node.id}
-              node={node}
-              depth={0}
-              expandedNodes={expandedNodes}
-              onToggleNode={handleToggleNode}
-            />
-          ))
+      {/* Content area: tree + inspector side by side */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Tree */}
+        <div
+          className={`flex-1 overflow-auto ${
+            inspectedComponent ? 'border-r border-border-default' : ''
+          }`}
+        >
+          {tree === null ? (
+            <div className="flex items-center justify-center h-full text-text-tertiary">
+              {connected
+                ? 'No component tree yet. Waiting for React to render...'
+                : 'Waiting for React Native app to connect on port 8347...'}
+            </div>
+          ) : (
+            tree.rootNodes.map(node => (
+              <TreeNode
+                key={node.id}
+                node={node}
+                depth={0}
+                expandedNodes={expandedNodes}
+                onToggleNode={handleToggleNode}
+                selectedNodeId={selectedComponentId}
+                onSelectNode={onInspectComponent}
+              />
+            ))
+          )}
+        </div>
+
+        {/* Inspector panel */}
+        {inspectedComponent && (
+          <ComponentInspector
+            data={inspectedComponent}
+            onClose={onClearInspection}
+          />
         )}
       </div>
-    </>
+    </div>
   );
 };

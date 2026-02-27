@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import type {
   ComponentTreeMessage,
   ConsoleMessage,
+  InspectedComponentData,
+  InspectComponentResponse,
   NetworkMessage,
   RadarMessage,
 } from '@radar/types';
-import { ipcRenderer } from '../services';
+import { ipcRenderer, sendCommand } from '../services';
 import type {
   ComponentTreeState,
   LogEntry,
@@ -24,6 +26,11 @@ export const useDevTools = () => {
   const [connected, setConnected] = useState(false);
   const [filter, setFilter] = useState<LogLevel | 'all'>('all');
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
+  const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
+    null,
+  );
+  const [inspectedComponent, setInspectedComponent] =
+    useState<InspectedComponentData | null>(null);
 
   useEffect(() => {
     const onMessage = (_event: unknown, message: RadarMessage) => {
@@ -77,6 +84,11 @@ export const useDevTools = () => {
           rootNodes: msg.rootNodes,
           timestamp: msg.timestamp,
         });
+      } else if (message.type === 'inspectComponent') {
+        const msg: InspectComponentResponse = message;
+        if (msg.componentId === selectedComponentId) {
+          setInspectedComponent(msg.data);
+        }
       }
     };
 
@@ -91,7 +103,7 @@ export const useDevTools = () => {
       ipcRenderer.removeListener('radar:message', onMessage);
       ipcRenderer.removeListener('radar:connection', onConnection);
     };
-  }, []);
+  }, [selectedComponentId]);
 
   const filteredLogs =
     filter === 'all' ? logs : logs.filter(l => l.level === filter);
@@ -105,6 +117,20 @@ export const useDevTools = () => {
 
   const clearComponentTree = () => setComponentTree(null);
 
+  const inspectComponentById = (componentId: string) => {
+    setSelectedComponentId(componentId);
+    sendCommand({
+      type: 'inspectComponent',
+      direction: 'request',
+      componentId,
+    });
+  };
+
+  const clearInspection = () => {
+    setSelectedComponentId(null);
+    setInspectedComponent(null);
+  };
+
   return {
     logs,
     filteredLogs,
@@ -115,8 +141,12 @@ export const useDevTools = () => {
     selectedRequest,
     setSelectedRequest,
     componentTree,
+    selectedComponentId,
+    inspectedComponent,
     clearLogs,
     clearRequests,
     clearComponentTree,
+    inspectComponent: inspectComponentById,
+    clearInspection,
   };
 };

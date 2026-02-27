@@ -1,3 +1,4 @@
+export { ComponentInspector } from './ComponentInspector';
 export { ComponentTreePanel } from './ComponentTreePanel';
 export { ConsolePanel } from './ConsolePanel';
 export { DetailRow } from './DetailRow';

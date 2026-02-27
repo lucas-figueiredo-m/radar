@@ -1,34 +1,16 @@
 import type { RadarMessage } from '@radar/types';
+import type { FiberNode, FiberRoot } from './fiberTypes';
 import { walkFiber } from './walkFiber';
+import { fiberIdMap } from './fiberIdMap';
 import { COMPONENT_TREE_THROTTLE_MS } from './constants';
 
 type Send = (message: RadarMessage) => void;
-
-type FiberNode = {
-  tag: number;
-  type:
-    | {
-        displayName?: string;
-        name?: string;
-        render?: { displayName?: string; name?: string };
-        type?: { displayName?: string; name?: string };
-      }
-    | string
-    | null;
-  child: FiberNode | null;
-  sibling: FiberNode | null;
-  key: string | null;
-};
-
-type FiberRoot = {
-  current: FiberNode;
-};
 
 type ReactDevToolsHook = {
   supportsFiber: boolean;
   inject: (renderer: Record<string, unknown>) => number;
   onCommitFiberRoot: (rendererID: number, root: FiberRoot) => void;
-  onCommitFiberUnmount: () => void;
+  onCommitFiberUnmount: (rendererID: number, fiber: FiberNode) => void;
 };
 
 type GlobalWithHook = typeof globalThis & {
@@ -80,6 +62,10 @@ export const installComponentTreeHook = (send: Send) => {
     throttle(() => handleCommit(root));
   };
 
+  const handleUnmount = (_rendererID: number, fiber: FiberNode) => {
+    fiberIdMap.removeFiber(fiber);
+  };
+
   const typedGlobal = globalThis as GlobalWithHook;
   const existingHook = typedGlobal.__REACT_DEVTOOLS_GLOBAL_HOOK__;
 
@@ -89,6 +75,15 @@ export const installComponentTreeHook = (send: Send) => {
       originalOnCommit.call(existingHook, rendererID, root);
       throttledHandleCommit(root);
     };
+
+    const originalOnUnmount = existingHook.onCommitFiberUnmount;
+    existingHook.onCommitFiberUnmount = (
+      rendererID: number,
+      fiber: FiberNode,
+    ) => {
+      originalOnUnmount.call(existingHook, rendererID, fiber);
+      handleUnmount(rendererID, fiber);
+    };
   } else {
     typedGlobal.__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
       supportsFiber: true,
@@ -96,7 +91,7 @@ export const installComponentTreeHook = (send: Send) => {
       onCommitFiberRoot: (_rendererID: number, root: FiberRoot) => {
         throttledHandleCommit(root);
       },
-      onCommitFiberUnmount: () => {},
+      onCommitFiberUnmount: handleUnmount,
     };
   }
 };

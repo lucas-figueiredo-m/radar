@@ -1,9 +1,11 @@
-import type { LogLevel, RadarMessage } from '@radar/types';
+import type { LogLevel, RadarCommand, RadarMessage } from '@radar/types';
 import { RECONNECT_DELAY_MS } from './constants';
 
 type Logger = Record<LogLevel, (...args: unknown[]) => void>;
 
-export const createConnection = () => {
+export const createConnection = (
+  onMessage?: (command: RadarCommand) => void,
+) => {
   let ws: WebSocket | null = null;
   const messageQueue: RadarMessage[] = [];
 
@@ -37,6 +39,16 @@ export const createConnection = () => {
         logger.log('[radar] disconnected, reconnecting in 3s...');
         ws = null;
         setTimeout(() => connect(host, port, logger), RECONNECT_DELAY_MS);
+      };
+
+      ws.onmessage = (event: MessageEvent) => {
+        if (!onMessage) return;
+        try {
+          const command = JSON.parse(event.data as string) as RadarCommand;
+          onMessage(command);
+        } catch (err) {
+          logger.error('[radar] Failed to parse incoming command:', err);
+        }
       };
 
       ws.onerror = () => {

@@ -26,9 +26,13 @@ const App = () => {
     selectedRequest,
     setSelectedRequest,
     componentTree,
+    selectedComponentId,
+    inspectedComponent,
     clearLogs,
     clearRequests,
     clearComponentTree,
+    inspectComponent,
+    clearInspection,
   } = useDevTools();
 
   const handleClear = () => {
@@ -63,7 +67,16 @@ const App = () => {
         onSelectRequest={setSelectedRequest}
       />
     ),
-    tree: <ComponentTreePanel tree={componentTree} connected={connected} />,
+    tree: (
+      <ComponentTreePanel
+        tree={componentTree}
+        connected={connected}
+        selectedComponentId={selectedComponentId}
+        inspectedComponent={inspectedComponent}
+        onInspectComponent={inspectComponent}
+        onClearInspection={clearInspection}
+      />
+    ),
     devtools: <DevToolsPanel />,
   };
 

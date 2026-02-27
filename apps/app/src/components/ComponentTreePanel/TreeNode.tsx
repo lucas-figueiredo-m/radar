@@ -6,6 +6,8 @@ export type TreeNodeProps = {
   depth: number;
   expandedNodes: Set<string>;
   onToggleNode: (id: string) => void;
+  selectedNodeId: string | null;
+  onSelectNode: (id: string) => void;
 };
 
 export const TreeNode = ({
@@ -13,18 +15,31 @@ export const TreeNode = ({
   depth,
   expandedNodes,
   onToggleNode,
+  selectedNodeId,
+  onSelectNode,
 }: TreeNodeProps) => {
   const hasChildren = node.children.length > 0;
   const isExpanded = expandedNodes.has(node.id);
+  const isSelected = selectedNodeId === node.id;
 
   return (
     <>
       <div
-        className="flex items-center py-0.5 cursor-pointer hover:bg-bg-surface"
+        className={`flex items-center py-0.5 cursor-pointer ${
+          isSelected ? 'bg-bg-elevated' : 'hover:bg-bg-surface'
+        }`}
         style={{ paddingLeft: depth * 16 + 8 }}
-        onClick={() => hasChildren && onToggleNode(node.id)}
+        onClick={() => onSelectNode(node.id)}
       >
-        <span className="w-4 h-4 shrink-0 flex items-center justify-center">
+        <span
+          className="w-4 h-4 shrink-0 flex items-center justify-center"
+          onClick={e => {
+            if (hasChildren) {
+              e.stopPropagation();
+              onToggleNode(node.id);
+            }
+          }}
+        >
           {hasChildren && (
             <ChevronRight
               size={12}
@@ -51,6 +66,8 @@ export const TreeNode = ({
             depth={depth + 1}
             expandedNodes={expandedNodes}
             onToggleNode={onToggleNode}
+            selectedNodeId={selectedNodeId}
+            onSelectNode={onSelectNode}
           />
         ))}
     </>

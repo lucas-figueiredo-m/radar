@@ -1,6 +1,7 @@
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import path from 'node:path';
+import type { WebSocket as WsWebSocket } from 'ws';
 import { WebSocketServer } from 'ws';
 
 process.env.DIST = path.join(__dirname, '../dist');
@@ -10,6 +11,7 @@ process.env.VITE_PUBLIC = app.isPackaged
 
 let win: BrowserWindow | null;
 let wss: WebSocketServer | null;
+let activeSocket: WsWebSocket | null = null;
 
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
 const WS_PORT = 8347;
@@ -40,6 +42,10 @@ ipcMain.on('radar:toggle-devtools', () => {
   }
 });
 
+ipcMain.on('radar:command', (_event, command) => {
+  activeSocket?.send(JSON.stringify(command));
+});
+
 function startWebSocketServer() {
   wss = new WebSocketServer({ port: WS_PORT });
 
@@ -48,6 +54,7 @@ function startWebSocketServer() {
   });
 
   wss.on('connection', socket => {
+    activeSocket = socket;
     console.log('[radar] Client connected');
     win?.webContents.send('radar:connection', { connected: true });
 
@@ -61,6 +68,7 @@ function startWebSocketServer() {
     });
 
     socket.on('close', () => {
+      activeSocket = null;
       console.log('[radar] Client disconnected');
       win?.webContents.send('radar:connection', { connected: false });
     });
