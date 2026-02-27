@@ -15,7 +15,8 @@
       "mcp__plugin_linear_linear__list_issues",
       "mcp__plugin_linear_linear__get_issue",
       "Bash(bunx tsc:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(bunx:*)"
     ]
   }
 }
