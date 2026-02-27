@@ -1,104 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { ConsolePanel } from './components/ConsolePanel';
 import { NetworkPanel } from './components/NetworkPanel';
 import { StatusBar } from './components/StatusBar';
 import { DevToolsPanel } from './components/DevToolsPanel';
-import { ipcRenderer } from './services';
-import type { LogEntry, LogLevel, NetworkEntry, Tab } from './types';
-
-let nextLogId = 0;
+import { useDevTools } from './hooks';
+import type { Tab } from './types';
 
 const App = () => {
   const [tab, setTab] = useState<Tab>('console');
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [requests, setRequests] = useState<NetworkEntry[]>([]);
-  const [connected, setConnected] = useState(false);
-  const [filter, setFilter] = useState<LogLevel | 'all'>('all');
-  const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
-  useEffect(() => {
-    const onMessage = (_event: unknown, message: Record<string, unknown>) => {
-      if (message.type === 'console') {
-        setLogs((prev) => [
-          ...prev,
-          {
-            id: nextLogId++,
-            level: message.level as LogLevel,
-            args: message.args as unknown[],
-            timestamp: message.timestamp as number,
-          },
-        ]);
-      } else if (message.type === 'network') {
-        const msg = message as unknown as {
-          id: string;
-          event: string;
-          method: string;
-          url: string;
-          status?: number;
-          statusText?: string;
-          duration?: number;
-          requestHeaders?: Record<string, string>;
-          requestBody?: unknown;
-          responseHeaders?: Record<string, string>;
-          responseBody?: unknown;
-          timestamp: number;
-        };
-
-        if (msg.event === 'request') {
-          setRequests((prev) => [
-            ...prev,
-            {
-              id: msg.id,
-              method: msg.method,
-              url: msg.url,
-              requestHeaders: msg.requestHeaders,
-              requestBody: msg.requestBody,
-              timestamp: msg.timestamp,
-              pending: true,
-            },
-          ]);
-        } else if (msg.event === 'response') {
-          setRequests((prev) =>
-            prev.map((r) =>
-              r.id === msg.id
-                ? {
-                    ...r,
-                    status: msg.status,
-                    statusText: msg.statusText,
-                    duration: msg.duration,
-                    responseHeaders: msg.responseHeaders,
-                    responseBody: msg.responseBody,
-                    pending: false,
-                  }
-                : r,
-            ),
-          );
-        }
-      }
-    };
-
-    const onConnection = (_event: unknown, data: { connected: boolean }) => {
-      setConnected(data.connected);
-    };
-
-    ipcRenderer.on('radar:message', onMessage);
-    ipcRenderer.on('radar:connection', onConnection);
-
-    return () => {
-      ipcRenderer.removeListener('radar:message', onMessage);
-      ipcRenderer.removeListener('radar:connection', onConnection);
-    };
-  }, []);
+  const {
+    logs,
+    filteredLogs,
+    requests,
+    connected,
+    filter,
+    setFilter,
+    selectedRequest,
+    setSelectedRequest,
+    clearLogs,
+    clearRequests,
+  } = useDevTools();
 
   const handleClear = () => {
     if (tab === 'console') {
-      setLogs([]);
+      clearLogs();
     } else {
-      setRequests([]);
-      setSelectedRequest(null);
+      clearRequests();
     }
   };
 
@@ -106,8 +37,6 @@ const App = () => {
     setTab(newTab);
     setSelectedRequest(null);
   };
-
-  const filteredLogs = filter === 'all' ? logs : logs.filter((l) => l.level === filter);
 
   const panels: Record<Tab, React.ReactNode> = {
     console: (
