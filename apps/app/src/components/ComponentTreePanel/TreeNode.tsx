@@ -51,8 +51,7 @@ export const TreeNode = ({
   const isSelected = selectedNodeId === node.id;
   const isCurrentMatch = currentMatchId === node.id;
   const isMatch = matchNodeIds.has(node.id);
-  const childrenInsideSelected =
-    isInsideSelected || (isSelected && isExpanded);
+  const childrenInsideSelected = isInsideSelected || (isSelected && isExpanded);
 
   const rowBg = isCurrentMatch
     ? 'bg-accent-subtle'
