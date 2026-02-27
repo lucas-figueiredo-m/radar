@@ -6,9 +6,10 @@ export type SourceSectionProps = {
 };
 
 export const SourceSection = ({ source }: SourceSectionProps) => {
-  const label = source.lineNumber !== undefined
-    ? `${source.fileName}:${source.lineNumber}`
-    : source.fileName;
+  const label =
+    source.lineNumber !== undefined
+      ? `${source.fileName}:${source.lineNumber}`
+      : source.fileName;
 
   return (
     <DetailSection title="source">
