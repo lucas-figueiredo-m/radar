@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
-import type { ConsoleMessage, NetworkMessage, RadarMessage } from '@radar/types';
+import type {
+  ConsoleMessage,
+  NetworkMessage,
+  RadarMessage,
+} from '@radar/types';
 import { ipcRenderer } from '../services';
 import type { LogEntry, LogLevel, NetworkEntry } from '../types';
 
