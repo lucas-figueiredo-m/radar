@@ -67,7 +67,7 @@ module.exports = (babel) => {
         const relativePath = computeRelativePath(state);
         if (!relativePath) return;
 
-        const makeAssignment = (name) =>
+        const makeSourceFileAssignment = (name) =>
           types.expressionStatement(
             types.assignmentExpression(
               '=',
@@ -79,11 +79,40 @@ module.exports = (babel) => {
             ),
           );
 
+        const makeSourceAssignment = (name, lineNumber) =>
+          types.expressionStatement(
+            types.assignmentExpression(
+              '=',
+              types.memberExpression(
+                types.identifier(name),
+                types.identifier('__source'),
+              ),
+              types.objectExpression([
+                types.objectProperty(
+                  types.identifier('fileName'),
+                  types.stringLiteral(relativePath),
+                ),
+                types.objectProperty(
+                  types.identifier('lineNumber'),
+                  types.numericLiteral(lineNumber),
+                ),
+              ]),
+            ),
+          );
+
+        const insertAssignments = (name, lineNumber, insertAfter) => {
+          insertAfter(makeSourceFileAssignment(name));
+          insertAfter(makeSourceAssignment(name, lineNumber));
+        };
+
         if (types.isFunctionDeclaration(path.node)) {
           const name = path.node.id && path.node.id.name;
           if (!name || !isUpperCase(name)) return;
 
-          path.insertAfter(makeAssignment(name));
+          const lineNumber = (path.node.loc && path.node.loc.start.line) || 0;
+          insertAssignments(name, lineNumber, (node) =>
+            path.insertAfter(node),
+          );
           return;
         }
 
@@ -98,7 +127,11 @@ module.exports = (babel) => {
             if (!isUpperCase(name)) continue;
             if (!isComponentInit(declarator.init, types)) continue;
 
-            path.insertAfter(makeAssignment(name));
+            const lineNumber =
+              (declarator.loc && declarator.loc.start.line) || 0;
+            insertAssignments(name, lineNumber, (node) =>
+              path.insertAfter(node),
+            );
           }
         }
       },

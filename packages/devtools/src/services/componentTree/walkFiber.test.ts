@@ -17,7 +17,7 @@ const makeFiber = (
     memoizedState: null,
     stateNode: null,
     _debugHookTypes: null,
-    _debugSource: null,
+  
     ...rest,
   };
 

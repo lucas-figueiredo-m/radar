@@ -53,6 +53,11 @@ const isComponentInit = (
   return false;
 };
 
+type SourceInfo = {
+  fileName: string;
+  lineNumber: number;
+};
+
 const makeRelative = (root: string, filename: string): string => {
   const normalizedRoot = root.endsWith('/') ? root : root + '/';
 
@@ -92,7 +97,7 @@ export const babelPlugin = (babel: {
         const relativePath = computeRelativePath(state);
         if (!relativePath) return;
 
-        const makeAssignment = (name: string) =>
+        const makeSourceFileAssignment = (name: string) =>
           types.expressionStatement(
             types.assignmentExpression(
               '=',
@@ -104,11 +109,49 @@ export const babelPlugin = (babel: {
             ),
           );
 
+        const makeSourceAssignment = (name: string, source: SourceInfo) =>
+          types.expressionStatement(
+            types.assignmentExpression(
+              '=',
+              types.memberExpression(
+                types.identifier(name),
+                types.identifier('__source'),
+              ),
+              types.objectExpression([
+                types.objectProperty(
+                  types.identifier('fileName'),
+                  types.stringLiteral(source.fileName),
+                ),
+                types.objectProperty(
+                  types.identifier('lineNumber'),
+                  types.numericLiteral(source.lineNumber),
+                ),
+              ]),
+            ),
+          );
+
+        const insertAssignments = (
+          name: string,
+          lineNumber: number,
+          insertAfter: (node: t.Statement) => void,
+        ) => {
+          insertAfter(makeSourceFileAssignment(name));
+          insertAfter(
+            makeSourceAssignment(name, {
+              fileName: relativePath,
+              lineNumber,
+            }),
+          );
+        };
+
         if (types.isFunctionDeclaration(path.node)) {
           const name = path.node.id?.name;
           if (!name || !isUpperCase(name)) return;
 
-          path.insertAfter(makeAssignment(name));
+          const lineNumber = path.node.loc?.start.line ?? 0;
+          insertAssignments(name, lineNumber, node =>
+            path.insertAfter(node),
+          );
           return;
         }
 
@@ -123,7 +166,10 @@ export const babelPlugin = (babel: {
             if (!isUpperCase(name)) continue;
             if (!isComponentInit(declarator.init, types)) continue;
 
-            path.insertAfter(makeAssignment(name));
+            const lineNumber = declarator.loc?.start.line ?? 0;
+            insertAssignments(name, lineNumber, node =>
+              path.insertAfter(node),
+            );
           }
         }
       },

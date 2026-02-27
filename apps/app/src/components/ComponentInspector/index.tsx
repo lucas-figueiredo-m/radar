@@ -2,7 +2,6 @@ import type { InspectedComponentData } from '@radar/types';
 import { PropsSection } from './PropsSection';
 import { HooksSection } from './HooksSection';
 import { RenderedBySection } from './RenderedBySection';
-import { SourceSection } from './SourceSection';
 import { SourceFileSection } from './SourceFileSection';
 
 export type ComponentInspectorProps = {
@@ -38,15 +37,16 @@ export const ComponentInspector = ({
           onInspectComponent={onInspectComponent}
         />
       )}
-      {data.source !== undefined && <SourceSection source={data.source} />}
       {data.sourceFile !== undefined && (
-        <SourceFileSection sourceFile={data.sourceFile} />
+        <SourceFileSection
+          sourceFile={data.sourceFile}
+          lineNumber={data.source?.lineNumber}
+        />
       )}
 
       {data.props.length === 0 &&
         data.hooks.length === 0 &&
         renderedBy.length === 0 &&
-        data.source === undefined &&
         data.sourceFile === undefined && (
           <div className="text-text-tertiary text-xs">No props or hooks</div>
         )}
@@ -62,7 +62,5 @@ export { HooksSection } from './HooksSection';
 export type { HooksSectionProps } from './HooksSection';
 export { RenderedBySection } from './RenderedBySection';
 export type { RenderedBySectionProps } from './RenderedBySection';
-export { SourceSection } from './SourceSection';
-export type { SourceSectionProps } from './SourceSection';
 export { SourceFileSection } from './SourceFileSection';
 export type { SourceFileSectionProps } from './SourceFileSection';

@@ -14,7 +14,7 @@ const makeFiber = (overrides: Partial<FiberNode> = {}): FiberNode => ({
   memoizedState: null,
   stateNode: null,
   _debugHookTypes: null,
-  _debugSource: null,
+
   ...overrides,
 });
 

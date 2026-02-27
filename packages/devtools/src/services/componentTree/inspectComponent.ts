@@ -9,7 +9,7 @@ import { getComponentName } from './getComponentName';
 import { getSourceFile } from './getSourceFile';
 import { serializeValue } from './serializeValue';
 import { serializeHooks } from './serializeHooks';
-import type { FiberNode } from './fiberTypes';
+import type { FiberComponentType, FiberNode } from './fiberTypes';
 
 const FUNCTION_COMPONENT = 0;
 const CLASS_COMPONENT = 1;
@@ -28,7 +28,7 @@ const USER_COMPONENT_TAGS = [
   SIMPLE_MEMO,
 ];
 
-const MAX_RENDERED_BY_DEPTH = 10;
+const MAX_RENDERED_BY_DEPTH = 50;
 
 const serializeProps = (fiber: FiberNode): SerializedEntry[] => {
   const props = fiber.memoizedProps;
@@ -45,14 +45,17 @@ const serializeProps = (fiber: FiberNode): SerializedEntry[] => {
     }));
 };
 
+const isFiberComponentType = (
+  type: FiberNode['type'],
+): type is FiberComponentType => type !== null && typeof type !== 'string';
+
 const getSource = (
   fiber: FiberNode,
 ): InspectedComponentData['source'] | undefined => {
-  if (fiber._debugSource != null) {
+  if (isFiberComponentType(fiber.type) && fiber.type.__source != null) {
     return {
-      fileName: fiber._debugSource.fileName,
-      lineNumber: fiber._debugSource.lineNumber,
-      columnNumber: fiber._debugSource.columnNumber,
+      fileName: fiber.type.__source.fileName,
+      lineNumber: fiber.type.__source.lineNumber,
     };
   }
 

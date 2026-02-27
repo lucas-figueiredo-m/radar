@@ -6,12 +6,7 @@ export type FiberComponentType = {
   _context?: { displayName?: string };
   $$typeof?: symbol;
   __sourceFile?: string;
-};
-
-export type DebugSource = {
-  fileName: string;
-  lineNumber: number;
-  columnNumber: number;
+  __source?: { fileName: string; lineNumber: number };
 };
 
 export type FiberNode = {
@@ -25,7 +20,6 @@ export type FiberNode = {
   memoizedState: MemoizedState | null;
   stateNode: unknown;
   _debugHookTypes: string[] | null;
-  _debugSource: DebugSource | null;
 };
 
 export type MemoizedState = {
