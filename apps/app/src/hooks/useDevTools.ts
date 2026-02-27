@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { ConsoleMessage, NetworkMessage, RadarMessage } from '@radar/types';
 import { ipcRenderer } from '../services';
 import type { LogEntry, LogLevel, NetworkEntry } from '../types';
 
@@ -12,32 +13,20 @@ export const useDevTools = () => {
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
 
   useEffect(() => {
-    const onMessage = (_event: unknown, message: Record<string, unknown>) => {
+    const onMessage = (_event: unknown, message: RadarMessage) => {
       if (message.type === 'console') {
+        const msg: ConsoleMessage = message;
         setLogs(prev => [
           ...prev,
           {
             id: nextLogId++,
-            level: message.level as LogLevel,
-            args: message.args as unknown[],
-            timestamp: message.timestamp as number,
+            level: msg.level,
+            args: msg.args,
+            timestamp: msg.timestamp,
           },
         ]);
       } else if (message.type === 'network') {
-        const msg = message as unknown as {
-          id: string;
-          event: string;
-          method: string;
-          url: string;
-          status?: number;
-          statusText?: string;
-          duration?: number;
-          requestHeaders?: Record<string, string>;
-          requestBody?: unknown;
-          responseHeaders?: Record<string, string>;
-          responseBody?: unknown;
-          timestamp: number;
-        };
+        const msg: NetworkMessage = message;
 
         if (msg.event === 'request') {
           setRequests(prev => [
