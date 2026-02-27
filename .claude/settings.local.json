@@ -19,7 +19,10 @@
       "Bash(bunx:*)",
       "Bash(pgrep:*)",
       "mcp__plugin_linear_linear__create_comment",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(ls:*)"
     ]
   }
 }
