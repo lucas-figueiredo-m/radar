@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { Copy, Check } from 'lucide-react';
 import { colorValues } from '@radar/design-system';
 
 type LogLevel = 'log' | 'warn' | 'error' | 'debug';
@@ -49,6 +50,37 @@ const formatTime = (ts: number): string => {
     }) +
     '.' +
     String(d.getMilliseconds()).padStart(3, '0')
+  );
+};
+
+const CopyButton = ({ text }: { text: string }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1000);
+    });
+  }, [text]);
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="shrink-0 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-150 flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-bg-elevated cursor-pointer"
+      aria-label="Copy log entry"
+    >
+      {copied ? (
+        <>
+          <Check size={14} className="text-status-success" />
+          <span className="text-[11px] text-status-success">Copied</span>
+        </>
+      ) : (
+        <>
+          <Copy size={14} className="text-text-tertiary" />
+          <span className="text-[11px] text-text-tertiary">Copy</span>
+        </>
+      )}
+    </button>
   );
 };
 
@@ -103,10 +135,11 @@ export const ConsolePanel = ({ logs, connected, filter, onFilterChange }: Consol
         ) : (
           filteredLogs.map((entry) => {
             const s = LEVEL_STYLES[entry.level];
+            const formattedText = entry.args.map(formatArg).join(' ');
             return (
               <div
                 key={entry.id}
-                className="flex gap-2.5 px-4 py-1.5 border-b border-border-subtle items-start"
+                className="group flex gap-2.5 px-4 py-1.5 border-b border-border-subtle items-start"
                 style={{ background: s.bg }}
               >
                 <span className="text-text-disabled text-[11px] shrink-0 min-w-[85px] pt-px">
@@ -125,8 +158,9 @@ export const ConsolePanel = ({ logs, connected, filter, onFilterChange }: Consol
                   className="whitespace-pre-wrap break-all flex-1 font-mono"
                   style={{ color: s.color }}
                 >
-                  {entry.args.map(formatArg).join(' ')}
+                  {formattedText}
                 </span>
+                <CopyButton text={formattedText} />
               </div>
             );
           })
