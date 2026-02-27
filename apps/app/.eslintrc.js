@@ -1,5 +1,6 @@
 module.exports = {
   root: true,
+  ignorePatterns: ['dist', 'dist-electron'],
   env: {
     browser: true,
     node: true,
