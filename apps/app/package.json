@@ -16,6 +16,7 @@
     "dist:linux": "vite build && electron-builder --linux"
   },
   "dependencies": {
+    "@radar/design-system": "workspace:*",
     "electron-updater": "^6.6.0",
     "lucide-react": "^0.575.0",
     "react": "19.2.3",
@@ -23,6 +24,8 @@
     "ws": "^8.19.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "tailwindcss": "^4.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@types/ws": "^8.18.1",

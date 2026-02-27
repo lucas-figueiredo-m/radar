@@ -12,7 +12,10 @@
       "mcp__plugin_linear_linear__list_issue_statuses",
       "mcp__plugin_linear_linear__save_issue",
       "mcp__plugin_linear_linear__list_milestones",
-      "mcp__plugin_linear_linear__list_issues"
+      "mcp__plugin_linear_linear__list_issues",
+      "mcp__plugin_linear_linear__get_issue",
+      "Bash(bunx tsc:*)",
+      "Bash(git:*)"
     ]
   }
 }
