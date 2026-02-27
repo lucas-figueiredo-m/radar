@@ -16,7 +16,9 @@
       "mcp__plugin_linear_linear__get_issue",
       "Bash(bunx tsc:*)",
       "Bash(git:*)",
-      "Bash(bunx:*)"
+      "Bash(bunx:*)",
+      "Bash(pgrep:*)",
+      "mcp__plugin_linear_linear__create_comment"
     ]
   }
 }
