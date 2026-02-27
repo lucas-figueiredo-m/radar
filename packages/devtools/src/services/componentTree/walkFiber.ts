@@ -1,6 +1,7 @@
 import type { ComponentTreeNode } from '@radar/types';
 import type { FiberNode } from './fiberTypes';
 import { getComponentName } from './getComponentName';
+import { getSourceFile } from './getSourceFile';
 import { fiberIdMap } from './fiberIdMap';
 
 const FUNCTION_COMPONENT = 0;
@@ -39,12 +40,14 @@ export const walkFiber = (rootFiber: FiberNode): ComponentTreeNode[] => {
 
     if (isUserComponent && name !== null) {
       const childNodes = children.flatMap(processNode);
+      const source = getSourceFile(fiber);
 
       return [
         {
           id: fiberIdMap.getFiberId(fiber),
           name,
           key: fiber.key,
+          ...(source !== undefined && { source }),
           children: childNodes,
         },
       ];

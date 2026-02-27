@@ -1,4 +1,6 @@
+export { collectSourceFiles } from './collectSourceFiles';
 export { countNodes } from './countNodes';
+export { filterTreeBySource } from './filterTreeBySource';
 export { formatTime } from './formatTime';
 export { formatDuration } from './formatDuration';
 export { formatGap } from './formatGap';
@@ -6,6 +8,7 @@ export { formatArg } from './formatArg';
 export { groupConsecutiveLogs } from './groupConsecutiveLogs';
 export { LEVEL_STYLES } from './levelStyles';
 export { METHOD_COLORS } from './methodColors';
+export { shortenPath } from './shortenPath';
 export { statusColor } from './statusColor';
 export { truncateUrl } from './truncateUrl';
 export { urlHost } from './urlHost';

@@ -2,6 +2,7 @@ export type ComponentTreeNode = {
   id: string;
   name: string;
   key: string | null;
+  source?: string;
   children: ComponentTreeNode[];
 };
 

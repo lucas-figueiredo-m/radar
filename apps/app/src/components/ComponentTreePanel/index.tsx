@@ -1,14 +1,21 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import type { ComponentTreeNode, InspectedComponentData } from '@radar/types';
 import type { ComponentTreeState } from '../../types';
-import { countNodes } from '../../utils';
+import {
+  countNodes,
+  collectSourceFiles,
+  filterTreeBySource,
+} from '../../utils';
 import { ComponentInspector } from '..';
 import { TreeNode } from './TreeNode';
+import { FileFilterSelect } from './FileFilterSelect';
 import { DEFAULT_EXPAND_DEPTH } from './constants';
 
 export { TreeNode } from './TreeNode';
 export type { TreeNodeProps } from './TreeNode';
+export { FileFilterSelect } from './FileFilterSelect';
+export type { FileFilterSelectProps } from './FileFilterSelect';
 export { DEFAULT_EXPAND_DEPTH } from './constants';
 
 export type ComponentTreePanelProps = {
@@ -45,6 +52,26 @@ export const ComponentTreePanel = ({
 }: ComponentTreePanelProps) => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [hasAutoExpanded, setHasAutoExpanded] = useState(false);
+  const [selectedSourceFile, setSelectedSourceFile] = useState<string | null>(
+    null,
+  );
+
+  const sourceFiles = useMemo(
+    () => (tree ? collectSourceFiles(tree.rootNodes) : []),
+    [tree],
+  );
+
+  const displayedRootNodes = useMemo(() => {
+    if (!tree) return [];
+    if (!selectedSourceFile) return tree.rootNodes;
+    return filterTreeBySource(tree.rootNodes, selectedSourceFile);
+  }, [tree, selectedSourceFile]);
+
+  useEffect(() => {
+    if (selectedSourceFile && !sourceFiles.includes(selectedSourceFile)) {
+      setSelectedSourceFile(null);
+    }
+  }, [sourceFiles, selectedSourceFile]);
 
   useEffect(() => {
     if (tree && !hasAutoExpanded) {
@@ -68,15 +95,15 @@ export const ComponentTreePanel = ({
 
   const handleExpandAll = useCallback(() => {
     if (!tree) return;
-    const allIds = collectAllNodeIds(tree.rootNodes);
+    const allIds = collectAllNodeIds(displayedRootNodes);
     setExpandedNodes(new Set(allIds));
-  }, [tree]);
+  }, [tree, displayedRootNodes]);
 
   const handleCollapseAll = useCallback(() => {
     setExpandedNodes(new Set());
   }, []);
 
-  const nodeCount = tree ? countNodes(tree.rootNodes) : 0;
+  const nodeCount = countNodes(displayedRootNodes);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -96,6 +123,13 @@ export const ComponentTreePanel = ({
         >
           <Minimize2 size={14} />
         </button>
+        {sourceFiles.length > 0 && (
+          <FileFilterSelect
+            files={sourceFiles}
+            selectedFile={selectedSourceFile}
+            onSelectFile={setSelectedSourceFile}
+          />
+        )}
         <span className="text-text-tertiary text-xs ml-auto">
           {nodeCount} components
         </span>
@@ -115,8 +149,12 @@ export const ComponentTreePanel = ({
                 ? 'No component tree yet. Waiting for React to render...'
                 : 'Waiting for React Native app to connect on port 8347...'}
             </div>
+          ) : displayedRootNodes.length === 0 && selectedSourceFile ? (
+            <div className="flex items-center justify-center h-full text-text-tertiary">
+              No components found in selected file
+            </div>
           ) : (
-            tree.rootNodes.map(node => (
+            displayedRootNodes.map(node => (
               <TreeNode
                 key={node.id}
                 node={node}

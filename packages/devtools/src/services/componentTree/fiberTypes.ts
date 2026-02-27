@@ -1,16 +1,16 @@
+export type FiberComponentType = {
+  displayName?: string;
+  name?: string;
+  render?: { displayName?: string; name?: string };
+  type?: { displayName?: string; name?: string };
+  _context?: { displayName?: string };
+  $$typeof?: symbol;
+  __sourceFile?: string;
+};
+
 export type FiberNode = {
   tag: number;
-  type:
-    | {
-        displayName?: string;
-        name?: string;
-        render?: { displayName?: string; name?: string };
-        type?: { displayName?: string; name?: string };
-        _context?: { displayName?: string };
-        $$typeof?: symbol;
-      }
-    | string
-    | null;
+  type: FiberComponentType | string | null;
   child: FiberNode | null;
   sibling: FiberNode | null;
   key: string | null;
