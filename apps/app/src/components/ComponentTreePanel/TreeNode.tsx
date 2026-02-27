@@ -13,13 +13,7 @@ export type TreeNodeProps = {
   currentMatchId: string | null;
 };
 
-const HighlightedName = ({
-  name,
-  regex,
-}: {
-  name: string;
-  regex: RegExp;
-}) => {
+const HighlightedName = ({ name, regex }: { name: string; regex: RegExp }) => {
   const parts = name.split(new RegExp(`(${regex.source})`, regex.flags));
   return (
     <>
@@ -59,10 +53,10 @@ export const TreeNode = ({
   const rowBg = isCurrentMatch
     ? 'bg-accent-subtle'
     : isSelected
-      ? 'bg-bg-elevated'
-      : isMatch
-        ? 'bg-status-warning-bg'
-        : 'hover:bg-bg-surface';
+    ? 'bg-bg-elevated'
+    : isMatch
+    ? 'bg-status-warning-bg'
+    : 'hover:bg-bg-surface';
 
   return (
     <>

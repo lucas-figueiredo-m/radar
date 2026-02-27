@@ -20,7 +20,13 @@ const traverse = (
         ancestorIds.add(id);
       }
     }
-    traverse(node.children, regex, [...ancestors, node.id], matchIds, ancestorIds);
+    traverse(
+      node.children,
+      regex,
+      [...ancestors, node.id],
+      matchIds,
+      ancestorIds,
+    );
   }
 };
 
