@@ -106,14 +106,18 @@ describe('babelPlugin', () => {
   it('injects __source with fileName and lineNumber for arrow functions', () => {
     const input = `const MyComponent = () => null;`;
     const output = transform(input);
-    expect(output).toContain('MyComponent.__source = {\n  fileName: "src/App.tsx",');
+    expect(output).toContain(
+      'MyComponent.__source = {\n  fileName: "src/App.tsx",',
+    );
     expect(output).toContain('lineNumber: 1');
   });
 
   it('injects __source with fileName and lineNumber for function declarations', () => {
     const input = `function MyComponent() { return null; }`;
     const output = transform(input);
-    expect(output).toContain('MyComponent.__source = {\n  fileName: "src/App.tsx",');
+    expect(output).toContain(
+      'MyComponent.__source = {\n  fileName: "src/App.tsx",',
+    );
     expect(output).toContain('lineNumber: 1');
   });
 

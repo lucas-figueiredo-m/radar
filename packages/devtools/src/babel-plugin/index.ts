@@ -149,9 +149,7 @@ export const babelPlugin = (babel: {
           if (!name || !isUpperCase(name)) return;
 
           const lineNumber = path.node.loc?.start.line ?? 0;
-          insertAssignments(name, lineNumber, node =>
-            path.insertAfter(node),
-          );
+          insertAssignments(name, lineNumber, node => path.insertAfter(node));
           return;
         }
 
@@ -167,9 +165,7 @@ export const babelPlugin = (babel: {
             if (!isComponentInit(declarator.init, types)) continue;
 
             const lineNumber = declarator.loc?.start.line ?? 0;
-            insertAssignments(name, lineNumber, node =>
-              path.insertAfter(node),
-            );
+            insertAssignments(name, lineNumber, node => path.insertAfter(node));
           }
         }
       },
