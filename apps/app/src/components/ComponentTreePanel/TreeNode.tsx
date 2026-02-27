@@ -11,6 +11,7 @@ export type TreeNodeProps = {
   searchRegex: RegExp | null;
   matchNodeIds: Set<string>;
   currentMatchId: string | null;
+  isInsideSelected?: boolean;
 };
 
 const HighlightedName = ({ name, regex }: { name: string; regex: RegExp }) => {
@@ -43,12 +44,15 @@ export const TreeNode = ({
   searchRegex,
   matchNodeIds,
   currentMatchId,
+  isInsideSelected = false,
 }: TreeNodeProps) => {
   const hasChildren = node.children.length > 0;
   const isExpanded = expandedNodes.has(node.id);
   const isSelected = selectedNodeId === node.id;
   const isCurrentMatch = currentMatchId === node.id;
   const isMatch = matchNodeIds.has(node.id);
+  const childrenInsideSelected =
+    isInsideSelected || (isSelected && isExpanded);
 
   const rowBg = isCurrentMatch
     ? 'bg-accent-subtle'
@@ -56,6 +60,8 @@ export const TreeNode = ({
     ? 'bg-bg-elevated'
     : isMatch
     ? 'bg-status-warning-bg'
+    : isInsideSelected
+    ? 'bg-bg-secondary hover:bg-bg-surface'
     : 'hover:bg-bg-surface';
 
   return (
@@ -100,19 +106,44 @@ export const TreeNode = ({
       </div>
       {isExpanded &&
         hasChildren &&
-        node.children.map(child => (
-          <TreeNode
-            key={child.id}
-            node={child}
-            depth={depth + 1}
-            expandedNodes={expandedNodes}
-            onToggleNode={onToggleNode}
-            selectedNodeId={selectedNodeId}
-            onSelectNode={onSelectNode}
-            searchRegex={searchRegex}
-            matchNodeIds={matchNodeIds}
-            currentMatchId={currentMatchId}
-          />
+        (isSelected ? (
+          <div className="relative">
+            <div
+              className="absolute top-0 bottom-0 border-l border-border-strong"
+              style={{ left: depth * 16 + 16 }}
+            />
+            {node.children.map(child => (
+              <TreeNode
+                key={child.id}
+                node={child}
+                depth={depth + 1}
+                expandedNodes={expandedNodes}
+                onToggleNode={onToggleNode}
+                selectedNodeId={selectedNodeId}
+                onSelectNode={onSelectNode}
+                searchRegex={searchRegex}
+                matchNodeIds={matchNodeIds}
+                currentMatchId={currentMatchId}
+                isInsideSelected={childrenInsideSelected}
+              />
+            ))}
+          </div>
+        ) : (
+          node.children.map(child => (
+            <TreeNode
+              key={child.id}
+              node={child}
+              depth={depth + 1}
+              expandedNodes={expandedNodes}
+              onToggleNode={onToggleNode}
+              selectedNodeId={selectedNodeId}
+              onSelectNode={onSelectNode}
+              searchRegex={searchRegex}
+              matchNodeIds={matchNodeIds}
+              currentMatchId={currentMatchId}
+              isInsideSelected={childrenInsideSelected}
+            />
+          ))
         ))}
     </>
   );
