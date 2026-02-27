@@ -77,7 +77,7 @@ function AppContent() {
         <Button
           title="console.log (large object)"
           color="#6366f1"
-          onPress={() => console.log('User profile:', { id: 12345, name: 'Jane Doe', email: 'jane@example.com', role: 'admin', active: true, loginCount: 847, lastLogin: '2026-02-27T10:30:00Z' })}
+          onPress={() => console.log('User profile:', { id: 12345, name: 'Jane Doe', email: 'jane@example.com', role: 'admin', active: true, loginCount: 847, lastLogin: '2026-02-27T10:30:00Z', preferences: { theme: 'dark', language: 'en-US', notifications: { email: true, push: false, sms: false } }, recentOrders: [{ orderId: 'ORD-991', total: 59.99, status: 'delivered' }, { orderId: 'ORD-1042', total: 124.5, status: 'pending' }] })}
         />
       </View>
 
