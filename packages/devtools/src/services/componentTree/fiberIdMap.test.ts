@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // fiberIdMap uses module-level state, so we need a fresh import each test
 // Since vitest caches modules, we test the exposed API directly

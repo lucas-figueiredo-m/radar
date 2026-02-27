@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { inspectComponent } from './inspectComponent';
 import { fiberIdMap } from './fiberIdMap';
 import type { FiberNode } from './fiberTypes';
