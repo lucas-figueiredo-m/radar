@@ -154,27 +154,33 @@ const detectAllDevices = (cliStatuses: CliToolStatus[]): DetectedDevice[] => {
   return devices;
 };
 
-export const startDeviceDetection = (win: BrowserWindow): (() => void) => {
+type DeviceDetectionHandle = {
+  cleanup: () => void;
+  getDetectedDevices: () => DetectedDevice[];
+};
+
+export const startDeviceDetection = (
+  win: BrowserWindow,
+): DeviceDetectionHandle => {
   const cliStatuses = checkCliTools();
   win.webContents.send('radar:cli-status', cliStatuses);
 
-  let previousDevicesJson = '';
+  let currentDevices: DetectedDevice[] = [];
 
   const pollDevices = () => {
     const devices = detectAllDevices(cliStatuses);
-    const devicesJson = JSON.stringify(devices);
-
-    if (devicesJson !== previousDevicesJson) {
-      previousDevicesJson = devicesJson;
-      win.webContents.send('radar:detected-devices', devices);
-    }
+    currentDevices = devices;
+    win.webContents.send('radar:detected-devices', devices);
   };
 
   pollDevices();
 
   const intervalId = setInterval(pollDevices, POLL_INTERVAL_MS);
 
-  return () => {
-    clearInterval(intervalId);
+  return {
+    cleanup: () => {
+      clearInterval(intervalId);
+    },
+    getDetectedDevices: () => currentDevices,
   };
 };

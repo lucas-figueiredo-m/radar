@@ -33,6 +33,8 @@ type ConnectedDevice = {
 let win: BrowserWindow | null;
 let wss: WebSocketServer | null;
 let cleanupDeviceDetection: (() => void) | null = null;
+let getDetectedDevices: (() => import('@radar/types').DetectedDevice[]) | null =
+  null;
 
 const connectedDevices = new Map<string, ConnectedDevice>();
 const socketToDeviceId = new Map<WsWebSocket, string>();
@@ -156,20 +158,29 @@ function startWebSocketServer() {
         const message = JSON.parse(data.toString()) as ParsedMessage;
 
         if (isMetadataMessage(message)) {
+          const detected = getDetectedDevices?.() ?? [];
+          const match = detected.find(
+            d =>
+              d.platform === message.platform &&
+              d.osVersion === message.osVersion,
+          );
+
+          const resolvedDeviceId = match?.id ?? message.deviceId;
+
           const device: ConnectedDevice = {
             socket,
-            deviceId: message.deviceId,
-            deviceName: message.deviceName,
+            deviceId: resolvedDeviceId,
+            deviceName: match?.name ?? message.deviceName,
             platform: message.platform,
             osVersion: message.osVersion,
             projectRoot: message.projectRoot ?? null,
           };
 
-          connectedDevices.set(message.deviceId, device);
-          socketToDeviceId.set(socket, message.deviceId);
+          connectedDevices.set(resolvedDeviceId, device);
+          socketToDeviceId.set(socket, resolvedDeviceId);
 
           console.log(
-            `[radar] Device registered: ${message.deviceName} (${message.deviceId})`,
+            `[radar] Device registered: ${device.deviceName} (${resolvedDeviceId})`,
           );
           console.log('[radar] Project root set to:', message.projectRoot);
 
@@ -242,7 +253,9 @@ app.whenReady().then(() => {
   startWebSocketServer();
 
   if (win) {
-    cleanupDeviceDetection = startDeviceDetection(win);
+    const detection = startDeviceDetection(win);
+    cleanupDeviceDetection = detection.cleanup;
+    getDetectedDevices = detection.getDetectedDevices;
   }
 
   if (app.isPackaged) {

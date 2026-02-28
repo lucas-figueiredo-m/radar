@@ -243,7 +243,7 @@ emulator-5554          device transport_id:1
     expect(androidDevices).toHaveLength(0);
   });
 
-  it('only sends detected-devices when devices change', () => {
+  it('sends detected-devices on every poll', () => {
     setupExecSync();
     const win = createMockWin();
 
@@ -262,61 +262,14 @@ emulator-5554          device transport_id:1
       (c: string[]) => c[0] === 'radar:detected-devices',
     ).length;
 
-    expect(afterPollCount).toBe(1);
-  });
-
-  it('sends detected-devices again when devices change on poll', () => {
-    let pollCount = 0;
-    mockExecSync.mockImplementation((command: string) => {
-      const cmd = String(command);
-
-      if (cmd === 'xcrun simctl list --json') return '';
-      if (cmd === 'adb version') return '';
-
-      if (cmd === 'xcrun simctl list devices booted --json') {
-        pollCount++;
-        if (pollCount <= 1) {
-          return JSON.stringify({
-            devices: {
-              'com.apple.CoreSimulator.SimRuntime.iOS-17-4': [
-                { udid: 'ABC-123', name: 'iPhone 15', state: 'Booted' },
-              ],
-            },
-          });
-        }
-        return JSON.stringify({
-          devices: {
-            'com.apple.CoreSimulator.SimRuntime.iOS-17-4': [
-              { udid: 'ABC-123', name: 'iPhone 15', state: 'Booted' },
-              { udid: 'NEW-111', name: 'iPhone 16', state: 'Booted' },
-            ],
-          },
-        });
-      }
-
-      if (cmd === 'adb devices -l') return 'List of devices attached\n';
-
-      return '';
-    });
-
-    const win = createMockWin();
-    startDeviceDetection(win);
-
-    const sendMock = win.webContents.send as ReturnType<typeof vi.fn>;
-
-    vi.advanceTimersByTime(2000);
-
-    const deviceCalls = sendMock.mock.calls.filter(
-      (c: string[]) => c[0] === 'radar:detected-devices',
-    );
-    expect(deviceCalls).toHaveLength(2);
+    expect(afterPollCount).toBe(2);
   });
 
   it('returns a cleanup function that clears the interval', () => {
     setupExecSync();
     const win = createMockWin();
 
-    const cleanup = startDeviceDetection(win);
+    const { cleanup } = startDeviceDetection(win);
     const sendMock = win.webContents.send as ReturnType<typeof vi.fn>;
 
     cleanup();
@@ -326,6 +279,25 @@ emulator-5554          device transport_id:1
     const callCountAfter = sendMock.mock.calls.length;
 
     expect(callCountAfter).toBe(callCountBefore);
+  });
+
+  it('exposes current detected devices via getDetectedDevices', () => {
+    setupExecSync();
+    const win = createMockWin();
+
+    const { getDetectedDevices } = startDeviceDetection(win);
+    const devices = getDetectedDevices();
+
+    const iosDevices = devices.filter(d => d.platform === 'ios');
+    expect(iosDevices).toEqual([
+      { id: 'ABC-123', name: 'iPhone 15', platform: 'ios', osVersion: '17.4' },
+      {
+        id: 'GHI-789',
+        name: 'iPhone 16',
+        platform: 'ios',
+        osVersion: '18.0.1',
+      },
+    ]);
   });
 
   it('handles invalid JSON from simctl gracefully', () => {
