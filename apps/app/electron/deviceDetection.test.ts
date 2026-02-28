@@ -78,6 +78,13 @@ describe('startDeviceDetection', () => {
         return adbOutput;
       }
 
+      if (cmd.startsWith('adb -s') && cmd.includes('ro.build.version.sdk')) {
+        const serial = cmd.split(' ')[2];
+        if (serial === 'emulator-5554') return '34\n';
+        if (serial === 'emulator-5556') return '33\n';
+        return '34\n';
+      }
+
       return '';
     });
   };
@@ -183,13 +190,13 @@ describe('startDeviceDetection', () => {
         id: 'emulator-5554',
         name: 'Pixel 6',
         platform: 'android',
-        osVersion: '',
+        osVersion: '34',
       },
       {
         id: 'emulator-5556',
         name: 'emulator-5556',
         platform: 'android',
-        osVersion: '',
+        osVersion: '33',
       },
     ]);
   });
