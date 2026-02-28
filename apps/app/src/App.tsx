@@ -25,8 +25,9 @@ const App = () => {
   const [tab, setTab] = useState<Tab>('console');
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [editorPickerOpen, setEditorPickerOpen] = useState(false);
-  const { editors, preferredEditor, setPreferredEditor } =
-    useEditorPreference(msg => toast.error(msg));
+  const { editors, preferredEditor, setPreferredEditor } = useEditorPreference(
+    msg => toast.error(msg),
+  );
   const editorName = editors.find(e => e.id === preferredEditor)?.name ?? null;
 
   const openEditorPicker = useCallback(() => setEditorPickerOpen(true), []);

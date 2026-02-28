@@ -31,18 +31,21 @@ export const useEditorPreference = (
       });
   }, []);
 
-  const setPreferredEditor = useCallback((id: string) => {
-    ipcRenderer
-      ?.invoke('radar:set-editor-preference', id)
-      .then((info: { editors: EditorInfo[]; preferred: string }) => {
-        setEditors(info.editors);
-        setPreferred(info.preferred);
-      })
-      .catch((err: unknown) => {
-        console.error('[radar] Failed to save editor preference:', err);
-        onSaveError?.('Failed to save editor preference');
-      });
-  }, [onSaveError]);
+  const setPreferredEditor = useCallback(
+    (id: string) => {
+      ipcRenderer
+        ?.invoke('radar:set-editor-preference', id)
+        .then((info: { editors: EditorInfo[]; preferred: string }) => {
+          setEditors(info.editors);
+          setPreferred(info.preferred);
+        })
+        .catch((err: unknown) => {
+          console.error('[radar] Failed to save editor preference:', err);
+          onSaveError?.('Failed to save editor preference');
+        });
+    },
+    [onSaveError],
+  );
 
   return { editors, preferredEditor, setPreferredEditor };
 };
