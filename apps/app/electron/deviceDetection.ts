@@ -121,13 +121,18 @@ const detectAndroidEmulators = (): DetectedDevice[] => {
 
       let osVersion = '';
       try {
-        osVersion = execSync(`adb -s ${serial} shell getprop ro.build.version.sdk`, {
-          encoding: 'utf-8',
-          timeout: EXEC_TIMEOUT_MS,
-          stdio: ['pipe', 'pipe', 'pipe'],
-        }).trim();
+        osVersion = execSync(
+          `adb -s ${serial} shell getprop ro.build.version.sdk`,
+          {
+            encoding: 'utf-8',
+            timeout: EXEC_TIMEOUT_MS,
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        ).trim();
       } catch {
-        console.error(`[radar] Failed to get OS version for Android device ${serial}`);
+        console.error(
+          `[radar] Failed to get OS version for Android device ${serial}`,
+        );
       }
 
       devices.push({
