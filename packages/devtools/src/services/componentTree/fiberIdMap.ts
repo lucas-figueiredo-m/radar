@@ -24,4 +24,9 @@ const removeFiber = (fiber: FiberNode) => {
 
 const getFiberById = (id: string): FiberNode | undefined => idToFiber.get(id);
 
-export const fiberIdMap = { getFiberId, removeFiber, getFiberById };
+const reset = () => {
+  nextId = 0;
+  idToFiber.clear();
+};
+
+export const fiberIdMap = { getFiberId, removeFiber, getFiberById, reset };

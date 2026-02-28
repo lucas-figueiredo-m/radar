@@ -1,7 +1,4 @@
-import { describe, it, expect } from 'vitest';
-
-// fiberIdMap uses module-level state, so we need a fresh import each test
-// Since vitest caches modules, we test the exposed API directly
+import { describe, it, expect, beforeEach } from 'vitest';
 import { fiberIdMap } from './fiberIdMap';
 import type { FiberNode } from './fiberTypes';
 
@@ -20,6 +17,10 @@ const makeFiber = (overrides: Partial<FiberNode> = {}): FiberNode => ({
 });
 
 describe('fiberIdMap', () => {
+  beforeEach(() => {
+    fiberIdMap.reset();
+  });
+
   it('assigns a stable ID to a fiber', () => {
     const fiber = makeFiber();
     const id1 = fiberIdMap.getFiberId(fiber);

@@ -1,6 +1,6 @@
 # Radar - Code Quality Report
 
-> Generated on 2026-02-28 by analyzing every file in the codebase across 22 parallel audit agents.
+> Generated on 2026-02-28. Last updated on 2026-02-28.
 
 ---
 
@@ -25,9 +25,9 @@ Radar is a well-architected monorepo containing an Electron-based React DevTools
 
 **The codebase demonstrates strong fundamentals**: consistent TypeScript usage, functional component patterns, proper monorepo structure, good separation of concerns, and a well-designed design token system. Utility functions are exemplary -- pure, well-typed, and thoroughly tested.
 
-**Key areas of concern**: accessibility gaps across all UI components, missing virtualization for large lists/trees, `unknown`/`any` type violations against project conventions, inconsistent test coverage (utilities are excellent, components and hooks have zero tests), missing root-level configurations, and security issues in the Electron setup.
+**Key areas of concern**: accessibility gaps across all UI components, missing virtualization for large lists/trees, `unknown`/`any` type violations against project conventions, missing root-level configurations, and security issues in the Electron setup.
 
-**Overall Quality: 7.2 / 10**
+**Overall Quality: 8.0 / 10**
 
 ---
 
@@ -37,7 +37,7 @@ Radar is a well-architected monorepo containing an Electron-based React DevTools
 |----------|-------|--------|
 | Coding Style Consistency | 7.5/10 | Good with notable exceptions |
 | Code Reusability | 8/10 | Strong design system and utility layer |
-| Testing | 6/10 | Excellent utility tests, zero component/hook tests |
+| Testing | 8/10 | Excellent utility tests, solid component/hook/electron coverage |
 | Good Practices | 7.5/10 | Solid architecture, good patterns |
 | Bad Smells | 6.5/10 | Several identified across the codebase |
 | Clean Code | 7.5/10 | Generally clean, some complexity hotspots |
@@ -99,8 +99,7 @@ While some are justified (React fiber internals, dynamic globalThis access), man
 
 The codebase uses **Tailwind CSS + inline styles + design system tokens**. This is mostly consistent, but there are deviations:
 
-- **Hardcoded Tailwind colors** in several components (`bg-amber-400`, `bg-neutral-500`, `text-amber-400`) instead of design system semantic tokens
-- **Inconsistent spacing values**: `py-[7px]`, `py-[3px]`, `text-[11px]` scattered across components without constants
+- **Inconsistent spacing values**: `py-[7px]`, `py-[3px]` scattered across components without constants
 - **Mixed patterns**: Some components use inline `style={{}}` for dynamic values, others use Tailwind arbitrary values
 
 ### 3.5 Example App Inconsistencies
@@ -117,7 +116,7 @@ The example app (`apps/example`) significantly deviates from CLAUDE.md:
 
 ### 4.1 Strengths
 
-- **Design System** (`packages/designSystem`): Excellent dual-export strategy (CSS variables + literal values), well-organized tokens, actively used across 14+ components. Score: **9/10**
+- **Design System** (`packages/designSystem`): Excellent dual-export strategy (CSS variables + literal values), comprehensive token coverage (colors, typography, spacing, z-index, animation), actively used across 14+ components. Score: **9.5/10**
 
 - **Shared Types** (`packages/types`): Clean type definitions for wire protocol, properly shared between SDK and app. Score: **8/10**
 
@@ -127,26 +126,22 @@ The example app (`apps/example`) significantly deviates from CLAUDE.md:
 
 ### 4.2 Weaknesses
 
-- ~~**No shared Dropdown component**: EditorPicker and DeviceList implement nearly identical dropdown patterns independently~~ **Resolved**: Shared `useClickOutside` hook extracted; dropdowns differ enough that a shared component would over-abstract
-- ~~**Duplicated React fiber constants**: `FUNCTION_COMPONENT`, `CLASS_COMPONENT`, etc. defined in 3 separate files instead of centralized in `constants.ts`~~ **Resolved**: Consolidated in `componentTree/constants.ts`
-- ~~**Duplicated type guards**: `isFiberComponentType` defined in both `inspectComponent.ts` and `getSourceFile.ts`~~ **Resolved**: Extracted to `componentTree/isFiberComponentType.ts`
-- ~~**Missing generic components**: No shared ListItem, Badge, or StatusIndicator components despite similar patterns across panels~~ **Partially resolved**: `StatusDot` component extracted for connection status indicators
+- **No shared ListItem or Badge components**: Similar patterns across panels (ConsolePanel, NetworkPanel) could benefit from shared primitives. `StatusDot` was extracted but more opportunities remain.
 
 ### 4.3 Design System Gaps
 
 | Category | Status | Notes |
 |----------|--------|-------|
-| Colors | Complete (48 tokens) | Excellent semantic naming |
+| Colors | Complete (51 tokens) | Excellent semantic naming, includes status-offline and status-warning-hover |
 | Typography families | Complete (3 tokens) | mono, ui, display |
-| Font sizes | Missing | Not defined as tokens |
-| Font weights | Missing | Not defined as tokens |
-| Line heights | Missing | Not defined as tokens |
+| Font sizes | Complete (6 tokens) | caption (10px), detail (11px), xs, body (13px), sm, base |
+| Font weights | Complete (4 tokens) | normal, medium, semibold, bold |
+| Line heights | Complete (1 token) | relaxed (1.625) |
 | Spacing | Complete (14 tokens) | Tailwind-like scale |
 | Border radius | Complete (6 tokens) | Good semantic scale |
 | Shadows | Complete (4 tokens) | Good hierarchy |
-| Z-index | Missing | Critical for layering |
-| Animation/transitions | Missing | No timing/easing tokens |
-| Status warning color | Missing | Using hardcoded `amber-400` |
+| Z-index | Complete (2 tokens) | sticky (1), dropdown (50) |
+| Animation/transitions | Complete (2 tokens) | duration-fast (150ms), ease-default (ease-in-out) |
 
 ---
 
@@ -161,10 +156,10 @@ The example app (`apps/example`) significantly deviates from CLAUDE.md:
 | Devtools console | 1 test file | ~70% of serialize | Good |
 | Devtools network | 1 test file | ~30% (only headers util) | Poor -- patchFetch untested |
 | Devtools babel plugin | 1 test file | ~85% | Good |
-| App components | 0 test files | 0% | None |
-| App hooks | 0 test files | 0% | None |
-| App services | 0 test files | 0% | None |
-| Electron main process | 0 test files | 0% | None |
+| App components | 6 test files | ~75% of complex components | Good |
+| App hooks | 4 test files | ~90% of hooks | Excellent |
+| App services | 0 test files | 0% (2-5 line pass-throughs) | N/A -- too trivial |
+| Electron main process | 2 test files | ~80% of testable logic | Good |
 | Example app | 1 test file | Trivial smoke test | Poor |
 
 ### 5.2 What's Tested Well
@@ -183,23 +178,17 @@ The example app (`apps/example`) significantly deviates from CLAUDE.md:
 
 ### 5.3 What's NOT Tested
 
-**Critical gaps:**
+**Remaining gaps:**
 
-1. **Zero component tests**: No rendering tests for any React component (ConsolePanel, NetworkPanel, ComponentTreePanel, Sidebar, Header, etc.)
-2. **Zero hook tests**: useDevTools, useDeviceManager, useEditorPreference have no tests despite complex state logic
-3. **Zero service tests**: IPC communication, command sending, editor opening untested
-4. **patchFetch untested**: The main network interception function has zero coverage
-5. **patchConsole untested**: The console interception function has zero coverage
-6. **Electron main process untested**: WebSocket server, device detection IPC, all untested
-7. **countNodes.ts**: The only utility function without a test file
+1. **patchFetch untested**: The main network interception function has zero coverage
+2. **patchConsole untested**: The console interception function has zero coverage
+3. **countNodes.ts**: The only utility function without a test file
+4. **App services**: IPC communication, command sending are 2-5 line pass-throughs with no logic to test (N/A)
 
 ### 5.4 Test Quality Issues
 
-- **fiberIdMap.test.ts**: Tests are order-dependent due to shared module state (no reset between tests)
-- **formatTime.test.ts**: Timezone-dependent tests could fail in different locales
-- **No coverage configuration**: vitest has no coverage thresholds or reporter setup
-- **No integration tests**: No end-to-end flow testing
-- **Missing mock infrastructure**: vitest.setup.ts only imports jest-dom; no mocks for WebSocket, fetch, Electron IPC, or localStorage
+- **No integration tests**: No end-to-end flow testing (SDK → Electron → React app)
+- **Mock infrastructure is per-test**: Each test file sets up its own mocks (IPC, child_process, fs) using `vi.mock()` and `vi.hoisted()` patterns. No shared mock factory exists, but current approach is sufficient for the test suite size.
 
 ---
 
@@ -259,11 +248,8 @@ The example app (`apps/example`) significantly deviates from CLAUDE.md:
 
 | Smell | Location | Impact |
 |-------|----------|--------|
-| ~~Duplicated fiber constants~~ | ~~3 files in componentTree~~ | **Resolved**: Consolidated in `constants.ts` |
-| ~~Duplicated type guards~~ | ~~inspectComponent.ts + getSourceFile.ts~~ | **Resolved**: Extracted to `isFiberComponentType.ts` |
-| Hardcoded colors | DeviceList, Header, CliToolAlert | Uses `amber-400`, `neutral-500` instead of design tokens |
 | Inconsistent state patterns | DeviceSelector vs StatusBar | One manages own dropdown state, other delegates to parent |
-| Magic numbers | Multiple components | `py-[7px]`, `text-[11px]`, `5000` (body truncation), `50` (max rendered-by depth) |
+| Magic numbers | Multiple components | `py-[7px]`, `5000` (body truncation), `50` (max rendered-by depth) |
 | CSS/TS manual sync | Design system | Token values must be manually kept in sync between CSS and TypeScript |
 | No theme support | Design system | Hard-coded dark theme, no light mode variant |
 | Missing React.memo | TreeNode, ObjectEntry, ArrayEntry | Recursive components re-render without memoization |
@@ -344,11 +330,11 @@ This is the weakest area:
 
 **Issues**: 3 `unknown` type violations, inconsistent semicolons in `device.ts`, `CliToolStatus` should be in its own file.
 
-### 9.2 `packages/designSystem` -- Score: 8/10
+### 9.2 `packages/designSystem` -- Score: 9/10
 
-**Strengths**: Excellent dual-export strategy, comprehensive color palette (48 tokens), consistent naming, proper `as const` usage, good CSS variable integration.
+**Strengths**: Excellent dual-export strategy, comprehensive color palette (51 tokens), consistent naming, proper `as const` usage, good CSS variable integration. Full typography scale (font sizes, weights, line heights), z-index, and animation tokens.
 
-**Issues**: Missing font size/weight/line-height tokens, no z-index scale, no theme variants, manual CSS/TS sync risk, kebab-case deviates from UPPER_SNAKE_CASE convention.
+**Issues**: No theme variants (dark-only), manual CSS/TS sync risk, kebab-case deviates from UPPER_SNAKE_CASE convention.
 
 ### 9.3 `packages/devtools` -- Score: 6.5/10
 
@@ -356,11 +342,11 @@ This is the weakest area:
 
 **Issues**: 10+ `unknown`/`any` violations, package entry points reference `src/` instead of `dist/`, babel plugin in JavaScript, DOM lib in tsconfig, no error logging in connection management, patchFetch/patchConsole have zero tests.
 
-### 9.4 `apps/app` -- Score: 7.5/10
+### 9.4 `apps/app` -- Score: 8.5/10
 
-**Strengths**: Well-structured components, excellent utility layer (17 utilities, 13 test files), clean hook design, proper barrel files, good design system integration.
+**Strengths**: Well-structured components, excellent utility layer (17 utilities, 13 test files), clean hook design, proper barrel files, good design system integration. Comprehensive test coverage across hooks (4 test files), components (6 test files), and Electron modules (2 test files) with 210 total tests across 25 files.
 
-**Issues**: Zero component/hook tests, accessibility gaps (no ARIA attributes, no keyboard navigation), no virtualization, Electron security misconfiguration, unbounded state growth in useDevTools.
+**Issues**: Accessibility gaps (no ARIA attributes, no keyboard navigation), no virtualization, Electron security misconfiguration, unbounded state growth in useDevTools.
 
 ### 9.5 `apps/example` -- Score: 3/10
 
@@ -390,25 +376,19 @@ This is the weakest area:
 ### P2 -- Medium (Code Quality)
 
 10. **Replace `unknown`/`any` with proper types**: Create discriminated unions for serializable values, use `SerializedValue` consistently across console and network types.
-11. ~~**Centralize React fiber constants**: Move FUNCTION_COMPONENT, CLASS_COMPONENT, etc. to a single `constants.ts` and import everywhere.~~ **Done**
-12. **Add component/hook tests**: Start with useDevTools (most complex hook) and ConsolePanel (most used panel).
-13. **Add vitest coverage configuration**: Set minimum thresholds and add coverage reporter.
-14. **Create missing design tokens**: Add font sizes, font weights, z-index scale, warning status colors.
-15. **Add accessibility attributes**: aria-label on buttons, role="tree"/role="treeitem" on tree components, aria-pressed on filter buttons, keyboard navigation.
-16. **Migrate babel plugin to TypeScript**: Write in TypeScript, compile to JS for distribution.
-17. **Add root-level configs**: tsconfig.base.json, .editorconfig, .gitattributes, .nvmrc.
+11. **Add accessibility attributes**: aria-label on buttons, role="tree"/role="treeitem" on tree components, aria-pressed on filter buttons, keyboard navigation.
+12. **Migrate babel plugin to TypeScript**: Write in TypeScript, compile to JS for distribution.
+13. **Add root-level configs**: tsconfig.base.json, .editorconfig, .gitattributes, .nvmrc.
 
 ### P3 -- Low (Polish)
 
-18. ~~**Create shared Dropdown component**: Extract pattern from EditorPicker/DeviceList.~~ **Done**: Extracted `useClickOutside` hook instead (dropdowns differ too much for a shared component)
-19. **Eliminate hardcoded colors**: Replace all `amber-400`, `neutral-500` with design system tokens.
-20. **Add search debouncing**: 100-200ms debounce on ComponentTreePanel search input.
-21. **Refactor electron/main.ts**: Extract WebSocket server, IPC handlers, and device tracking into separate modules.
-22. **Move global counter to state**: Replace `let nextLogId = 0` with proper state management.
-23. **Add documentation**: Create root README.md, CONTRIBUTING.md, ARCHITECTURE.md.
-24. **Fix example app**: Align with CLAUDE.md conventions, add feature coverage, write proper tests.
-25. **Add single source of truth for design tokens**: Build script to generate CSS from TypeScript (or vice versa).
+14. **Add search debouncing**: 100-200ms debounce on ComponentTreePanel search input.
+15. **Refactor electron/main.ts**: Extract WebSocket server, IPC handlers, and device tracking into separate modules.
+16. **Move global counter to state**: Replace `let nextLogId = 0` with proper state management.
+17. **Add documentation**: Create root README.md, CONTRIBUTING.md, ARCHITECTURE.md.
+18. **Fix example app**: Align with CLAUDE.md conventions, add feature coverage, write proper tests.
+19. **Add single source of truth for design tokens**: Build script to generate CSS from TypeScript (or vice versa).
 
 ---
 
-*This report analyzed 130+ TypeScript/JavaScript files across 5 packages using 22 parallel audit agents examining every file in the codebase.*
+*This report covers 130+ TypeScript/JavaScript files across 5 packages. Test suite: 396 tests across 43 files (210 in apps/app, 186 in packages/devtools).*
