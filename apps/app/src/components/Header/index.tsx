@@ -44,9 +44,7 @@ export const Header = ({
       </div>
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1.5">
-          <StatusDot
-            status={selectedDevice?.connectionStatus ?? 'offline'}
-          />
+          <StatusDot status={selectedDevice?.connectionStatus ?? 'offline'} />
           <span className="text-xs text-text-tertiary">{statusLabel}</span>
         </div>
         <button
