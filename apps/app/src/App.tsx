@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Sidebar,
   Header,
@@ -9,7 +9,14 @@ import {
   StatusBar,
   DevToolsPanel,
 } from './components';
-import { useDeviceManager, useDevTools, useEditorPreference } from './hooks';
+import {
+  useDeviceManager,
+  useConsoleLogs,
+  useNetworkRequests,
+  useComponentTree,
+  useEditorPreference,
+} from './hooks';
+import { ipcRenderer } from './services';
 import type { Tab } from './types';
 import { countNodes } from './utils';
 
@@ -32,20 +39,46 @@ const App = () => {
   const {
     logs,
     filteredLogs,
-    requests,
     filter,
     setFilter,
+    clearLogs,
+    handleMessage: handleConsoleMessage,
+  } = useConsoleLogs(selectedDeviceId);
+
+  const {
+    requests,
     selectedRequest,
     setSelectedRequest,
+    clearRequests,
+    handleMessage: handleNetworkMessage,
+  } = useNetworkRequests(selectedDeviceId);
+
+  const {
     componentTree,
     selectedComponentId,
     inspectedComponent,
-    clearLogs,
-    clearRequests,
     clearComponentTree,
     inspectComponent,
     clearInspection,
-  } = useDevTools(selectedDeviceId);
+    handleMessage: handleTreeMessage,
+  } = useComponentTree(selectedDeviceId);
+
+  useEffect(() => {
+    const onMessage = (
+      event: unknown,
+      message: Record<string, unknown> & { type: string; deviceId: string },
+    ) => {
+      handleConsoleMessage(event, message);
+      handleNetworkMessage(event, message);
+      handleTreeMessage(event, message);
+    };
+
+    ipcRenderer.on('radar:message', onMessage);
+
+    return () => {
+      ipcRenderer.removeListener('radar:message', onMessage);
+    };
+  }, [handleConsoleMessage, handleNetworkMessage, handleTreeMessage]);
 
   const handleClear = () => {
     if (tab === 'console') {

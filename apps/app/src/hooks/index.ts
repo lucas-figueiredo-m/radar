@@ -1,5 +1,7 @@
 export { useClickOutside } from './useClickOutside';
+export { useComponentTree } from './useComponentTree';
+export { useConsoleLogs } from './useConsoleLogs';
 export { useDebouncedValue } from './useDebouncedValue';
 export { useDeviceManager } from './useDeviceManager';
-export { useDevTools } from './useDevTools';
 export { useEditorPreference } from './useEditorPreference';
+export { useNetworkRequests } from './useNetworkRequests';

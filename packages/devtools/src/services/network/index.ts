@@ -1,5 +1,9 @@
 import type { RadarMessage } from '@radar/types';
 import { headersToRecord } from './headersToRecord';
+import { extractUrl } from './extractUrl';
+import { parseHeaders } from './parseHeaders';
+import { parseRequestBody } from './parseRequestBody';
+import { parseResponseBody } from './parseResponseBody';
 
 type Send = (message: RadarMessage) => void;
 
@@ -16,38 +20,9 @@ export const patchFetch = (send: Send) => {
     const startTime = Date.now();
 
     const method = init?.method ?? 'GET';
-    const url =
-      typeof input === 'string'
-        ? input
-        : input instanceof URL
-        ? input.toString()
-        : (input as { url: string }).url;
-
-    let requestHeaders: Record<string, string> = {};
-    if (init?.headers) {
-      if (init.headers instanceof Headers) {
-        requestHeaders = headersToRecord(init.headers);
-      } else if (Array.isArray(init.headers)) {
-        for (const [key, value] of init.headers) {
-          requestHeaders[key] = value;
-        }
-      } else {
-        requestHeaders = { ...init.headers } as Record<string, string>;
-      }
-    }
-
-    let requestBody: unknown = undefined;
-    if (init?.body) {
-      if (typeof init.body === 'string') {
-        try {
-          requestBody = JSON.parse(init.body);
-        } catch {
-          requestBody = init.body;
-        }
-      } else {
-        requestBody = '[Binary/FormData]';
-      }
-    }
+    const url = extractUrl(input);
+    const requestHeaders = parseHeaders(init?.headers);
+    const requestBody = parseRequestBody(init?.body);
 
     send({
       type: 'network',
@@ -63,20 +38,7 @@ export const patchFetch = (send: Send) => {
     try {
       const response = await originalFetch(input, init);
       const duration = Date.now() - startTime;
-
-      const clone = response.clone();
-      let responseBody: unknown;
-      try {
-        const text = await clone.text();
-        try {
-          responseBody = JSON.parse(text);
-        } catch {
-          responseBody =
-            text.length > 5000 ? text.slice(0, 5000) + '...' : text;
-        }
-      } catch {
-        responseBody = '[Could not read body]';
-      }
+      const responseBody = await parseResponseBody(response);
 
       send({
         type: 'network',
