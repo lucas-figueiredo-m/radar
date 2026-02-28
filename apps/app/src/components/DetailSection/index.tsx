@@ -7,7 +7,7 @@ type DetailSectionProps = {
 
 export const DetailSection = ({ title, children }: DetailSectionProps) => (
   <div className="mb-4">
-    <div className="text-[11px] font-bold text-text-secondary uppercase tracking-[0.5px] mb-2">
+    <div className="text-detail font-bold text-text-secondary uppercase tracking-[0.5px] mb-2">
       {title}
     </div>
     <div className="bg-bg-inset rounded-lg p-2.5">{children}</div>

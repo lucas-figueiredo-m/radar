@@ -104,7 +104,7 @@ const App = () => {
   };
 
   return (
-    <div className="flex h-screen bg-bg-base text-text-primary font-mono text-[13px]">
+    <div className="flex h-screen bg-bg-base text-text-primary font-mono text-body">
       <Sidebar
         tab={tab}
         expanded={sidebarExpanded}

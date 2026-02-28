@@ -6,8 +6,8 @@ export type StatusDotProps = {
 
 const STATUS_COLORS: Record<DeviceConnectionStatus, string> = {
   connected: 'bg-status-success',
-  'device-only': 'bg-amber-400',
-  offline: 'bg-neutral-500',
+  'device-only': 'bg-status-warning',
+  offline: 'bg-status-offline',
 };
 
 export const StatusDot = ({ status }: StatusDotProps) => (

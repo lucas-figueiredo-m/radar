@@ -21,10 +21,10 @@ export const CliToolAlert = ({ cliToolStatuses }: CliToolAlertProps) => {
   }
 
   return (
-    <div className="bg-amber-500/10 border-b border-amber-500/20 text-amber-400 px-4 py-1.5 flex items-center justify-between shrink-0">
+    <div className="bg-status-warning/10 border-b border-status-warning/20 text-status-warning px-4 py-1.5 flex items-center justify-between shrink-0">
       <div className="flex flex-col gap-0.5">
         {unavailableTools.map(tool => (
-          <span key={tool.tool} className="text-[11px]">
+          <span key={tool.tool} className="text-detail">
             {tool.tool} not found &mdash; {TOOL_PLATFORM_MAP[tool.tool]}{' '}
             detection unavailable
           </span>
@@ -32,7 +32,7 @@ export const CliToolAlert = ({ cliToolStatuses }: CliToolAlertProps) => {
       </div>
       <button
         onClick={() => setDismissed(true)}
-        className="text-amber-400 hover:text-amber-300 cursor-pointer transition-colors shrink-0 ml-3"
+        className="text-status-warning hover:text-status-warning-hover cursor-pointer transition-colors shrink-0 ml-3"
       >
         <X size={14} />
       </button>

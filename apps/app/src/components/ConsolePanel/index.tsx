@@ -116,11 +116,11 @@ export const ConsolePanel = ({
                   className="group flex gap-2.5 px-4 py-1.5 border-b border-border-subtle items-start"
                   style={{ background: s.bg }}
                 >
-                  <span className="text-text-disabled text-[11px] shrink-0 min-w-[85px] pt-px">
+                  <span className="text-text-disabled text-detail shrink-0 min-w-[85px] pt-px">
                     {formatTime(group.firstTimestamp)}
                   </span>
                   <span
-                    className="text-[10px] font-semibold px-[5px] py-[2px] rounded-sm shrink-0 min-w-[30px] text-center"
+                    className="text-caption font-semibold px-[5px] py-[2px] rounded-sm shrink-0 min-w-[30px] text-center"
                     style={{
                       color: s.color,
                       background: s.color + '20',
@@ -139,7 +139,7 @@ export const ConsolePanel = ({
                   {group.count > 1 && (
                     <button
                       onClick={() => toggleGroup(groupIndex)}
-                      className="shrink-0 text-[10px] font-bold px-1.5 py-[1px] rounded-full cursor-pointer select-none"
+                      className="shrink-0 text-caption font-bold px-1.5 py-[1px] rounded-full cursor-pointer select-none"
                       style={{
                         background: s.color + '30',
                         color: s.color,
@@ -159,7 +159,7 @@ export const ConsolePanel = ({
                       className="group flex gap-2.5 px-4 py-1.5 border-b border-border-subtle items-start pl-8 opacity-70"
                       style={{ background: s.bg }}
                     >
-                      <span className="text-text-disabled text-[11px] shrink-0 min-w-[85px] pt-px">
+                      <span className="text-text-disabled text-detail shrink-0 min-w-[85px] pt-px">
                         {formatTime(entry.timestamp)}
                       </span>
                       <span className="whitespace-pre-wrap break-all flex-1 font-mono">

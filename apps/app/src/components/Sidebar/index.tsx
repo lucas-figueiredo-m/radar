@@ -16,7 +16,7 @@ export const Sidebar = ({
   onToggle,
 }: SidebarProps) => (
   <div
-    className="shrink-0 flex flex-col gap-1 py-3 bg-bg-secondary border-r border-border-default transition-[width] duration-150 ease-in-out overflow-hidden"
+    className="shrink-0 flex flex-col gap-1 py-3 bg-bg-secondary border-r border-border-default transition-[width] duration-fast ease-default overflow-hidden"
     style={{
       width: expanded ? 'var(--sidebar-expanded)' : 'var(--sidebar-width)',
       alignItems: expanded ? 'stretch' : 'center',
@@ -75,7 +75,7 @@ export const Sidebar = ({
           />
           {expanded && (
             <span
-              className={`text-[13px] whitespace-nowrap font-ui ${
+              className={`text-body whitespace-nowrap font-ui ${
                 isActive
                   ? 'text-text-primary font-semibold'
                   : 'text-text-secondary font-normal'
@@ -119,7 +119,7 @@ export const Sidebar = ({
             />
             {expanded && (
               <span
-                className={`text-[13px] whitespace-nowrap font-ui ${
+                className={`text-body whitespace-nowrap font-ui ${
                   isActive
                     ? 'text-text-primary font-semibold'
                     : 'text-text-secondary font-normal'
@@ -158,7 +158,7 @@ export const Sidebar = ({
         />
       )}
       {expanded && (
-        <span className="text-[13px] text-text-secondary whitespace-nowrap font-ui">
+        <span className="text-body text-text-secondary whitespace-nowrap font-ui">
           Collapse
         </span>
       )}

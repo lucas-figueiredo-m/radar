@@ -110,7 +110,7 @@ export const SerializedValueRenderer = ({
             onClick={() => setExpanded(false)}
           >
             <span style={{ color: SYNTAX_COLORS.bracket }}>{'[ '}</span>
-            <span className="text-[11px] text-text-tertiary">
+            <span className="text-detail text-text-tertiary">
               {'\u25BC'} {value.length} {value.length === 1 ? 'item' : 'items'}
             </span>
           </span>
@@ -156,7 +156,7 @@ export const SerializedValueRenderer = ({
             onClick={() => setExpanded(false)}
           >
             <span style={{ color: SYNTAX_COLORS.bracket }}>{'{ '}</span>
-            <span className="text-[11px] text-text-tertiary">
+            <span className="text-detail text-text-tertiary">
               {'\u25BC'} {value.entries.length}{' '}
               {value.entries.length === 1 ? 'key' : 'keys'}
             </span>

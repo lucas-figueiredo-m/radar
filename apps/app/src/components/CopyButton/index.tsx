@@ -19,18 +19,18 @@ export const CopyButton = ({ text, ariaLabel = 'Copy' }: CopyButtonProps) => {
   return (
     <button
       onClick={handleCopy}
-      className="shrink-0 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-150 flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-bg-elevated cursor-pointer"
+      className="shrink-0 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-fast flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-bg-elevated cursor-pointer"
       aria-label={ariaLabel}
     >
       {copied ? (
         <>
           <Check size={14} className="text-status-success" />
-          <span className="text-[11px] text-status-success">Copied</span>
+          <span className="text-detail text-status-success">Copied</span>
         </>
       ) : (
         <>
           <Copy size={14} className="text-text-tertiary" />
-          <span className="text-[11px] text-text-tertiary">Copy</span>
+          <span className="text-detail text-text-tertiary">Copy</span>
         </>
       )}
     </button>

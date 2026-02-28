@@ -47,17 +47,17 @@ export const DeviceList = ({
   return (
     <div
       ref={ref}
-      className="absolute top-full mt-1 left-0 bg-bg-elevated border border-border-default rounded-md shadow-lg py-1 min-w-[240px] z-50"
+      className="absolute top-full mt-1 left-0 bg-bg-elevated border border-border-default rounded-md shadow-lg py-1 min-w-[240px] z-dropdown"
     >
       {groupedDevices.length === 0 && (
-        <div className="px-3 py-3 text-[11px] text-text-disabled text-center">
+        <div className="px-3 py-3 text-detail text-text-disabled text-center">
           No devices found
         </div>
       )}
 
       {groupedDevices.map(group => (
         <div key={group.status}>
-          <div className="px-3 py-1.5 text-[10px] uppercase text-text-tertiary font-semibold tracking-wider">
+          <div className="px-3 py-1.5 text-caption uppercase text-text-tertiary font-semibold tracking-wider">
             {group.label}
           </div>
           {group.items.map(device => {
@@ -74,7 +74,7 @@ export const DeviceList = ({
                   }
                 }}
                 disabled={!isSelectable}
-                className={`w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-left ${
+                className={`w-full flex items-center gap-2 px-3 py-1.5 text-detail text-left ${
                   isSelectable
                     ? 'hover:bg-bg-surface cursor-pointer'
                     : 'cursor-default'
@@ -92,8 +92,8 @@ export const DeviceList = ({
                   <span
                     className={
                       isSelectable
-                        ? 'text-text-tertiary text-[10px]'
-                        : 'text-text-disabled text-[10px]'
+                        ? 'text-text-tertiary text-caption'
+                        : 'text-text-disabled text-caption'
                     }
                   >
                     {PLATFORM_LABELS[device.platform]} {device.osVersion}
@@ -113,7 +113,7 @@ export const DeviceList = ({
           {unavailableTools.map(tool => (
             <div
               key={tool.tool}
-              className="text-[10px] text-amber-400 leading-relaxed"
+              className="text-caption text-status-warning leading-relaxed"
             >
               ⚠ {tool.tool} not found &mdash; {TOOL_PLATFORM_MAP[tool.tool]}{' '}
               detection unavailable

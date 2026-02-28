@@ -57,14 +57,14 @@ export const ErrorEntry = ({ message, stack }: ErrorEntryProps) => {
         <>
           <span
             onClick={() => setExpanded(prev => !prev)}
-            className="cursor-pointer select-none text-[11px]"
+            className="cursor-pointer select-none text-detail"
             style={{ color: colorValues['text-tertiary'] }}
           >
             {expanded ? '▼' : '▶'} {expanded ? 'Hide' : 'Show'} stack trace (
             {frames.length} {frames.length === 1 ? 'frame' : 'frames'})
           </span>
           {expanded && (
-            <span className="flex flex-col pl-2 pt-0.5 text-[11px]">
+            <span className="flex flex-col pl-2 pt-0.5 text-detail">
               {frames.map((frame, i) => (
                 <span key={i}>
                   <span style={{ color: colorValues['text-primary'] }}>

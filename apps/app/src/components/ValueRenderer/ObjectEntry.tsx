@@ -21,7 +21,7 @@ export const ObjectEntry = ({ value }: ObjectEntryProps) => {
         >
           <span style={{ color: SYNTAX_COLORS.bracket }}>{'{ '}</span>
           <span
-            className="text-[11px]"
+            className="text-detail"
             style={{ color: colorValues['text-tertiary'] }}
           >
             ▼ {entries.length} {entries.length === 1 ? 'key' : 'keys'}
@@ -50,7 +50,7 @@ export const ObjectEntry = ({ value }: ObjectEntryProps) => {
       onClick={() => setExpanded(true)}
     >
       <span
-        className="shrink-0 text-[11px] select-none"
+        className="shrink-0 text-detail select-none"
         style={{ color: colorValues['text-tertiary'] }}
       >
         ▶

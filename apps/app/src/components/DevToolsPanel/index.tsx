@@ -14,10 +14,10 @@ export const DevToolsPanel = () => {
     <div className="flex-1 overflow-auto p-4">
       <div className="flex items-center justify-between p-3 rounded-md bg-bg-secondary border border-border-default">
         <div className="flex flex-col gap-0.5">
-          <span className="text-text-primary text-[13px] font-semibold font-ui">
+          <span className="text-text-primary text-body font-semibold font-ui">
             Inspector
           </span>
-          <span className="text-text-tertiary text-[11px] font-ui">
+          <span className="text-text-tertiary text-detail font-ui">
             Toggle Electron DevTools
           </span>
         </div>

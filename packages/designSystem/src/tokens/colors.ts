@@ -33,6 +33,9 @@ export const colors = {
   'status-error-bg': 'var(--color-status-error-bg)',
   'status-info': 'var(--color-status-info)',
   'status-info-bg': 'var(--color-status-info-bg)',
+  'status-offline': 'var(--color-status-offline)',
+  'status-offline-bg': 'var(--color-status-offline-bg)',
+  'status-warning-hover': 'var(--color-status-warning-hover)',
 
   'method-get': 'var(--color-method-get)',
   'method-post': 'var(--color-method-post)',
@@ -86,6 +89,9 @@ export const colorValues = {
   'status-error-bg': '#1E0808',
   'status-info': '#60A5FA',
   'status-info-bg': '#0F1A2D',
+  'status-offline': '#737373',
+  'status-offline-bg': '#1A1A1A',
+  'status-warning-hover': '#FCD34D',
 
   'method-get': '#60A5FA',
   'method-post': '#4ADE80',

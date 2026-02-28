@@ -30,7 +30,7 @@ export const StatusBar = ({
   const editorName = editors.find(e => e.id === preferredEditor)?.name ?? null;
 
   return (
-    <div className="px-4 py-1.5 border-t border-border-default text-[11px] text-text-tertiary shrink-0 flex justify-between items-center">
+    <div className="px-4 py-1.5 border-t border-border-default text-detail text-text-tertiary shrink-0 flex justify-between items-center">
       <div className="flex items-center gap-2">
         <span>{label}</span>
         {selectedDeviceName && (

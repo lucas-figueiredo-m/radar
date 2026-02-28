@@ -83,7 +83,7 @@ export const TreeNode = ({
           {hasChildren && (
             <ChevronRight
               size={12}
-              className="transition-transform duration-150"
+              className="transition-transform duration-fast"
               style={{
                 transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
               }}
@@ -98,7 +98,7 @@ export const TreeNode = ({
           )}
         </span>
         {node.key !== null && (
-          <span className="text-text-tertiary ml-1.5 text-[11px]">
+          <span className="text-text-tertiary ml-1.5 text-detail">
             key={node.key}
           </span>
         )}

@@ -12,7 +12,7 @@ export const TimeGapSeparator = ({ gapMs }: TimeGapSeparatorProps) => (
       style={{ background: colorValues['border-subtle'] }}
     />
     <span
-      className="text-[10px] shrink-0"
+      className="text-caption shrink-0"
       style={{ color: colorValues['text-disabled'] }}
     >
       — {formatGap(gapMs)} —

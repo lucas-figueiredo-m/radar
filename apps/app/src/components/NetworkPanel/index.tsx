@@ -40,7 +40,7 @@ export const NetworkPanel = ({
         }`}
       >
         {/* Column headers */}
-        <div className="flex px-4 py-2 border-b border-border-default text-[11px] text-text-disabled font-semibold sticky top-0 bg-bg-base z-[1]">
+        <div className="flex px-4 py-2 border-b border-border-default text-detail text-text-disabled font-semibold sticky top-0 bg-bg-base z-sticky">
           <span className="w-[60px]">Method</span>
           <span className="flex-1">URL</span>
           <span className="w-[60px] text-right">Status</span>
@@ -67,7 +67,7 @@ export const NetworkPanel = ({
               }`}
             >
               <span
-                className="w-[60px] text-[11px] font-bold"
+                className="w-[60px] text-detail font-bold"
                 style={{
                   color:
                     METHOD_COLORS[req.method] ?? colorValues['text-secondary'],
@@ -77,7 +77,7 @@ export const NetworkPanel = ({
               </span>
               <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-text-primary">
                 {truncateUrl(req.url)}
-                <span className="ml-2 text-[11px] text-text-disabled">
+                <span className="ml-2 text-detail text-text-disabled">
                   {urlHost(req.url)}
                 </span>
               </span>
