@@ -17,9 +17,7 @@ vi.mock('electron', () => ({
 import { startDeviceDetection } from './deviceDetection';
 
 const createMockWin = () =>
-  ({
-    webContents: { send: vi.fn() },
-  }) as unknown as BrowserWindow;
+  ({ webContents: { send: vi.fn() } }) as unknown as BrowserWindow;
 
 const SIMCTL_BOOTED_JSON = JSON.stringify({
   devices: {
