@@ -21,6 +21,9 @@ export const setupAutoUpdater = () => {
         if (result.response === 0) {
           autoUpdater.quitAndInstall();
         }
+      })
+      .catch((err: unknown) => {
+        console.error('[radar] Failed to show update dialog:', err);
       });
   });
 

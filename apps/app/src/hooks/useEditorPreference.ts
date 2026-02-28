@@ -13,7 +13,9 @@ type EditorPreferenceState = {
   setPreferredEditor: (id: string) => void;
 };
 
-export const useEditorPreference = (): EditorPreferenceState => {
+export const useEditorPreference = (
+  onSaveError?: (message: string) => void,
+): EditorPreferenceState => {
   const [editors, setEditors] = useState<EditorInfo[]>([]);
   const [preferredEditor, setPreferred] = useState<string | null>(null);
 
@@ -24,7 +26,9 @@ export const useEditorPreference = (): EditorPreferenceState => {
         setEditors(info.editors);
         setPreferred(info.preferred);
       })
-      .catch(() => {});
+      .catch((err: unknown) => {
+        console.error('[radar] Failed to load editor info:', err);
+      });
   }, []);
 
   const setPreferredEditor = useCallback((id: string) => {
@@ -34,8 +38,11 @@ export const useEditorPreference = (): EditorPreferenceState => {
         setEditors(info.editors);
         setPreferred(info.preferred);
       })
-      .catch(() => {});
-  }, []);
+      .catch((err: unknown) => {
+        console.error('[radar] Failed to save editor preference:', err);
+        onSaveError?.('Failed to save editor preference');
+      });
+  }, [onSaveError]);
 
   return { editors, preferredEditor, setPreferredEditor };
 };

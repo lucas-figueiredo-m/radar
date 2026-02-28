@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { Toaster, toast } from 'sonner';
 import {
   Sidebar,
   Header,
@@ -25,7 +26,7 @@ const App = () => {
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [editorPickerOpen, setEditorPickerOpen] = useState(false);
   const { editors, preferredEditor, setPreferredEditor } =
-    useEditorPreference();
+    useEditorPreference(msg => toast.error(msg));
   const editorName = editors.find(e => e.id === preferredEditor)?.name ?? null;
 
   const openEditorPicker = useCallback(() => setEditorPickerOpen(true), []);
@@ -170,6 +171,20 @@ const App = () => {
           onClosePicker={() => setEditorPickerOpen(false)}
         />
       </div>
+
+      <Toaster
+        position="bottom-right"
+        theme="dark"
+        toastOptions={{
+          style: {
+            background: 'var(--color-bg-surface)',
+            border: '1px solid var(--color-border-default)',
+            color: 'var(--color-text-primary)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 'var(--text-detail)',
+          },
+        }}
+      />
     </div>
   );
 };

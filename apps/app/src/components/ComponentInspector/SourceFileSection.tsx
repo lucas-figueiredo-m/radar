@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { toast } from 'sonner';
 import { CopyButton, DetailSection } from '..';
 import { openInEditor } from '../../services';
 
@@ -27,6 +28,7 @@ export const SourceFileSection = ({
     openInEditor(sourceFile, lineNumber).then(result => {
       if (!result.success) {
         console.error('[radar] Failed to open in editor:', result.error);
+        toast.error(result.error ?? 'Failed to open file in editor');
       }
     });
   }, [sourceFile, lineNumber, editorName, onRequestEditorPicker]);

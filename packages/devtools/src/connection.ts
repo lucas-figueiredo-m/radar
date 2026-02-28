@@ -83,10 +83,12 @@ export const createConnection = (
         }
       };
 
-      ws.onerror = () => {
+      ws.onerror = (event: Event) => {
+        logger.error('[radar] WebSocket error:', event);
         // onclose will fire after this, triggering reconnect
       };
-    } catch {
+    } catch (err) {
+      logger.error('[radar] Failed to create WebSocket:', err);
       setTimeout(() => connect(host, port, logger), RECONNECT_DELAY_MS);
     }
   };

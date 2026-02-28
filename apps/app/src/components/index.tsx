@@ -8,6 +8,7 @@ export { DetailRow } from './DetailRow';
 export { DetailSection } from './DetailSection';
 export { DeviceSelector } from './DeviceSelector';
 export { DevToolsPanel } from './DevToolsPanel';
+export { ErrorBoundary } from './ErrorBoundary';
 export { Header } from './Header';
 export { NetworkDetailPanel } from './NetworkDetailPanel';
 export { NetworkPanel } from './NetworkPanel';
