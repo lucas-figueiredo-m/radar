@@ -253,7 +253,7 @@ app.whenReady().then(() => {
   startWebSocketServer();
 
   if (win) {
-    const detection = startDeviceDetection(win);
+    const detection = startDeviceDetection(win, sendConnectedDevices);
     cleanupDeviceDetection = detection.cleanup;
     getDetectedDevices = detection.getDetectedDevices;
   }

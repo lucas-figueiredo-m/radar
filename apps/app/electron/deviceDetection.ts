@@ -161,6 +161,7 @@ type DeviceDetectionHandle = {
 
 export const startDeviceDetection = (
   win: BrowserWindow,
+  onPoll?: () => void,
 ): DeviceDetectionHandle => {
   const cliStatuses = checkCliTools();
   win.webContents.send('radar:cli-status', cliStatuses);
@@ -171,6 +172,7 @@ export const startDeviceDetection = (
     const devices = detectAllDevices(cliStatuses);
     currentDevices = devices;
     win.webContents.send('radar:detected-devices', devices);
+    onPoll?.();
   };
 
   pollDevices();
