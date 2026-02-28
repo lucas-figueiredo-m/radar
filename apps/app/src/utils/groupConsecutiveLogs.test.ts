@@ -11,6 +11,7 @@ const makeEntry = (
   level: 'log',
   args: ['hello'],
   timestamp: Date.now(),
+  deviceId: 'test-device',
   ...overrides,
 });
 

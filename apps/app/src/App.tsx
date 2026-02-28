@@ -2,13 +2,14 @@ import React, { useState, useCallback } from 'react';
 import {
   Sidebar,
   Header,
+  CliToolAlert,
   ComponentTreePanel,
   ConsolePanel,
   NetworkPanel,
   StatusBar,
   DevToolsPanel,
 } from './components';
-import { useDevTools, useEditorPreference } from './hooks';
+import { useDeviceManager, useDevTools, useEditorPreference } from './hooks';
 import type { Tab } from './types';
 import { countNodes } from './utils';
 
@@ -22,11 +23,16 @@ const App = () => {
 
   const openEditorPicker = useCallback(() => setEditorPickerOpen(true), []);
 
+  const { devices, selectedDeviceId, selectDevice, cliToolStatuses } =
+    useDeviceManager();
+
+  const selectedDevice = devices.find(d => d.id === selectedDeviceId) ?? null;
+  const connected = selectedDevice?.connectionStatus === 'connected';
+
   const {
     logs,
     filteredLogs,
     requests,
-    connected,
     filter,
     setFilter,
     selectedRequest,
@@ -39,7 +45,7 @@ const App = () => {
     clearComponentTree,
     inspectComponent,
     clearInspection,
-  } = useDevTools();
+  } = useDevTools(selectedDeviceId);
 
   const handleClear = () => {
     if (tab === 'console') {
@@ -107,12 +113,22 @@ const App = () => {
       />
 
       <div className="flex flex-col flex-1 min-w-0">
-        <Header connected={connected} onClear={handleClear} />
+        <Header
+          selectedDevice={selectedDevice}
+          devices={devices}
+          selectedDeviceId={selectedDeviceId}
+          onSelectDevice={selectDevice}
+          onClear={handleClear}
+          cliToolStatuses={cliToolStatuses}
+        />
+
+        <CliToolAlert cliToolStatuses={cliToolStatuses} />
 
         {panels[tab]}
 
         <StatusBar
           label={statusLabels[tab]}
+          selectedDeviceName={selectedDevice?.name ?? null}
           editors={editors}
           preferredEditor={preferredEditor}
           onEditorChange={setPreferredEditor}

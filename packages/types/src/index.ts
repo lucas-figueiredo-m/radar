@@ -13,4 +13,11 @@ export type {
   InspectComponentResponse,
 } from './componentTree';
 export type { MetadataMessage } from './metadata';
+export type {
+  DevicePlatform,
+  DeviceConnectionStatus,
+  DetectedDevice,
+  Device,
+  CliToolStatus,
+} from './device';
 export type { RadarMessage, RadarCommand } from './radarMessage';

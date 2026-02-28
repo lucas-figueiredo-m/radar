@@ -9,16 +9,29 @@ import {
   setPreferredEditor,
   openInEditor,
 } from './editors';
+import { startDeviceDetection } from './deviceDetection';
+import type { DevicePlatform, MetadataMessage, RadarCommand } from '@radar/types';
 
 process.env.DIST = path.join(__dirname, '../dist');
 process.env.VITE_PUBLIC = app.isPackaged
   ? process.env.DIST
   : path.join(process.env.DIST, '../public');
 
+type ConnectedDevice = {
+  socket: WsWebSocket;
+  deviceId: string;
+  deviceName: string;
+  platform: DevicePlatform;
+  osVersion: string;
+  projectRoot: string | null;
+};
+
 let win: BrowserWindow | null;
 let wss: WebSocketServer | null;
-let activeSocket: WsWebSocket | null = null;
-let projectRoot: string | null = null;
+let cleanupDeviceDetection: (() => void) | null = null;
+
+const connectedDevices = new Map<string, ConnectedDevice>();
+const socketToDeviceId = new Map<WsWebSocket, string>();
 
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
 const WS_PORT = 8347;
@@ -49,8 +62,9 @@ ipcMain.on('radar:toggle-devtools', () => {
   }
 });
 
-ipcMain.on('radar:command', (_event, command) => {
-  activeSocket?.send(JSON.stringify(command));
+ipcMain.on('radar:command', (_event, payload: { deviceId: string; command: RadarCommand }) => {
+  const device = connectedDevices.get(payload.deviceId);
+  device?.socket.send(JSON.stringify(payload.command));
 });
 
 ipcMain.handle('radar:get-editor-info', () => {
@@ -67,19 +81,31 @@ ipcMain.handle('radar:set-editor-preference', (_event, editorId: string) => {
 
 ipcMain.handle(
   'radar:open-in-editor',
-  (_event, payload: { file: string; line?: number }) => {
+  (_event, payload: { file: string; line?: number; deviceId?: string }) => {
     const preferred = getPreferredEditor();
     if (!preferred)
       return { success: false, error: 'No editor preference set' };
 
-    if (!projectRoot) {
+    let root: string | null = null;
+    if (payload.deviceId) {
+      root = connectedDevices.get(payload.deviceId)?.projectRoot ?? null;
+    } else {
+      for (const device of connectedDevices.values()) {
+        if (device.projectRoot) {
+          root = device.projectRoot;
+          break;
+        }
+      }
+    }
+
+    if (!root) {
       return {
         success: false,
         error: 'Project root not set. Restart the React Native app.',
       };
     }
 
-    const absolutePath = path.join(projectRoot, payload.file);
+    const absolutePath = path.join(root, payload.file);
 
     try {
       openInEditor(preferred, absolutePath, payload.line);
@@ -90,6 +116,22 @@ ipcMain.handle(
   },
 );
 
+type ParsedMessage = Record<string, string | number | boolean | null>;
+
+const isMetadataMessage = (message: ParsedMessage): message is ParsedMessage & MetadataMessage =>
+  message.type === 'metadata' &&
+  typeof message.deviceId === 'string' &&
+  typeof message.deviceName === 'string' &&
+  typeof message.platform === 'string' &&
+  typeof message.osVersion === 'string';
+
+const sendConnectedDevices = () => {
+  win?.webContents.send(
+    'radar:connected-devices',
+    Array.from(connectedDevices.keys()),
+  );
+};
+
 function startWebSocketServer() {
   wss = new WebSocketServer({ port: WS_PORT });
 
@@ -98,33 +140,56 @@ function startWebSocketServer() {
   });
 
   wss.on('connection', socket => {
-    activeSocket = socket;
-    console.log('[radar] Client connected');
-    win?.webContents.send('radar:connection', { connected: true });
+    console.log('[radar] Client connected, waiting for metadata...');
 
     socket.on('message', data => {
       try {
-        const message = JSON.parse(data.toString());
+        const message = JSON.parse(data.toString()) as ParsedMessage;
 
-        if (
-          message.type === 'metadata' &&
-          typeof message.projectRoot === 'string'
-        ) {
-          projectRoot = message.projectRoot;
-          console.log('[radar] Project root set to:', projectRoot);
+        if (isMetadataMessage(message)) {
+          const device: ConnectedDevice = {
+            socket,
+            deviceId: message.deviceId,
+            deviceName: message.deviceName,
+            platform: message.platform,
+            osVersion: message.osVersion,
+            projectRoot: message.projectRoot ?? null,
+          };
+
+          connectedDevices.set(message.deviceId, device);
+          socketToDeviceId.set(socket, message.deviceId);
+
+          console.log(
+            `[radar] Device registered: ${message.deviceName} (${message.deviceId})`,
+          );
+          console.log('[radar] Project root set to:', message.projectRoot);
+
+          sendConnectedDevices();
           return;
         }
 
-        win?.webContents.send('radar:message', message);
+        const deviceId = socketToDeviceId.get(socket);
+        if (deviceId) {
+          const stamped = { ...message, deviceId };
+          win?.webContents.send('radar:message', stamped);
+        } else {
+          win?.webContents.send('radar:message', message);
+        }
       } catch (err) {
         console.error('[radar] Failed to parse message:', err);
       }
     });
 
     socket.on('close', () => {
-      activeSocket = null;
-      console.log('[radar] Client disconnected');
-      win?.webContents.send('radar:connection', { connected: false });
+      const deviceId = socketToDeviceId.get(socket);
+      if (deviceId) {
+        connectedDevices.delete(deviceId);
+        socketToDeviceId.delete(socket);
+        console.log(`[radar] Device disconnected: ${deviceId}`);
+        sendConnectedDevices();
+      } else {
+        console.log('[radar] Unregistered client disconnected');
+      }
     });
   });
 
@@ -167,12 +232,22 @@ app.whenReady().then(() => {
   createWindow();
   startWebSocketServer();
 
+  if (win) {
+    cleanupDeviceDetection = startDeviceDetection(win);
+  }
+
   if (app.isPackaged) {
     setupAutoUpdater();
   }
 });
 
+app.on('before-quit', () => {
+  cleanupDeviceDetection?.();
+});
+
 app.on('window-all-closed', () => {
+  cleanupDeviceDetection?.();
+  cleanupDeviceDetection = null;
   wss?.close();
   if (process.platform !== 'darwin') {
     app.quit();

@@ -2,6 +2,7 @@ import { patchConsole, patchFetch, installComponentTreeHook } from './services';
 import { inspectComponent } from './services/componentTree/inspectComponent';
 import { createConnection } from './connection';
 import { DEFAULT_HOST, DEFAULT_PORT } from './constants';
+import { getDeviceInfo } from './deviceInfo';
 import type { RadarConfig } from './config';
 
 export type { RadarConfig } from './config';
@@ -23,11 +24,23 @@ export const init = (config: RadarConfig = {}) => {
   const port = config.port ?? DEFAULT_PORT;
   const projectRoot = getProjectRoot(config);
 
-  const { send, connect } = createConnection(command => {
-    if (command.type === 'inspectComponent') {
-      send(inspectComponent(command.componentId));
-    }
-  }, projectRoot);
+  const rawDeviceInfo = getDeviceInfo();
+  const deviceInfo = {
+    deviceId: config.deviceId ?? rawDeviceInfo.deviceId,
+    deviceName: config.deviceName ?? rawDeviceInfo.deviceName,
+    platform: rawDeviceInfo.platform,
+    osVersion: rawDeviceInfo.osVersion,
+  };
+
+  const { send, connect } = createConnection(
+    command => {
+      if (command.type === 'inspectComponent') {
+        send(inspectComponent(command.componentId));
+      }
+    },
+    projectRoot,
+    deviceInfo,
+  );
   const originalConsole = patchConsole(send);
 
   patchFetch(send);

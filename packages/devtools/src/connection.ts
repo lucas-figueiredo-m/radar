@@ -1,4 +1,5 @@
 import type {
+  DevicePlatform,
   LogLevel,
   MetadataMessage,
   RadarCommand,
@@ -8,9 +9,17 @@ import { RECONNECT_DELAY_MS } from './constants';
 
 type Logger = Record<LogLevel, (...args: unknown[]) => void>;
 
+type ConnectionDeviceInfo = {
+  deviceId: string;
+  deviceName: string;
+  platform: DevicePlatform;
+  osVersion: string;
+};
+
 export const createConnection = (
   onMessage?: (command: RadarCommand) => void,
   projectRoot?: string,
+  deviceInfo?: ConnectionDeviceInfo,
 ) => {
   let ws: WebSocket | null = null;
   const messageQueue: RadarMessage[] = [];
@@ -31,12 +40,17 @@ export const createConnection = (
   };
 
   const sendMetadata = () => {
-    if (!projectRoot || !ws || ws.readyState !== WebSocket.OPEN) return;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    if (!deviceInfo) return;
 
     const metadata: MetadataMessage = {
       type: 'metadata',
-      projectRoot,
+      projectRoot: projectRoot ?? '',
       timestamp: Date.now(),
+      deviceId: deviceInfo.deviceId,
+      deviceName: deviceInfo.deviceName,
+      platform: deviceInfo.platform,
+      osVersion: deviceInfo.osVersion,
     };
     ws.send(JSON.stringify(metadata));
   };

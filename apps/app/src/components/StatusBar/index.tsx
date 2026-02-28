@@ -8,6 +8,7 @@ type EditorOption = {
 
 export type StatusBarProps = {
   label: string;
+  selectedDeviceName: string | null;
   editors: EditorOption[];
   preferredEditor: string | null;
   onEditorChange: (id: string) => void;
@@ -18,6 +19,7 @@ export type StatusBarProps = {
 
 export const StatusBar = ({
   label,
+  selectedDeviceName,
   editors,
   preferredEditor,
   onEditorChange,
@@ -29,7 +31,15 @@ export const StatusBar = ({
 
   return (
     <div className="px-4 py-1.5 border-t border-border-default text-[11px] text-text-tertiary shrink-0 flex justify-between items-center">
-      <span>{label}</span>
+      <div className="flex items-center gap-2">
+        <span>{label}</span>
+        {selectedDeviceName && (
+          <>
+            <span className="text-text-disabled">&middot;</span>
+            <span>{selectedDeviceName}</span>
+          </>
+        )}
+      </div>
 
       <div className="flex items-center gap-3">
         {editors.length > 0 && (

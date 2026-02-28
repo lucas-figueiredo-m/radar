@@ -13,4 +13,5 @@ export type {
 export type ComponentTreeState = {
   rootNodes: ComponentTreeNode[];
   timestamp: number;
+  deviceId: string;
 };

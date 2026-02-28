@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   ComponentTreeMessage,
   ConsoleMessage,
@@ -15,15 +15,16 @@ import type {
   NetworkEntry,
 } from '../types';
 
+type StampedMessage = RadarMessage & { deviceId: string };
+
 let nextLogId = 0;
 
-export const useDevTools = () => {
+export const useDevTools = (selectedDeviceId: string | null) => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [requests, setRequests] = useState<NetworkEntry[]>([]);
-  const [componentTree, setComponentTree] = useState<ComponentTreeState | null>(
-    null,
-  );
-  const [connected, setConnected] = useState(false);
+  const [componentTrees, setComponentTrees] = useState<
+    Map<string, ComponentTreeState>
+  >(new Map());
   const [filter, setFilter] = useState<LogLevel | 'all'>('all');
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
@@ -33,9 +34,9 @@ export const useDevTools = () => {
     useState<InspectedComponentData | null>(null);
 
   useEffect(() => {
-    const onMessage = (_event: unknown, message: RadarMessage) => {
+    const onMessage = (_event: unknown, message: StampedMessage) => {
       if (message.type === 'console') {
-        const msg: ConsoleMessage = message;
+        const msg = message as ConsoleMessage & { deviceId: string };
         setLogs(prev => [
           ...prev,
           {
@@ -43,10 +44,11 @@ export const useDevTools = () => {
             level: msg.level,
             args: msg.args,
             timestamp: msg.timestamp,
+            deviceId: msg.deviceId,
           },
         ]);
       } else if (message.type === 'network') {
-        const msg: NetworkMessage = message;
+        const msg = message as NetworkMessage & { deviceId: string };
 
         if (msg.event === 'request') {
           setRequests(prev => [
@@ -59,6 +61,7 @@ export const useDevTools = () => {
               requestBody: msg.requestBody,
               timestamp: msg.timestamp,
               pending: true,
+              deviceId: msg.deviceId,
             },
           ]);
         } else if (msg.event === 'response') {
@@ -79,68 +82,108 @@ export const useDevTools = () => {
           );
         }
       } else if (message.type === 'componentTree') {
-        const msg: ComponentTreeMessage = message;
-        setComponentTree({
-          rootNodes: msg.rootNodes,
-          timestamp: msg.timestamp,
+        const msg = message as ComponentTreeMessage & { deviceId: string };
+        setComponentTrees(prev => {
+          const next = new Map(prev);
+          next.set(msg.deviceId, {
+            rootNodes: msg.rootNodes,
+            timestamp: msg.timestamp,
+            deviceId: msg.deviceId,
+          });
+          return next;
         });
       } else if (message.type === 'inspectComponent') {
-        const msg: InspectComponentResponse = message;
+        const msg = message as InspectComponentResponse & {
+          deviceId: string;
+        };
         if (msg.componentId === selectedComponentId) {
           setInspectedComponent(msg.data);
         }
       }
     };
 
-    const onConnection = (_event: unknown, data: { connected: boolean }) => {
-      setConnected(data.connected);
-    };
-
     ipcRenderer.on('radar:message', onMessage);
-    ipcRenderer.on('radar:connection', onConnection);
 
     return () => {
       ipcRenderer.removeListener('radar:message', onMessage);
-      ipcRenderer.removeListener('radar:connection', onConnection);
     };
   }, [selectedComponentId]);
 
-  const filteredLogs =
-    filter === 'all' ? logs : logs.filter(l => l.level === filter);
+  const deviceLogs = useMemo(
+    () =>
+      selectedDeviceId
+        ? logs.filter(l => l.deviceId === selectedDeviceId)
+        : [],
+    [logs, selectedDeviceId],
+  );
 
-  const clearLogs = () => setLogs([]);
+  const filteredLogs = useMemo(
+    () =>
+      filter === 'all' ? deviceLogs : deviceLogs.filter(l => l.level === filter),
+    [deviceLogs, filter],
+  );
 
-  const clearRequests = () => {
-    setRequests([]);
+  const deviceRequests = useMemo(
+    () =>
+      selectedDeviceId
+        ? requests.filter(r => r.deviceId === selectedDeviceId)
+        : [],
+    [requests, selectedDeviceId],
+  );
+
+  const deviceComponentTree = useMemo(
+    () =>
+      selectedDeviceId ? componentTrees.get(selectedDeviceId) ?? null : null,
+    [componentTrees, selectedDeviceId],
+  );
+
+  const clearLogs = useCallback(() => {
+    if (!selectedDeviceId) return;
+    setLogs(prev => prev.filter(l => l.deviceId !== selectedDeviceId));
+  }, [selectedDeviceId]);
+
+  const clearRequests = useCallback(() => {
+    if (!selectedDeviceId) return;
+    setRequests(prev => prev.filter(r => r.deviceId !== selectedDeviceId));
     setSelectedRequest(null);
-  };
+  }, [selectedDeviceId]);
 
-  const clearComponentTree = () => setComponentTree(null);
-
-  const inspectComponentById = (componentId: string) => {
-    setSelectedComponentId(componentId);
-    sendCommand({
-      type: 'inspectComponent',
-      direction: 'request',
-      componentId,
+  const clearComponentTree = useCallback(() => {
+    if (!selectedDeviceId) return;
+    setComponentTrees(prev => {
+      const next = new Map(prev);
+      next.delete(selectedDeviceId);
+      return next;
     });
-  };
+  }, [selectedDeviceId]);
 
-  const clearInspection = () => {
+  const inspectComponentById = useCallback(
+    (componentId: string) => {
+      if (!selectedDeviceId) return;
+      setSelectedComponentId(componentId);
+      sendCommand(selectedDeviceId, {
+        type: 'inspectComponent',
+        direction: 'request',
+        componentId,
+      });
+    },
+    [selectedDeviceId],
+  );
+
+  const clearInspection = useCallback(() => {
     setSelectedComponentId(null);
     setInspectedComponent(null);
-  };
+  }, []);
 
   return {
-    logs,
+    logs: deviceLogs,
     filteredLogs,
-    requests,
-    connected,
+    requests: deviceRequests,
     filter,
     setFilter,
     selectedRequest,
     setSelectedRequest,
-    componentTree,
+    componentTree: deviceComponentTree,
     selectedComponentId,
     inspectedComponent,
     clearLogs,

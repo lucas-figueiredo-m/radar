@@ -7,6 +7,7 @@ export type LogEntry = {
   level: LogLevel;
   args: unknown[];
   timestamp: number;
+  deviceId: string;
 };
 
 export type GroupedLogEntry = {

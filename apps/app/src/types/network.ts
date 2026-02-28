@@ -11,4 +11,5 @@ export type NetworkEntry = {
   responseBody?: unknown;
   timestamp: number;
   pending: boolean;
+  deviceId: string;
 };
