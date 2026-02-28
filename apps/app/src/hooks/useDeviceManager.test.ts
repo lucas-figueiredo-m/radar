@@ -7,6 +7,7 @@ vi.mock('../services', () => ({
   ipcRenderer: {
     on: vi.fn(),
     removeListener: vi.fn(),
+    invoke: vi.fn().mockResolvedValue({ connectedDeviceIds: [] }),
   },
   sendCommand: vi.fn(),
 }));

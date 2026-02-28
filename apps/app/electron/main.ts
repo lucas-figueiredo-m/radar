@@ -56,6 +56,10 @@ ipcMain.on(
   },
 );
 
+ipcMain.handle('radar:get-initial-state', () => ({
+  connectedDeviceIds: wsHandle?.getConnectedDeviceIds() ?? [],
+}));
+
 ipcMain.handle('radar:get-editor-info', () => {
   const editors = detectEditors();
   const preferred = getPreferredEditor();

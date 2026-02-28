@@ -40,6 +40,15 @@ export const useDeviceManager = () => {
     ipcRenderer.on('radar:connected-devices', onConnectedDevices);
     ipcRenderer.on('radar:cli-status', onCliStatus);
 
+    ipcRenderer
+      ?.invoke('radar:get-initial-state')
+      .then((state: { connectedDeviceIds: string[] }) => {
+        setConnectedDeviceIds(state.connectedDeviceIds);
+      })
+      .catch((err: unknown) => {
+        console.error('[radar] Failed to get initial state:', err);
+      });
+
     return () => {
       ipcRenderer.removeListener('radar:detected-devices', onDetectedDevices);
       ipcRenderer.removeListener('radar:connected-devices', onConnectedDevices);

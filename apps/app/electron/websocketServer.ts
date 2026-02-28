@@ -19,6 +19,7 @@ type ConnectedDevice = {
 type ParsedMessage = Record<string, string | number | boolean | null>;
 
 export type WebSocketServerHandle = {
+  getConnectedDeviceIds: () => string[];
   getDevice: (deviceId: string) => ConnectedDevice | undefined;
   getFirstProjectRoot: () => string | null;
   sendToDevice: (deviceId: string, data: string) => void;
@@ -124,6 +125,7 @@ export const startWebSocketServer = (
   });
 
   return {
+    getConnectedDeviceIds: () => Array.from(connectedDevices.keys()),
     getDevice: (deviceId: string) => connectedDevices.get(deviceId),
     getFirstProjectRoot: () => {
       for (const device of connectedDevices.values()) {
