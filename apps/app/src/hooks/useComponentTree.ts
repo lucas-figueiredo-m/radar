@@ -52,7 +52,7 @@ export const useComponentTree = (selectedDeviceId: string | null) => {
 
   const deviceComponentTree = useMemo(
     () =>
-      selectedDeviceId ? (componentTrees.get(selectedDeviceId) ?? null) : null,
+      selectedDeviceId ? componentTrees.get(selectedDeviceId) ?? null : null,
     [componentTrees, selectedDeviceId],
   );
 

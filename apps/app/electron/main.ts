@@ -76,8 +76,8 @@ ipcMain.handle(
       return { success: false, error: 'No editor preference set' };
 
     const root = payload.deviceId
-      ? (wsHandle?.getDevice(payload.deviceId)?.projectRoot ?? null)
-      : (wsHandle?.getFirstProjectRoot() ?? null);
+      ? wsHandle?.getDevice(payload.deviceId)?.projectRoot ?? null
+      : wsHandle?.getFirstProjectRoot() ?? null;
 
     if (!root) {
       return {
