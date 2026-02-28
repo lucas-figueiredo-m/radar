@@ -1,5 +1,7 @@
 import { colorValues } from '@radar/design-system';
 
+export const MAX_RENDER_DEPTH = 10;
+
 export const SYNTAX_COLORS = {
   string: colorValues['syntax-string'],
   number: colorValues['syntax-number'],

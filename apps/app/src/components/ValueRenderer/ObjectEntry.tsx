@@ -1,13 +1,19 @@
-import { Fragment, useState } from 'react';
+import { Fragment, memo, useState } from 'react';
 import { colorValues } from '@radar/design-system';
-import { SYNTAX_COLORS } from './constants';
+import { MAX_RENDER_DEPTH, SYNTAX_COLORS } from './constants';
 import { ValueRenderer } from './index';
 
 export type ObjectEntryProps = {
   value: Record<string, unknown>;
+  depth?: number;
+  maxDepth?: number;
 };
 
-export const ObjectEntry = ({ value }: ObjectEntryProps) => {
+const ObjectEntryInner = ({
+  value,
+  depth = 0,
+  maxDepth = MAX_RENDER_DEPTH,
+}: ObjectEntryProps) => {
   const [expanded, setExpanded] = useState(false);
   const entries = Object.entries(value);
   const hasOverflow = entries.length > 3;
@@ -32,7 +38,12 @@ export const ObjectEntry = ({ value }: ObjectEntryProps) => {
             <div key={k}>
               <span style={{ color: SYNTAX_COLORS.key }}>{k}</span>
               <span style={{ color: SYNTAX_COLORS.bracket }}>: </span>
-              <ValueRenderer value={v} inline={false} />
+              <ValueRenderer
+                value={v}
+                inline={false}
+                depth={depth + 1}
+                maxDepth={maxDepth}
+              />
               {i < entries.length - 1 && (
                 <span style={{ color: SYNTAX_COLORS.bracket }}>,</span>
               )}
@@ -62,7 +73,12 @@ export const ObjectEntry = ({ value }: ObjectEntryProps) => {
             {i > 0 && <span style={{ color: SYNTAX_COLORS.bracket }}>, </span>}
             <span style={{ color: SYNTAX_COLORS.key }}>{k}</span>
             <span style={{ color: SYNTAX_COLORS.bracket }}>: </span>
-            <ValueRenderer value={v} inline={false} />
+            <ValueRenderer
+              value={v}
+              inline={false}
+              depth={depth + 1}
+              maxDepth={maxDepth}
+            />
           </Fragment>
         ))}
         {hasOverflow && (
@@ -75,3 +91,5 @@ export const ObjectEntry = ({ value }: ObjectEntryProps) => {
     </span>
   );
 };
+
+export const ObjectEntry = memo(ObjectEntryInner);

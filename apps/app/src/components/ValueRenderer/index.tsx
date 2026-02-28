@@ -1,5 +1,5 @@
 import { colorValues } from '@radar/design-system';
-import { SYNTAX_COLORS } from './constants';
+import { MAX_RENDER_DEPTH, SYNTAX_COLORS } from './constants';
 import { ErrorEntry } from './ErrorEntry';
 import { ObjectEntry } from './ObjectEntry';
 import { ArrayEntry } from './ArrayEntry';
@@ -22,9 +22,21 @@ const isErrorObject = (
 export type ValueRendererProps = {
   value: unknown;
   inline?: boolean;
+  depth?: number;
+  maxDepth?: number;
 };
 
-export const ValueRenderer = ({ value, inline = true }: ValueRendererProps) => {
+export const ValueRenderer = ({
+  value,
+  inline = true,
+  depth = 0,
+  maxDepth = MAX_RENDER_DEPTH,
+}: ValueRendererProps) => {
+  if (depth >= maxDepth)
+    return (
+      <span style={{ color: colorValues['text-tertiary'] }}>[max depth]</span>
+    );
+
   if (value === null)
     return <span style={{ color: SYNTAX_COLORS.null }}>null</span>;
   if (value === undefined)
@@ -52,8 +64,15 @@ export const ValueRenderer = ({ value, inline = true }: ValueRendererProps) => {
   if (typeof value === 'object') {
     if (isErrorObject(value))
       return <ErrorEntry message={value.message} stack={value.stack} />;
-    if (Array.isArray(value)) return <ArrayEntry value={value} />;
-    return <ObjectEntry value={value as Record<string, unknown>} />;
+    if (Array.isArray(value))
+      return <ArrayEntry value={value} depth={depth} maxDepth={maxDepth} />;
+    return (
+      <ObjectEntry
+        value={value as Record<string, unknown>}
+        depth={depth}
+        maxDepth={maxDepth}
+      />
+    );
   }
 
   return (

@@ -1,14 +1,20 @@
-import { Fragment, useState } from 'react';
+import { Fragment, memo, useState } from 'react';
 import { colorValues } from '@radar/design-system';
-import { SYNTAX_COLORS } from './constants';
+import { MAX_RENDER_DEPTH, SYNTAX_COLORS } from './constants';
 import { InlinePreview } from './InlinePreview';
 import { ValueRenderer } from './index';
 
 export type ArrayEntryProps = {
   value: unknown[];
+  depth?: number;
+  maxDepth?: number;
 };
 
-export const ArrayEntry = ({ value }: ArrayEntryProps) => {
+const ArrayEntryInner = ({
+  value,
+  depth = 0,
+  maxDepth = MAX_RENDER_DEPTH,
+}: ArrayEntryProps) => {
   const [expanded, setExpanded] = useState(false);
 
   if (value.length === 0) {
@@ -33,7 +39,12 @@ export const ArrayEntry = ({ value }: ArrayEntryProps) => {
         <div className="flex flex-col pl-[2ch]">
           {value.map((item, i) => (
             <div key={i}>
-              <ValueRenderer value={item} inline={false} />
+              <ValueRenderer
+                value={item}
+                inline={false}
+                depth={depth + 1}
+                maxDepth={maxDepth}
+              />
               {i < value.length - 1 && (
                 <span style={{ color: SYNTAX_COLORS.bracket }}>,</span>
               )}
@@ -74,3 +85,5 @@ export const ArrayEntry = ({ value }: ArrayEntryProps) => {
     </span>
   );
 };
+
+export const ArrayEntry = memo(ArrayEntryInner);

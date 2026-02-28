@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { ChevronRight } from 'lucide-react';
 import type { ComponentTreeNode } from '@radar/types';
 
@@ -34,7 +35,7 @@ const HighlightedName = ({ name, regex }: { name: string; regex: RegExp }) => {
   );
 };
 
-export const TreeNode = ({
+const TreeNodeInner = ({
   node,
   depth,
   expandedNodes,
@@ -147,3 +148,5 @@ export const TreeNode = ({
     </>
   );
 };
+
+export const TreeNode = memo(TreeNodeInner);

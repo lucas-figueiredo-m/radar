@@ -5,7 +5,7 @@ import type {
   RadarCommand,
   RadarMessage,
 } from '@radar/types';
-import { RECONNECT_DELAY_MS } from './constants';
+import { MAX_QUEUE_SIZE, RECONNECT_DELAY_MS } from './constants';
 
 type Logger = Record<LogLevel, (...args: unknown[]) => void>;
 
@@ -27,7 +27,7 @@ export const createConnection = (
   const send = (message: RadarMessage) => {
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify(message));
-    } else {
+    } else if (messageQueue.length < MAX_QUEUE_SIZE) {
       messageQueue.push(message);
     }
   };

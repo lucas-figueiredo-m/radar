@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   ComponentTreeMessage,
   ConsoleMessage,
@@ -14,12 +14,12 @@ import type {
   LogLevel,
   NetworkEntry,
 } from '../types';
+import { MAX_LOGS, MAX_REQUESTS } from './constants';
 
 type StampedMessage = RadarMessage & { deviceId: string };
 
-let nextLogId = 0;
-
 export const useDevTools = (selectedDeviceId: string | null) => {
+  const nextLogIdRef = useRef(0);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [requests, setRequests] = useState<NetworkEntry[]>([]);
   const [componentTrees, setComponentTrees] = useState<
@@ -37,33 +37,41 @@ export const useDevTools = (selectedDeviceId: string | null) => {
     const onMessage = (_event: unknown, message: StampedMessage) => {
       if (message.type === 'console') {
         const msg = message as ConsoleMessage & { deviceId: string };
-        setLogs(prev => [
-          ...prev,
-          {
-            id: nextLogId++,
-            level: msg.level,
-            args: msg.args,
-            timestamp: msg.timestamp,
-            deviceId: msg.deviceId,
-          },
-        ]);
+        setLogs(prev => {
+          const next = [
+            ...prev,
+            {
+              id: nextLogIdRef.current++,
+              level: msg.level,
+              args: msg.args,
+              timestamp: msg.timestamp,
+              deviceId: msg.deviceId,
+            },
+          ];
+          return next.length > MAX_LOGS ? next.slice(-MAX_LOGS) : next;
+        });
       } else if (message.type === 'network') {
         const msg = message as NetworkMessage & { deviceId: string };
 
         if (msg.event === 'request') {
-          setRequests(prev => [
-            ...prev,
-            {
-              id: msg.id,
-              method: msg.method,
-              url: msg.url,
-              requestHeaders: msg.requestHeaders,
-              requestBody: msg.requestBody,
-              timestamp: msg.timestamp,
-              pending: true,
-              deviceId: msg.deviceId,
-            },
-          ]);
+          setRequests(prev => {
+            const next = [
+              ...prev,
+              {
+                id: msg.id,
+                method: msg.method,
+                url: msg.url,
+                requestHeaders: msg.requestHeaders,
+                requestBody: msg.requestBody,
+                timestamp: msg.timestamp,
+                pending: true,
+                deviceId: msg.deviceId,
+              },
+            ];
+            return next.length > MAX_REQUESTS
+              ? next.slice(-MAX_REQUESTS)
+              : next;
+          });
         } else if (msg.event === 'response') {
           setRequests(prev =>
             prev.map(r =>

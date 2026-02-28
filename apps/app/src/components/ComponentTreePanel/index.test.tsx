@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import type { ComponentTreeNode } from '@radar/types';
 import type { ComponentTreeState } from '../../types';
 import { ComponentTreePanel } from '.';
@@ -148,6 +148,7 @@ describe('ComponentTreePanel', () => {
   });
 
   it('search filters and shows match count', () => {
+    vi.useFakeTimers();
     Element.prototype.scrollIntoView = vi.fn();
 
     const tree = makeTree([
@@ -163,7 +164,13 @@ describe('ComponentTreePanel', () => {
     const searchInput = screen.getByPlaceholderText('Search components...');
     fireEvent.change(searchInput, { target: { value: 'Header' } });
 
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+
     expect(screen.getByText('1/1')).toBeInTheDocument();
+
+    vi.useRealTimers();
   });
 
   it('calls onInspectComponent when a node is clicked', () => {

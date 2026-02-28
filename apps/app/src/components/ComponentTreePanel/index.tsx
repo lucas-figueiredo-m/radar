@@ -9,11 +9,12 @@ import {
   buildSearchRegex,
   searchTreeNodes,
 } from '../../utils';
+import { useDebouncedValue } from '../../hooks';
 import { ComponentInspector } from '..';
 import { TreeNode } from './TreeNode';
 import { FileFilterSelect } from './FileFilterSelect';
 import { SearchBar } from './SearchBar';
-import { DEFAULT_EXPAND_DEPTH } from './constants';
+import { DEFAULT_EXPAND_DEPTH, SEARCH_DEBOUNCE_MS } from './constants';
 
 export { TreeNode } from './TreeNode';
 export type { TreeNodeProps } from './TreeNode';
@@ -21,7 +22,7 @@ export { FileFilterSelect } from './FileFilterSelect';
 export type { FileFilterSelectProps } from './FileFilterSelect';
 export { SearchBar } from './SearchBar';
 export type { SearchBarProps } from './SearchBar';
-export { DEFAULT_EXPAND_DEPTH } from './constants';
+export { DEFAULT_EXPAND_DEPTH, SEARCH_DEBOUNCE_MS } from './constants';
 
 export type ComponentTreePanelProps = {
   tree: ComponentTreeState | null;
@@ -81,9 +82,14 @@ export const ComponentTreePanel = ({
     return filterTreeBySource(tree.rootNodes, selectedSourceFile);
   }, [tree, selectedSourceFile]);
 
+  const debouncedSearchQuery = useDebouncedValue(
+    searchQuery,
+    SEARCH_DEBOUNCE_MS,
+  );
+
   const searchRegex = useMemo(
-    () => buildSearchRegex(searchQuery),
-    [searchQuery],
+    () => buildSearchRegex(debouncedSearchQuery),
+    [debouncedSearchQuery],
   );
 
   const searchResult = useMemo(

@@ -23,7 +23,8 @@ export const useEditorPreference = (): EditorPreferenceState => {
       .then((info: { editors: EditorInfo[]; preferred: string | null }) => {
         setEditors(info.editors);
         setPreferred(info.preferred);
-      });
+      })
+      .catch(() => {});
   }, []);
 
   const setPreferredEditor = useCallback((id: string) => {
@@ -32,7 +33,8 @@ export const useEditorPreference = (): EditorPreferenceState => {
       .then((info: { editors: EditorInfo[]; preferred: string }) => {
         setEditors(info.editors);
         setPreferred(info.preferred);
-      });
+      })
+      .catch(() => {});
   }, []);
 
   return { editors, preferredEditor, setPreferredEditor };
