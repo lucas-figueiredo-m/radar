@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Sidebar,
   Header,
@@ -8,13 +8,19 @@ import {
   StatusBar,
   DevToolsPanel,
 } from './components';
-import { useDevTools } from './hooks';
+import { useDevTools, useEditorPreference } from './hooks';
 import type { Tab } from './types';
 import { countNodes } from './utils';
 
 const App = () => {
   const [tab, setTab] = useState<Tab>('console');
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const [editorPickerOpen, setEditorPickerOpen] = useState(false);
+  const { editors, preferredEditor, setPreferredEditor } =
+    useEditorPreference();
+  const editorName = editors.find(e => e.id === preferredEditor)?.name ?? null;
+
+  const openEditorPicker = useCallback(() => setEditorPickerOpen(true), []);
 
   const {
     logs,
@@ -75,6 +81,8 @@ const App = () => {
         inspectedComponent={inspectedComponent}
         onInspectComponent={inspectComponent}
         onClearInspection={clearInspection}
+        editorName={editorName}
+        onRequestEditorPicker={openEditorPicker}
       />
     ),
     devtools: <DevToolsPanel />,
@@ -103,7 +111,15 @@ const App = () => {
 
         {panels[tab]}
 
-        <StatusBar label={statusLabels[tab]} />
+        <StatusBar
+          label={statusLabels[tab]}
+          editors={editors}
+          preferredEditor={preferredEditor}
+          onEditorChange={setPreferredEditor}
+          pickerOpen={editorPickerOpen}
+          onTogglePicker={() => setEditorPickerOpen(prev => !prev)}
+          onClosePicker={() => setEditorPickerOpen(false)}
+        />
       </div>
     </div>
   );

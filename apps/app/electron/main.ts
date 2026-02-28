@@ -3,6 +3,12 @@ import { autoUpdater } from 'electron-updater';
 import path from 'node:path';
 import type { WebSocket as WsWebSocket } from 'ws';
 import { WebSocketServer } from 'ws';
+import {
+  detectEditors,
+  getPreferredEditor,
+  setPreferredEditor,
+  openInEditor,
+} from './editors';
 
 process.env.DIST = path.join(__dirname, '../dist');
 process.env.VITE_PUBLIC = app.isPackaged
@@ -12,6 +18,7 @@ process.env.VITE_PUBLIC = app.isPackaged
 let win: BrowserWindow | null;
 let wss: WebSocketServer | null;
 let activeSocket: WsWebSocket | null = null;
+let projectRoot: string | null = null;
 
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
 const WS_PORT = 8347;
@@ -46,6 +53,43 @@ ipcMain.on('radar:command', (_event, command) => {
   activeSocket?.send(JSON.stringify(command));
 });
 
+ipcMain.handle('radar:get-editor-info', () => {
+  const editors = detectEditors();
+  const preferred = getPreferredEditor();
+  return { editors, preferred };
+});
+
+ipcMain.handle('radar:set-editor-preference', (_event, editorId: string) => {
+  setPreferredEditor(editorId);
+  const editors = detectEditors();
+  return { editors, preferred: editorId };
+});
+
+ipcMain.handle(
+  'radar:open-in-editor',
+  (_event, payload: { file: string; line?: number }) => {
+    const preferred = getPreferredEditor();
+    if (!preferred)
+      return { success: false, error: 'No editor preference set' };
+
+    if (!projectRoot) {
+      return {
+        success: false,
+        error: 'Project root not set. Restart the React Native app.',
+      };
+    }
+
+    const absolutePath = path.join(projectRoot, payload.file);
+
+    try {
+      openInEditor(preferred, absolutePath, payload.line);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: String(err) };
+    }
+  },
+);
+
 function startWebSocketServer() {
   wss = new WebSocketServer({ port: WS_PORT });
 
@@ -61,6 +105,16 @@ function startWebSocketServer() {
     socket.on('message', data => {
       try {
         const message = JSON.parse(data.toString());
+
+        if (
+          message.type === 'metadata' &&
+          typeof message.projectRoot === 'string'
+        ) {
+          projectRoot = message.projectRoot;
+          console.log('[radar] Project root set to:', projectRoot);
+          return;
+        }
+
         win?.webContents.send('radar:message', message);
       } catch (err) {
         console.error('[radar] Failed to parse message:', err);

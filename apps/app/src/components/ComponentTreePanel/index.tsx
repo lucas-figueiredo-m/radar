@@ -30,6 +30,8 @@ export type ComponentTreePanelProps = {
   inspectedComponent: InspectedComponentData | null;
   onInspectComponent: (id: string) => void;
   onClearInspection: () => void;
+  editorName?: string | null;
+  onRequestEditorPicker?: () => void;
 };
 
 const collectNodeIds = (
@@ -56,6 +58,8 @@ export const ComponentTreePanel = ({
   inspectedComponent,
   onInspectComponent,
   onClearInspection,
+  editorName,
+  onRequestEditorPicker,
 }: ComponentTreePanelProps) => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [hasAutoExpanded, setHasAutoExpanded] = useState(false);
@@ -260,6 +264,8 @@ export const ComponentTreePanel = ({
             data={inspectedComponent}
             onClose={onClearInspection}
             onInspectComponent={onInspectComponent}
+            editorName={editorName}
+            onRequestEditorPicker={onRequestEditorPicker}
           />
         )}
       </div>

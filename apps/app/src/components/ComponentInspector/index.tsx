@@ -8,12 +8,16 @@ export type ComponentInspectorProps = {
   data: InspectedComponentData;
   onClose: () => void;
   onInspectComponent: (id: string) => void;
+  editorName?: string | null;
+  onRequestEditorPicker?: () => void;
 };
 
 export const ComponentInspector = ({
   data,
   onClose,
   onInspectComponent,
+  editorName,
+  onRequestEditorPicker,
 }: ComponentInspectorProps) => {
   const renderedBy = data.renderedBy ?? [];
 
@@ -41,6 +45,8 @@ export const ComponentInspector = ({
         <SourceFileSection
           sourceFile={data.sourceFile}
           lineNumber={data.source?.lineNumber}
+          editorName={editorName}
+          onRequestEditorPicker={onRequestEditorPicker}
         />
       )}
 

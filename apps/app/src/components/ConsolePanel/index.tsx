@@ -19,8 +19,6 @@ import { CopyButton } from './CopyButton';
 import { TimeGapSeparator } from './TimeGapSeparator';
 import { TIME_GAP_THRESHOLD_MS } from './constants';
 
-export { CopyButton } from './CopyButton';
-export type { CopyButtonProps } from './CopyButton';
 export { TimeGapSeparator } from './TimeGapSeparator';
 export type { TimeGapSeparatorProps } from './TimeGapSeparator';
 export { TIME_GAP_THRESHOLD_MS } from './constants';

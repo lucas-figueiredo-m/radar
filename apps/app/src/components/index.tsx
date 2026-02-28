@@ -1,6 +1,8 @@
 export { ComponentInspector } from './ComponentInspector';
 export { ComponentTreePanel } from './ComponentTreePanel';
 export { ConsolePanel } from './ConsolePanel';
+export { CopyButton } from './CopyButton';
+export type { CopyButtonProps } from './CopyButton';
 export { DetailRow } from './DetailRow';
 export { DetailSection } from './DetailSection';
 export { DevToolsPanel } from './DevToolsPanel';

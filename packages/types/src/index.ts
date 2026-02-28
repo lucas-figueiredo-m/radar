@@ -12,4 +12,5 @@ export type {
   InspectComponentRequest,
   InspectComponentResponse,
 } from './componentTree';
+export type { MetadataMessage } from './metadata';
 export type { RadarMessage, RadarCommand } from './radarMessage';

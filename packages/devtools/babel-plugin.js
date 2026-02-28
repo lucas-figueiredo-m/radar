@@ -61,6 +61,31 @@ module.exports = (babel) => {
   return {
     name: 'radar-source-file',
     visitor: {
+      Program(path, state) {
+        const root = (state.opts && state.opts.root) || state.cwd || '';
+        if (!root) return;
+
+        const hasRadarImport = path.node.body.some(
+          (node) =>
+            types.isImportDeclaration(node) &&
+            node.source.value === '@radar/devtools',
+        );
+        if (!hasRadarImport) return;
+
+        const assignment = types.expressionStatement(
+          types.assignmentExpression(
+            '=',
+            types.memberExpression(
+              types.identifier('globalThis'),
+              types.identifier('__RADAR_PROJECT_ROOT__'),
+            ),
+            types.stringLiteral(root),
+          ),
+        );
+
+        path.unshiftContainer('body', assignment);
+      },
+
       'VariableDeclaration|FunctionDeclaration'(path, state) {
         if (!path.parentPath || !path.parentPath.isProgram()) return;
 

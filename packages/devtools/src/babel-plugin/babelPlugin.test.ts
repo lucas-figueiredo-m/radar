@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { transformSync } from '@babel/core';
-import { babelPlugin } from './index';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const babelPlugin = require('../../babel-plugin.js');
 
 const transform = (code: string, filename = '/project/src/App.tsx') =>
   transformSync(code, {
@@ -125,5 +127,17 @@ describe('babelPlugin', () => {
     const input = `const x = 1;\nconst y = 2;\nconst MyComponent = () => null;`;
     const output = transform(input);
     expect(output).toContain('lineNumber: 3');
+  });
+
+  it('injects __RADAR_PROJECT_ROOT__ for files importing @radar/devtools', () => {
+    const input = `import { init } from '@radar/devtools';\nconst App = () => null;`;
+    const output = transform(input);
+    expect(output).toContain('globalThis.__RADAR_PROJECT_ROOT__ = "/project"');
+  });
+
+  it('does not inject __RADAR_PROJECT_ROOT__ for files without @radar/devtools import', () => {
+    const input = `const App = () => null;`;
+    const output = transform(input);
+    expect(output).not.toContain('__RADAR_PROJECT_ROOT__');
   });
 });

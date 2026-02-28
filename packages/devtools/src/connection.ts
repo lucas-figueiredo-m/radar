@@ -1,10 +1,16 @@
-import type { LogLevel, RadarCommand, RadarMessage } from '@radar/types';
+import type {
+  LogLevel,
+  MetadataMessage,
+  RadarCommand,
+  RadarMessage,
+} from '@radar/types';
 import { RECONNECT_DELAY_MS } from './constants';
 
 type Logger = Record<LogLevel, (...args: unknown[]) => void>;
 
 export const createConnection = (
   onMessage?: (command: RadarCommand) => void,
+  projectRoot?: string,
 ) => {
   let ws: WebSocket | null = null;
   const messageQueue: RadarMessage[] = [];
@@ -24,6 +30,17 @@ export const createConnection = (
     }
   };
 
+  const sendMetadata = () => {
+    if (!projectRoot || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+    const metadata: MetadataMessage = {
+      type: 'metadata',
+      projectRoot,
+      timestamp: Date.now(),
+    };
+    ws.send(JSON.stringify(metadata));
+  };
+
   const connect = (host: string, port: number, logger: Logger) => {
     const url = `ws://${host}:${port}`;
 
@@ -32,6 +49,7 @@ export const createConnection = (
 
       ws.onopen = () => {
         logger.log('[radar] connected to', url);
+        sendMetadata();
         flushQueue();
       };
 
