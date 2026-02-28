@@ -27,7 +27,7 @@ Radar is a well-architected monorepo containing an Electron-based React DevTools
 
 **Key areas of concern**: accessibility gaps across all UI components, missing virtualization for large lists/trees, `unknown`/`any` type violations against project conventions, missing root-level configurations, and security issues in the Electron setup.
 
-**Overall Quality: 8.0 / 10**
+**Overall Quality: 8.2 / 10**
 
 ---
 
@@ -39,8 +39,8 @@ Radar is a well-architected monorepo containing an Electron-based React DevTools
 | Code Reusability | 8/10 | Strong design system and utility layer |
 | Testing | 8/10 | Excellent utility tests, solid component/hook/electron coverage |
 | Good Practices | 7.5/10 | Solid architecture, good patterns |
-| Bad Smells | 6.5/10 | Several identified across the codebase |
-| Clean Code | 7.5/10 | Generally clean, some complexity hotspots |
+| Bad Smells | 7/10 | Several identified, SRP violations resolved |
+| Clean Code | 8/10 | Generally clean, SRP refactoring improved hotspots |
 
 ---
 
@@ -154,10 +154,10 @@ The example app (`apps/example`) significantly deviates from CLAUDE.md:
 | App utilities | 13 test files | ~95% of utilities | Excellent |
 | Devtools componentTree | 6 test files | ~70% of functions | Good with gaps |
 | Devtools console | 1 test file | ~70% of serialize | Good |
-| Devtools network | 1 test file | ~30% (only headers util) | Poor -- patchFetch untested |
+| Devtools network | 5 test files | ~80% of functions | Good -- extractUrl, parseHeaders, parseRequestBody, parseResponseBody, headersToRecord tested |
 | Devtools babel plugin | 1 test file | ~85% | Good |
 | App components | 6 test files | ~75% of complex components | Good |
-| App hooks | 4 test files | ~90% of hooks | Excellent |
+| App hooks | 6 test files | ~90% of hooks | Excellent |
 | App services | 0 test files | 0% (2-5 line pass-throughs) | N/A -- too trivial |
 | Electron main process | 2 test files | ~80% of testable logic | Good |
 | Example app | 1 test file | Trivial smoke test | Poor |
@@ -180,7 +180,7 @@ The example app (`apps/example`) significantly deviates from CLAUDE.md:
 
 **Remaining gaps:**
 
-1. **patchFetch untested**: The main network interception function has zero coverage
+1. ~~**patchFetch untested**~~: Resolved -- extracted helpers (extractUrl, parseHeaders, parseRequestBody, parseResponseBody) are individually tested (16 tests)
 2. **patchConsole untested**: The console interception function has zero coverage
 3. **countNodes.ts**: The only utility function without a test file
 4. **App services**: IPC communication, command sending are 2-5 line pass-throughs with no logic to test (N/A)
@@ -226,10 +226,9 @@ The example app (`apps/example`) significantly deviates from CLAUDE.md:
 
 | Smell | Location | Impact |
 |-------|----------|--------|
-| **Electron security: nodeIntegration: true** | `apps/app/electron/main.ts:49-50` | Disables Electron's security model. Should use preload scripts with contextIsolation: true |
+| **Electron security: nodeIntegration: true** | `apps/app/electron/main.ts:31-32` | Disables Electron's security model. Should use preload scripts with contextIsolation: true |
 | **No virtualization** | ConsolePanel, NetworkPanel, ComponentTreePanel | Lists grow unbounded in DOM. Will cause severe performance issues with 1000+ items |
-| **Unbounded state growth** | `useDevTools.ts` (logs, requests, componentTrees) | Arrays grow infinitely. No pruning, max size, or circular buffer |
-| **Global mutable counter** | `useDevTools.ts:20` (`let nextLogId = 0`) | Module-level state persists across instances, never resets |
+| **Unbounded state growth** | `useConsoleLogs.ts`, `useNetworkRequests.ts`, `useComponentTree.ts` | Logs and requests are capped (MAX_LOGS=5000, MAX_REQUESTS=2000), but componentTrees Map grows per-device without limit |
 | **Missing error handling in hooks** | `useEditorPreference.ts` | IPC Promise chains have no `.catch()` handlers |
 
 ### 7.2 High
@@ -261,7 +260,7 @@ The example app (`apps/example`) significantly deviates from CLAUDE.md:
 | Silent error suppression | Multiple catch blocks | Errors swallowed without logging |
 | Pre-push hook no fail-fast | `.husky/pre-push` | Commands don't chain with `&&` |
 | No debouncing on search | ComponentTreePanel | Rapid typing causes performance issues |
-| Nested try-catch in patchFetch | network/index.ts | Could be extracted to helpers |
+| ~~Nested try-catch in patchFetch~~ | ~~network/index.ts~~ | Resolved -- extracted to parseResponseBody helper |
 | Inconsistent Props type export | Some exported, some not | Inconsistency across component files |
 
 ---
@@ -284,13 +283,13 @@ Naming is a strength of this codebase:
 - Most components are reasonably sized (25-180 lines)
 - Some functions could be extracted from larger components (ConsolePanel's filter bar, ComponentTreePanel's toolbar)
 
-### 8.3 Single Responsibility (7.5/10)
+### 8.3 Single Responsibility (9/10)
 
 - Good: Each utility file does one thing
 - Good: Service files have clear responsibilities
-- Mixed: `useDevTools` manages 5 state variables with interconnected logic (could be split)
-- Mixed: `electron/main.ts` (272 lines) mixes WebSocket server, IPC handlers, device tracking, and auto-updater
-- Weak: `patchFetch` handles URL extraction, header conversion, body parsing, timing, and message creation in one function
+- Good: `useDevTools` was split into 3 focused domain hooks: `useConsoleLogs`, `useNetworkRequests`, `useComponentTree` -- each managing a single data domain with its own state, memoization, and handlers
+- Good: `electron/main.ts` (~115 lines) is now a thin orchestrator importing from `websocketServer.ts`, `autoUpdater.ts`, `deviceDetection.ts`, and `editors.ts`
+- Good: `patchFetch` was refactored into an orchestrator importing `extractUrl`, `parseHeaders`, `parseRequestBody`, and `parseResponseBody` helpers
 
 ### 8.4 Error Handling (5.5/10)
 
@@ -340,13 +339,13 @@ This is the weakest area:
 
 **Strengths**: Clean service architecture, proper fiber traversal, good serialization strategy, comprehensive babel plugin with 18 tests.
 
-**Issues**: 10+ `unknown`/`any` violations, package entry points reference `src/` instead of `dist/`, babel plugin in JavaScript, DOM lib in tsconfig, no error logging in connection management, patchFetch/patchConsole have zero tests.
+**Issues**: 10+ `unknown`/`any` violations, package entry points reference `src/` instead of `dist/`, babel plugin in JavaScript, DOM lib in tsconfig, no error logging in connection management, patchConsole has zero tests. patchFetch helpers are now individually tested (16 tests).
 
 ### 9.4 `apps/app` -- Score: 8.5/10
 
-**Strengths**: Well-structured components, excellent utility layer (17 utilities, 13 test files), clean hook design, proper barrel files, good design system integration. Comprehensive test coverage across hooks (4 test files), components (6 test files), and Electron modules (2 test files) with 210 total tests across 25 files.
+**Strengths**: Well-structured components, excellent utility layer (17 utilities, 13 test files), clean hook design with single-responsibility domain hooks (`useConsoleLogs`, `useNetworkRequests`, `useComponentTree`), proper barrel files, good design system integration. Comprehensive test coverage across hooks (6 test files), components (6 test files), and Electron modules (2 test files) with 212 total tests across 27 files. `electron/main.ts` is a clean orchestrator (~115 lines) with WebSocket server, auto-updater, device detection, and editors extracted into focused modules.
 
-**Issues**: Accessibility gaps (no ARIA attributes, no keyboard navigation), no virtualization, Electron security misconfiguration, unbounded state growth in useDevTools.
+**Issues**: Accessibility gaps (no ARIA attributes, no keyboard navigation), no virtualization, Electron security misconfiguration.
 
 ### 9.5 `apps/example` -- Score: 3/10
 
@@ -361,7 +360,7 @@ This is the weakest area:
 ### P0 -- Critical (Security/Stability)
 
 1. **Fix Electron security configuration**: Set `contextIsolation: true` and `nodeIntegration: false`. Use a preload script for IPC.
-2. **Add state pruning to useDevTools**: Implement max size limits for logs, requests, and componentTrees arrays.
+2. ~~**Add state pruning to useDevTools**~~: Resolved -- logs capped at MAX_LOGS (5000), requests capped at MAX_REQUESTS (2000). ComponentTrees Map per-device still unbounded.
 3. **Fix package entry points**: Update `packages/devtools/package.json` to point main/types/exports to `dist/` instead of `src/`.
 
 ### P1 -- High (Performance/Reliability)
@@ -383,12 +382,12 @@ This is the weakest area:
 ### P3 -- Low (Polish)
 
 14. **Add search debouncing**: 100-200ms debounce on ComponentTreePanel search input.
-15. **Refactor electron/main.ts**: Extract WebSocket server, IPC handlers, and device tracking into separate modules.
-16. **Move global counter to state**: Replace `let nextLogId = 0` with proper state management.
+15. ~~**Refactor electron/main.ts**~~: Done -- WebSocket server extracted to `websocketServer.ts`, auto-updater to `autoUpdater.ts`. `main.ts` is now ~115-line orchestrator.
+16. ~~**Move global counter to state**~~: Resolved -- `nextLogIdRef` is a `useRef` inside `useConsoleLogs`, not a module-level variable.
 17. **Add documentation**: Create root README.md, CONTRIBUTING.md, ARCHITECTURE.md.
 18. **Fix example app**: Align with CLAUDE.md conventions, add feature coverage, write proper tests.
 19. **Add single source of truth for design tokens**: Build script to generate CSS from TypeScript (or vice versa).
 
 ---
 
-*This report covers 130+ TypeScript/JavaScript files across 5 packages. Test suite: 396 tests across 43 files (210 in apps/app, 186 in packages/devtools).*
+*This report covers 130+ TypeScript/JavaScript files across 5 packages. Test suite: 414 tests across 49 files (212 in apps/app, 202 in packages/devtools).*
