@@ -1,8 +1,5 @@
-import type { FiberComponentType, FiberNode } from './fiberTypes';
-
-const isFiberComponentType = (
-  type: FiberNode['type'],
-): type is FiberComponentType => type !== null && typeof type !== 'string';
+import type { FiberNode } from './fiberTypes';
+import { isFiberComponentType } from './isFiberComponentType';
 
 export const getSourceFile = (fiber: FiberNode): string | undefined => {
   if (isFiberComponentType(fiber.type)) {

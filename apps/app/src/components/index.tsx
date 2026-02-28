@@ -13,4 +13,5 @@ export { NetworkDetailPanel } from './NetworkDetailPanel';
 export { NetworkPanel } from './NetworkPanel';
 export { Sidebar } from './Sidebar';
 export { StatusBar } from './StatusBar';
+export { StatusDot } from './StatusDot';
 export { ValueRenderer } from './ValueRenderer';

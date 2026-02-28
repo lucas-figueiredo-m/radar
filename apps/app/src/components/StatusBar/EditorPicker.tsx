@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
 import { Check } from 'lucide-react';
+import { useClickOutside } from '../../hooks';
 
 type EditorOption = {
   id: string;
@@ -19,18 +19,7 @@ export const EditorPicker = ({
   onSelect,
   onClose,
 }: EditorPickerProps) => {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onClose]);
+  const ref = useClickOutside<HTMLDivElement>(onClose);
 
   return (
     <div

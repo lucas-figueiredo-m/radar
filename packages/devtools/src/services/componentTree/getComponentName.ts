@@ -1,8 +1,5 @@
 import type { FiberNode } from './fiberTypes';
-
-const CONTEXT_PROVIDER = 10;
-const FORWARD_REF = 11;
-const MEMO = 14;
+import { CONTEXT_PROVIDER, FORWARD_REF, MEMO } from './constants';
 
 export const getComponentName = (fiber: FiberNode): string | null => {
   if (typeof fiber.type === 'string' || fiber.type === null) {

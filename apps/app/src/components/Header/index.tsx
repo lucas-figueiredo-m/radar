@@ -1,5 +1,5 @@
 import type { CliToolStatus, Device } from '../../types';
-import { DeviceSelector } from '..';
+import { DeviceSelector, StatusDot } from '..';
 
 type HeaderProps = {
   selectedDevice: Device | null;
@@ -10,14 +10,10 @@ type HeaderProps = {
   cliToolStatuses: CliToolStatus[];
 };
 
-const getStatusDot = (device: Device | null) => {
-  if (device?.connectionStatus === 'connected') {
-    return { color: 'bg-status-success', label: 'Connected' };
-  }
-  if (device?.connectionStatus === 'device-only') {
-    return { color: 'bg-amber-400', label: 'Device running' };
-  }
-  return { color: 'bg-neutral-500', label: 'No device selected' };
+const getStatusLabel = (device: Device | null) => {
+  if (device?.connectionStatus === 'connected') return 'Connected';
+  if (device?.connectionStatus === 'device-only') return 'Device running';
+  return 'No device selected';
 };
 
 export const Header = ({
@@ -28,7 +24,7 @@ export const Header = ({
   onClear,
   cliToolStatuses,
 }: HeaderProps) => {
-  const status = getStatusDot(selectedDevice);
+  const statusLabel = getStatusLabel(selectedDevice);
 
   return (
     <div className="flex items-center justify-between px-4 h-[var(--toolbar-height)] border-b border-border-default shrink-0 bg-bg-header">
@@ -48,8 +44,10 @@ export const Header = ({
       </div>
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1.5">
-          <div className={`w-2 h-2 rounded-full ${status.color}`} />
-          <span className="text-xs text-text-tertiary">{status.label}</span>
+          <StatusDot
+            status={selectedDevice?.connectionStatus ?? 'offline'}
+          />
+          <span className="text-xs text-text-tertiary">{statusLabel}</span>
         </div>
         <button
           onClick={onClear}

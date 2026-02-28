@@ -3,22 +3,7 @@ import type { FiberNode } from './fiberTypes';
 import { getComponentName } from './getComponentName';
 import { getSourceFile } from './getSourceFile';
 import { fiberIdMap } from './fiberIdMap';
-
-const FUNCTION_COMPONENT = 0;
-const CLASS_COMPONENT = 1;
-const CONTEXT_PROVIDER = 10;
-const FORWARD_REF = 11;
-const MEMO = 14;
-const SIMPLE_MEMO = 15;
-
-const USER_COMPONENT_TAGS = [
-  FUNCTION_COMPONENT,
-  CLASS_COMPONENT,
-  CONTEXT_PROVIDER,
-  FORWARD_REF,
-  MEMO,
-  SIMPLE_MEMO,
-];
+import { USER_COMPONENT_TAGS } from './constants';
 
 const getChildren = (fiber: FiberNode): FiberNode[] => {
   const children: FiberNode[] = [];

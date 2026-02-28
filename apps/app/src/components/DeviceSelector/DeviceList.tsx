@@ -1,11 +1,12 @@
-import { useEffect, useRef } from 'react';
 import { Check } from 'lucide-react';
 import type {
   CliToolStatus,
   Device,
   DeviceConnectionStatus,
 } from '../../types';
-import { PLATFORM_LABELS, STATUS_COLORS, STATUS_LABELS } from './constants';
+import { useClickOutside } from '../../hooks';
+import { StatusDot } from '..';
+import { PLATFORM_LABELS, STATUS_LABELS } from './constants';
 
 type DeviceListProps = {
   devices: Device[];
@@ -33,18 +34,7 @@ export const DeviceList = ({
   onClose,
   cliToolStatuses,
 }: DeviceListProps) => {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onClose]);
+  const ref = useClickOutside<HTMLDivElement>(onClose);
 
   const groupedDevices = STATUS_ORDER.map(status => ({
     status,
@@ -90,11 +80,7 @@ export const DeviceList = ({
                     : 'cursor-default'
                 }`}
               >
-                <span
-                  className={`w-2 h-2 rounded-full shrink-0 ${
-                    STATUS_COLORS[device.connectionStatus]
-                  }`}
-                />
+                <StatusDot status={device.connectionStatus} />
                 <span className="flex flex-col min-w-0 flex-1">
                   <span
                     className={

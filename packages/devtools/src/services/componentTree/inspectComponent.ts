@@ -9,24 +9,13 @@ import { getComponentName } from './getComponentName';
 import { getSourceFile } from './getSourceFile';
 import { serializeValue } from './serializeValue';
 import { serializeHooks } from './serializeHooks';
-import type { FiberComponentType, FiberNode } from './fiberTypes';
-
-const FUNCTION_COMPONENT = 0;
-const CLASS_COMPONENT = 1;
-const HOST_ROOT = 3;
-const CONTEXT_PROVIDER = 10;
-const FORWARD_REF = 11;
-const MEMO = 14;
-const SIMPLE_MEMO = 15;
-
-const USER_COMPONENT_TAGS = [
+import type { FiberNode } from './fiberTypes';
+import {
   FUNCTION_COMPONENT,
-  CLASS_COMPONENT,
-  CONTEXT_PROVIDER,
-  FORWARD_REF,
-  MEMO,
-  SIMPLE_MEMO,
-];
+  HOST_ROOT,
+  USER_COMPONENT_TAGS,
+} from './constants';
+import { isFiberComponentType } from './isFiberComponentType';
 
 const MAX_RENDERED_BY_DEPTH = 50;
 
@@ -44,10 +33,6 @@ const serializeProps = (fiber: FiberNode): SerializedEntry[] => {
       value: serializeValue(value),
     }));
 };
-
-const isFiberComponentType = (
-  type: FiberNode['type'],
-): type is FiberComponentType => type !== null && typeof type !== 'string';
 
 const getSource = (
   fiber: FiberNode,
