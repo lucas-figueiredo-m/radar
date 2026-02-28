@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ConsoleSection from './ConsoleSection';
 import NetworkSection from './NetworkSection';
@@ -8,7 +8,9 @@ const AppContent = () => {
   const safeAreaInsets = useSafeAreaInsets();
 
   useEffect(() => {
-    console.log('App mounted!');
+    console.log(
+      `App mounted on iOS ${String(Platform.Version)}`,
+    );
     console.debug('Debug info:', { screen: 'Main', timestamp: Date.now() });
   }, []);
 

@@ -1,31 +1,33 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import ConsoleOption from './ConsoleOption';
+
+const tag = `[iOS ${String(Platform.Version)}]`;
 
 const CONSOLE_OPTIONS = [
   {
     title: 'console.log',
     color: '#22c55e',
     onPress: () =>
-      console.log('Hello from React Native!', {
+      console.log(`${tag} Hello from React Native!`, {
         count: Math.floor(Math.random() * 100),
       }),
   },
   {
     title: 'console.warn',
     color: '#f59e0b',
-    onPress: () => console.warn('This is a warning message'),
+    onPress: () => console.warn(`${tag} This is a warning message`),
   },
   {
     title: 'console.error',
     color: '#ef4444',
     onPress: () =>
-      console.error('Something went wrong!', new Error('Test error')),
+      console.error(`${tag} Something went wrong!`, new Error('Test error')),
   },
   {
     title: 'console.debug',
     color: '#3b82f6',
     onPress: () =>
-      console.debug('Debug data:', { user: 'test', items: [1, 2, 3] }),
+      console.debug(`${tag} Debug data:`, { user: 'test', items: [1, 2, 3] }),
   },
   {
     title: 'console.log (large object)',
