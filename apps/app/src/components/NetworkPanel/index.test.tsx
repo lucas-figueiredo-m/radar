@@ -17,7 +17,7 @@ vi.mock('@radar/design-system', () => ({
   ),
 }));
 
-vi.mock('..', () => ({
+vi.mock('../NetworkDetailPanel', () => ({
   NetworkDetailPanel: ({
     request,
     onClose,

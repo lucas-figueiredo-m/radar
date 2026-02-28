@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { colorValues } from '@radar/design-system';
-import { NetworkDetailPanel } from '..';
+import { NetworkDetailPanel } from '../NetworkDetailPanel';
 import {
   METHOD_COLORS,
   statusColor,

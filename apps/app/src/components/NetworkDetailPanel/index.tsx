@@ -1,4 +1,5 @@
-import { DetailSection, DetailRow } from '..';
+import { DetailRow } from '../DetailRow';
+import { DetailSection } from '../DetailSection';
 import { formatTime, formatDuration } from '../../utils';
 import type { NetworkEntry } from '../../types';
 

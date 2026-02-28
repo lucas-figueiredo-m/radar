@@ -7,7 +7,7 @@ import {
   useMemo,
 } from 'react';
 import { colorValues } from '@radar/design-system';
-import { ValueRenderer } from '..';
+import { ValueRenderer } from '../ValueRenderer';
 import {
   groupConsecutiveLogs,
   formatArg,

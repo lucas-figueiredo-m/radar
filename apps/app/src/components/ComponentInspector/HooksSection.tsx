@@ -1,6 +1,6 @@
 import type { HookInfo } from '@radar/types';
 import { colorValues } from '@radar/design-system';
-import { DetailSection } from '..';
+import { DetailSection } from '../DetailSection';
 import { SerializedValueRenderer } from './SerializedValueRenderer';
 import { HOOK_TYPE_COLORS } from './constants';
 

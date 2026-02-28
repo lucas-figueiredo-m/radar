@@ -35,7 +35,7 @@ vi.mock('lucide-react', () => ({
   ),
 }));
 
-vi.mock('..', () => ({
+vi.mock('../ComponentInspector', () => ({
   ComponentInspector: () => <div data-testid="component-inspector" />,
 }));
 

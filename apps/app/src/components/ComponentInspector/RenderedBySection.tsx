@@ -1,5 +1,5 @@
 import type { RenderedByEntry } from '@radar/types';
-import { DetailSection } from '..';
+import { DetailSection } from '../DetailSection';
 
 export type RenderedBySectionProps = {
   renderedBy: RenderedByEntry[];

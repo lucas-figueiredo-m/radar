@@ -1,5 +1,6 @@
 import type { CliToolStatus, Device } from '../../types';
-import { DeviceSelector, StatusDot } from '..';
+import { DeviceSelector } from '../DeviceSelector';
+import { StatusDot } from '../StatusDot';
 
 type HeaderProps = {
   selectedDevice: Device | null;

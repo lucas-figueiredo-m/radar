@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { toast } from 'sonner';
-import { CopyButton, DetailSection } from '..';
+import { CopyButton } from '../CopyButton';
+import { DetailSection } from '../DetailSection';
 import { openInEditor } from '../../services';
 
 export type SourceFileSectionProps = {

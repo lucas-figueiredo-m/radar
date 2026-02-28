@@ -5,7 +5,7 @@ import type {
   DeviceConnectionStatus,
 } from '../../types';
 import { useClickOutside } from '../../hooks';
-import { StatusDot } from '..';
+import { StatusDot } from '../StatusDot';
 import { PLATFORM_LABELS, STATUS_LABELS } from './constants';
 
 type DeviceListProps = {

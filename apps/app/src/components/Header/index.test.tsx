@@ -3,8 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Header } from './index';
 import type { Device } from '../../types';
 
-vi.mock('..', () => ({
+vi.mock('../DeviceSelector', () => ({
   DeviceSelector: () => <div data-testid="device-selector" />,
+}));
+
+vi.mock('../StatusDot', () => ({
   StatusDot: ({ status }: { status: string }) => (
     <span data-testid="status-dot" data-status={status} />
   ),

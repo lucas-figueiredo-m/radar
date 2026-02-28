@@ -10,7 +10,7 @@ import {
   searchTreeNodes,
 } from '../../utils';
 import { useDebouncedValue } from '../../hooks';
-import { ComponentInspector } from '..';
+import { ComponentInspector } from '../ComponentInspector';
 import { TreeNode } from './TreeNode';
 import { FileFilterSelect } from './FileFilterSelect';
 import { SearchBar } from './SearchBar';

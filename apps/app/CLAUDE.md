@@ -6,8 +6,8 @@
  - Constants go in a `constants.ts` file inside the folder.
  - The `index.tsx` must import sub-components from their files and re-export them for the barrel.
  - All components are re-exported from `src/components/index.tsx` (barrel file).
- - Cross-component imports use the barrel: `import { Foo } from '..'`, **NEVER** `import { Foo } from '../Foo'`.
- - App-level imports use the barrel: `import { Foo, Bar } from './components'`.
+ - Cross-component imports use **direct sibling paths**: `import { Foo } from '../Foo'`, **NEVER** `import { Foo } from '..'` (importing from the barrel inside `components/` creates circular dependencies).
+ - App-level imports (outside `components/`) use the barrel: `import { Foo, Bar } from './components'`.
 
  Example structure for a component with sub-components and constants:
  ```

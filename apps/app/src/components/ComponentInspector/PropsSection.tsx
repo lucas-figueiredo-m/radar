@@ -1,5 +1,5 @@
 import type { SerializedEntry } from '@radar/types';
-import { DetailSection } from '..';
+import { DetailSection } from '../DetailSection';
 import { SerializedValueRenderer } from './SerializedValueRenderer';
 import { SYNTAX_COLORS } from '../ValueRenderer/constants';
 
