@@ -84,18 +84,13 @@ describe('ComponentTreePanel', () => {
     render(<ComponentTreePanel {...defaultProps()} connected={true} />);
 
     expect(
-      screen.getByText(
-        'No component tree yet. Waiting for React to render...',
-      ),
+      screen.getByText('No component tree yet. Waiting for React to render...'),
     ).toBeInTheDocument();
   });
 
   it('renders tree nodes with component names', () => {
     const tree = makeTree([
-      makeNode('1', 'App', [
-        makeNode('2', 'Header'),
-        makeNode('3', 'Content'),
-      ]),
+      makeNode('1', 'App', [makeNode('2', 'Header'), makeNode('3', 'Content')]),
     ]);
 
     render(<ComponentTreePanel {...defaultProps()} tree={tree} />);
@@ -107,10 +102,7 @@ describe('ComponentTreePanel', () => {
 
   it('shows component count in toolbar', () => {
     const tree = makeTree([
-      makeNode('1', 'App', [
-        makeNode('2', 'Header'),
-        makeNode('3', 'Footer'),
-      ]),
+      makeNode('1', 'App', [makeNode('2', 'Header'), makeNode('3', 'Footer')]),
     ]);
 
     render(<ComponentTreePanel {...defaultProps()} tree={tree} />);

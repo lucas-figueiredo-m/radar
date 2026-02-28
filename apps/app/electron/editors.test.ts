@@ -1,13 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { mockExecSync, mockSpawn, mockReadFileSync, mockWriteFileSync, mockMkdirSync } =
-  vi.hoisted(() => ({
-    mockExecSync: vi.fn(),
-    mockSpawn: vi.fn(() => ({ unref: vi.fn() })),
-    mockReadFileSync: vi.fn(),
-    mockWriteFileSync: vi.fn(),
-    mockMkdirSync: vi.fn(),
-  }));
+const {
+  mockExecSync,
+  mockSpawn,
+  mockReadFileSync,
+  mockWriteFileSync,
+  mockMkdirSync,
+} = vi.hoisted(() => ({
+  mockExecSync: vi.fn(),
+  mockSpawn: vi.fn(() => ({ unref: vi.fn() })),
+  mockReadFileSync: vi.fn(),
+  mockWriteFileSync: vi.fn(),
+  mockMkdirSync: vi.fn(),
+}));
 
 vi.mock('node:child_process', () => ({
   default: { execSync: mockExecSync, spawn: mockSpawn },
@@ -16,7 +21,11 @@ vi.mock('node:child_process', () => ({
 }));
 
 vi.mock('node:fs', () => ({
-  default: { readFileSync: mockReadFileSync, writeFileSync: mockWriteFileSync, mkdirSync: mockMkdirSync },
+  default: {
+    readFileSync: mockReadFileSync,
+    writeFileSync: mockWriteFileSync,
+    mkdirSync: mockMkdirSync,
+  },
   readFileSync: mockReadFileSync,
   writeFileSync: mockWriteFileSync,
   mkdirSync: mockMkdirSync,
@@ -71,7 +80,11 @@ describe('editors', () => {
 
       const editors = detectEditors();
       expect(editors).toHaveLength(1);
-      expect(editors[0]).toEqual({ id: 'vscode', name: 'VS Code', cli: 'code' });
+      expect(editors[0]).toEqual({
+        id: 'vscode',
+        name: 'VS Code',
+        cli: 'code',
+      });
     });
   });
 

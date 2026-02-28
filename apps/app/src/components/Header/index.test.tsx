@@ -60,7 +60,9 @@ describe('Header', () => {
   it('calls onClear when Clear button is clicked', () => {
     const onClear = vi.fn();
 
-    render(<Header {...defaultProps} selectedDevice={null} onClear={onClear} />);
+    render(
+      <Header {...defaultProps} selectedDevice={null} onClear={onClear} />,
+    );
 
     fireEvent.click(screen.getByText('Clear'));
     expect(onClear).toHaveBeenCalledOnce();

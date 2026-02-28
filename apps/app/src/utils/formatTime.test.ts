@@ -4,15 +4,16 @@ import { formatTime } from './formatTime';
 // Pin toLocaleTimeString to UTC so tests pass in any timezone
 beforeEach(() => {
   const originalToLocaleTimeString = Date.prototype.toLocaleTimeString;
-  vi.spyOn(Date.prototype, 'toLocaleTimeString').mockImplementation(
-    function (this: Date, ...args: Parameters<Date['toLocaleTimeString']>) {
-      const [locale, options] = args;
-      return originalToLocaleTimeString.call(this, locale, {
-        ...options,
-        timeZone: 'UTC',
-      });
-    },
-  );
+  vi.spyOn(Date.prototype, 'toLocaleTimeString').mockImplementation(function (
+    this: Date,
+    ...args: Parameters<Date['toLocaleTimeString']>
+  ) {
+    const [locale, options] = args;
+    return originalToLocaleTimeString.call(this, locale, {
+      ...options,
+      timeZone: 'UTC',
+    });
+  });
 });
 
 afterEach(() => {

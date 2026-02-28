@@ -27,9 +27,7 @@ describe('useClickOutside', () => {
     });
 
     act(() => {
-      document.dispatchEvent(
-        new MouseEvent('mousedown', { bubbles: true }),
-      );
+      document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     });
 
     expect(callback).toHaveBeenCalledTimes(1);
@@ -48,9 +46,7 @@ describe('useClickOutside', () => {
     });
 
     act(() => {
-      container.dispatchEvent(
-        new MouseEvent('mousedown', { bubbles: true }),
-      );
+      container.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     });
 
     expect(callback).not.toHaveBeenCalled();

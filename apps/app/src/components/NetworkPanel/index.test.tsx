@@ -75,8 +75,16 @@ describe('NetworkPanel', () => {
 
   it('renders request list with method and URL', () => {
     const requests = [
-      makeRequest({ id: 'req-1', method: 'GET', url: 'https://api.example.com/users' }),
-      makeRequest({ id: 'req-2', method: 'POST', url: 'https://api.example.com/data' }),
+      makeRequest({
+        id: 'req-1',
+        method: 'GET',
+        url: 'https://api.example.com/users',
+      }),
+      makeRequest({
+        id: 'req-2',
+        method: 'POST',
+        url: 'https://api.example.com/data',
+      }),
     ];
 
     render(
@@ -93,7 +101,9 @@ describe('NetworkPanel', () => {
   });
 
   it('shows "..." for pending request status', () => {
-    const requests = [makeRequest({ pending: true, status: undefined, duration: undefined })];
+    const requests = [
+      makeRequest({ pending: true, status: undefined, duration: undefined }),
+    ];
 
     render(
       <NetworkPanel
@@ -136,7 +146,9 @@ describe('NetworkPanel', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('GET').closest('div[class*="cursor-pointer"]')!);
+    fireEvent.click(
+      screen.getByText('GET').closest('div[class*="cursor-pointer"]')!,
+    );
     expect(onSelectRequest).toHaveBeenCalledWith('req-1');
   });
 
@@ -153,7 +165,9 @@ describe('NetworkPanel', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('GET').closest('div[class*="cursor-pointer"]')!);
+    fireEvent.click(
+      screen.getByText('GET').closest('div[class*="cursor-pointer"]')!,
+    );
     expect(onSelectRequest).toHaveBeenCalledWith(null);
   });
 
@@ -184,6 +198,8 @@ describe('NetworkPanel', () => {
       />,
     );
 
-    expect(screen.queryByTestId('network-detail-panel')).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('network-detail-panel'),
+    ).not.toBeInTheDocument();
   });
 });

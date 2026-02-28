@@ -58,7 +58,11 @@ describe('DeviceSelector', () => {
   });
 
   it('shows selected device name with platform info', () => {
-    const device = makeDevice({ name: 'iPhone 15', platform: 'ios', osVersion: '17.4' });
+    const device = makeDevice({
+      name: 'iPhone 15',
+      platform: 'ios',
+      osVersion: '17.4',
+    });
 
     render(
       <DeviceSelector
@@ -134,7 +138,9 @@ describe('DeviceSelector', () => {
     fireEvent.click(screen.getByText(/iPhone 15/).closest('button')!);
 
     const deviceButtons = screen.getAllByRole('button');
-    const pixel6Button = deviceButtons.find(b => b.textContent?.includes('Pixel 6'));
+    const pixel6Button = deviceButtons.find(b =>
+      b.textContent?.includes('Pixel 6'),
+    );
     fireEvent.click(pixel6Button!);
 
     expect(onSelectDevice).toHaveBeenCalledWith('dev-2');
@@ -142,7 +148,11 @@ describe('DeviceSelector', () => {
 
   it('groups devices by connection status in the dropdown', () => {
     const devices = [
-      makeDevice({ id: 'dev-1', name: 'iPhone 15', connectionStatus: 'connected' }),
+      makeDevice({
+        id: 'dev-1',
+        name: 'iPhone 15',
+        connectionStatus: 'connected',
+      }),
       makeDevice({
         id: 'dev-2',
         name: 'iPad',

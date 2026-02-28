@@ -21,9 +21,7 @@ const OFFLINE_REMOVAL_DELAY_MS = 5000;
 type IpcListener = (event: unknown, data: unknown) => void;
 
 const getListener = (channel: string): IpcListener => {
-  const call = mockedIpc.on.mock.calls.find(
-    (c: unknown[]) => c[0] === channel,
-  );
+  const call = mockedIpc.on.mock.calls.find((c: unknown[]) => c[0] === channel);
   return call?.[1] as IpcListener;
 };
 
@@ -140,9 +138,7 @@ describe('useDeviceManager', () => {
       vi.advanceTimersByTime(OFFLINE_REMOVAL_DELAY_MS);
     });
 
-    expect(
-      result.current.devices.find(d => d.id === 'dev-1'),
-    ).toBeDefined();
+    expect(result.current.devices.find(d => d.id === 'dev-1')).toBeDefined();
   });
 
   it('auto-selects single connected device', () => {

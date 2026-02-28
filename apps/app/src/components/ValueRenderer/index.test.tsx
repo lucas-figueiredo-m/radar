@@ -71,9 +71,7 @@ describe('ValueRenderer', () => {
     });
 
     it('expands object on click to show all entries', () => {
-      render(
-        <ValueRenderer value={{ x: 1, y: 2 }} inline={false} />,
-      );
+      render(<ValueRenderer value={{ x: 1, y: 2 }} inline={false} />);
       // Click the collapsed preview (the arrow area)
       const toggle = screen.getByText('▶');
       fireEvent.click(toggle);
@@ -85,9 +83,7 @@ describe('ValueRenderer', () => {
     });
 
     it('collapses expanded object on click', () => {
-      render(
-        <ValueRenderer value={{ x: 1, y: 2 }} inline={false} />,
-      );
+      render(<ValueRenderer value={{ x: 1, y: 2 }} inline={false} />);
       // Expand
       fireEvent.click(screen.getByText('▶'));
       expect(screen.getByText('▼ 2 keys')).toBeInTheDocument();
@@ -128,9 +124,7 @@ describe('ValueRenderer', () => {
     });
 
     it('shows overflow indicator for arrays with more than 3 items', () => {
-      render(
-        <ValueRenderer value={[1, 2, 3, 4, 5]} inline={false} />,
-      );
+      render(<ValueRenderer value={[1, 2, 3, 4, 5]} inline={false} />);
       expect(screen.getByText(', ...+2')).toBeInTheDocument();
     });
 

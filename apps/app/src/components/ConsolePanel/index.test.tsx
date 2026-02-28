@@ -28,9 +28,7 @@ vi.mock('./CopyButton', () => ({
 
 const { ConsolePanel } = await import('./index');
 
-const mkLog = (
-  overrides: Partial<LogEntry> & { id: number },
-): LogEntry => ({
+const mkLog = (overrides: Partial<LogEntry> & { id: number }): LogEntry => ({
   level: 'log',
   args: ['hello'],
   timestamp: 1000000,
@@ -67,9 +65,7 @@ describe('ConsolePanel', () => {
   });
 
   it('renders log entries with ValueRenderer for each arg', () => {
-    const logs = [
-      mkLog({ id: 1, args: ['hello', 42], timestamp: 1000000 }),
-    ];
+    const logs = [mkLog({ id: 1, args: ['hello', 42], timestamp: 1000000 })];
     render(<ConsolePanel {...defaultProps} logs={logs} connected={true} />);
     expect(screen.getByText('hello')).toBeInTheDocument();
     expect(screen.getByText('42')).toBeInTheDocument();
@@ -125,9 +121,7 @@ describe('ConsolePanel', () => {
       mkLog({ id: 5, level: 'warn' }),
       mkLog({ id: 6, level: 'warn' }),
     ];
-    render(
-      <ConsolePanel {...defaultProps} logs={logs} connected={true} />,
-    );
+    render(<ConsolePanel {...defaultProps} logs={logs} connected={true} />);
     expect(screen.getByText(/^log\s*\(2\)/)).toBeInTheDocument();
     expect(screen.getByText(/^error\s*\(1\)/)).toBeInTheDocument();
     expect(screen.getByText(/^warn\s*\(3\)/)).toBeInTheDocument();
@@ -140,9 +134,7 @@ describe('ConsolePanel', () => {
       mkLog({ id: 2, args: ['dup'], timestamp: 2000 }),
       mkLog({ id: 3, args: ['dup'], timestamp: 3000 }),
     ];
-    render(
-      <ConsolePanel {...defaultProps} logs={logs} connected={true} />,
-    );
+    render(<ConsolePanel {...defaultProps} logs={logs} connected={true} />);
     expect(screen.getByText('x3')).toBeInTheDocument();
   });
 
@@ -151,9 +143,7 @@ describe('ConsolePanel', () => {
       mkLog({ id: 1, args: ['dup'], timestamp: 1000 }),
       mkLog({ id: 2, args: ['dup'], timestamp: 2000 }),
     ];
-    render(
-      <ConsolePanel {...defaultProps} logs={logs} connected={true} />,
-    );
+    render(<ConsolePanel {...defaultProps} logs={logs} connected={true} />);
     const countBefore = screen.getAllByText('dup').length;
 
     fireEvent.click(screen.getByText('x2'));
@@ -167,9 +157,7 @@ describe('ConsolePanel', () => {
       mkLog({ id: 1, args: ['dup'], timestamp: 1000 }),
       mkLog({ id: 2, args: ['dup'], timestamp: 2000 }),
     ];
-    render(
-      <ConsolePanel {...defaultProps} logs={logs} connected={true} />,
-    );
+    render(<ConsolePanel {...defaultProps} logs={logs} connected={true} />);
     const badge = screen.getByText('x2');
     fireEvent.click(badge);
     const expandedCount = screen.getAllByText('dup').length;
