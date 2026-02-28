@@ -1,6 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { Check } from 'lucide-react';
-import type { CliToolStatus, Device, DeviceConnectionStatus } from '../../types';
+import type {
+  CliToolStatus,
+  Device,
+  DeviceConnectionStatus,
+} from '../../types';
 import { PLATFORM_LABELS, STATUS_COLORS, STATUS_LABELS } from './constants';
 
 type DeviceListProps = {
@@ -87,7 +91,9 @@ export const DeviceList = ({
                 }`}
               >
                 <span
-                  className={`w-2 h-2 rounded-full shrink-0 ${STATUS_COLORS[device.connectionStatus]}`}
+                  className={`w-2 h-2 rounded-full shrink-0 ${
+                    STATUS_COLORS[device.connectionStatus]
+                  }`}
                 />
                 <span className="flex flex-col min-w-0 flex-1">
                   <span
@@ -108,9 +114,7 @@ export const DeviceList = ({
                   </span>
                 </span>
                 <span className="w-3.5 shrink-0">
-                  {isSelected && (
-                    <Check size={12} className="text-accent" />
-                  )}
+                  {isSelected && <Check size={12} className="text-accent" />}
                 </span>
               </button>
             );
@@ -125,8 +129,8 @@ export const DeviceList = ({
               key={tool.tool}
               className="text-[10px] text-amber-400 leading-relaxed"
             >
-              ⚠ {tool.tool} not found &mdash;{' '}
-              {TOOL_PLATFORM_MAP[tool.tool]} detection unavailable
+              ⚠ {tool.tool} not found &mdash; {TOOL_PLATFORM_MAP[tool.tool]}{' '}
+              detection unavailable
             </div>
           ))}
         </div>

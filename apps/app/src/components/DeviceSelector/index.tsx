@@ -22,7 +22,9 @@ export const DeviceSelector = ({
   const [open, setOpen] = useState(false);
 
   const displayText = selectedDevice
-    ? `${selectedDevice.name} \u2014 ${PLATFORM_LABELS[selectedDevice.platform]} ${selectedDevice.osVersion}`
+    ? `${selectedDevice.name} \u2014 ${
+        PLATFORM_LABELS[selectedDevice.platform]
+      } ${selectedDevice.osVersion}`
     : 'No device selected';
 
   return (

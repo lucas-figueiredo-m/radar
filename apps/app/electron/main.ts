@@ -10,7 +10,11 @@ import {
   openInEditor,
 } from './editors';
 import { startDeviceDetection } from './deviceDetection';
-import type { DevicePlatform, MetadataMessage, RadarCommand } from '@radar/types';
+import type {
+  DevicePlatform,
+  MetadataMessage,
+  RadarCommand,
+} from '@radar/types';
 
 process.env.DIST = path.join(__dirname, '../dist');
 process.env.VITE_PUBLIC = app.isPackaged
@@ -62,10 +66,13 @@ ipcMain.on('radar:toggle-devtools', () => {
   }
 });
 
-ipcMain.on('radar:command', (_event, payload: { deviceId: string; command: RadarCommand }) => {
-  const device = connectedDevices.get(payload.deviceId);
-  device?.socket.send(JSON.stringify(payload.command));
-});
+ipcMain.on(
+  'radar:command',
+  (_event, payload: { deviceId: string; command: RadarCommand }) => {
+    const device = connectedDevices.get(payload.deviceId);
+    device?.socket.send(JSON.stringify(payload.command));
+  },
+);
 
 ipcMain.handle('radar:get-editor-info', () => {
   const editors = detectEditors();
@@ -118,7 +125,9 @@ ipcMain.handle(
 
 type ParsedMessage = Record<string, string | number | boolean | null>;
 
-const isMetadataMessage = (message: ParsedMessage): message is ParsedMessage & MetadataMessage =>
+const isMetadataMessage = (
+  message: ParsedMessage,
+): message is ParsedMessage & MetadataMessage =>
   message.type === 'metadata' &&
   typeof message.deviceId === 'string' &&
   typeof message.deviceName === 'string' &&

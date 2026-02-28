@@ -1,6 +1,10 @@
 import { execSync } from 'node:child_process';
 import type { BrowserWindow } from 'electron';
-import type { DetectedDevice, CliToolStatus, DevicePlatform } from '@radar/types';
+import type {
+  DetectedDevice,
+  CliToolStatus,
+  DevicePlatform,
+} from '@radar/types';
 
 const POLL_INTERVAL_MS = 2000;
 const EXEC_TIMEOUT_MS = 5000;

@@ -111,15 +111,15 @@ export const useDevTools = (selectedDeviceId: string | null) => {
 
   const deviceLogs = useMemo(
     () =>
-      selectedDeviceId
-        ? logs.filter(l => l.deviceId === selectedDeviceId)
-        : [],
+      selectedDeviceId ? logs.filter(l => l.deviceId === selectedDeviceId) : [],
     [logs, selectedDeviceId],
   );
 
   const filteredLogs = useMemo(
     () =>
-      filter === 'all' ? deviceLogs : deviceLogs.filter(l => l.level === filter),
+      filter === 'all'
+        ? deviceLogs
+        : deviceLogs.filter(l => l.level === filter),
     [deviceLogs, filter],
   );
 

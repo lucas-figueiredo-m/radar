@@ -24,10 +24,7 @@ export const useDeviceManager = () => {
   );
 
   useEffect(() => {
-    const onDetectedDevices = (
-      _event: unknown,
-      devices: DetectedDevice[],
-    ) => {
+    const onDetectedDevices = (_event: unknown, devices: DetectedDevice[]) => {
       setDetectedDevices(devices);
     };
 
@@ -96,8 +93,9 @@ export const useDeviceManager = () => {
   }, [detectedDevices, connectedDeviceIds]);
 
   useEffect(() => {
+    const timers = offlineTimersRef.current;
     return () => {
-      for (const timer of offlineTimersRef.current.values()) {
+      for (const timer of timers.values()) {
         clearTimeout(timer);
       }
     };
