@@ -21,15 +21,18 @@ describe('useNetworkRequests', () => {
     const { result } = renderHook(() => useNetworkRequests(DEVICE_ID));
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'network',
-        event: 'request',
-        id: 'req-1',
-        method: 'GET',
-        url: 'https://example.com',
-        timestamp: 1000,
-        deviceId: DEVICE_ID,
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'network',
+          event: 'request',
+          id: 'req-1',
+          method: 'GET',
+          url: 'https://example.com',
+          timestamp: 1000,
+          deviceId: DEVICE_ID,
+        },
+      );
     });
 
     expect(result.current.requests).toHaveLength(1);
@@ -41,30 +44,36 @@ describe('useNetworkRequests', () => {
     const { result } = renderHook(() => useNetworkRequests(DEVICE_ID));
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'network',
-        event: 'request',
-        id: 'req-1',
-        method: 'GET',
-        url: 'https://example.com',
-        timestamp: 1000,
-        deviceId: DEVICE_ID,
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'network',
+          event: 'request',
+          id: 'req-1',
+          method: 'GET',
+          url: 'https://example.com',
+          timestamp: 1000,
+          deviceId: DEVICE_ID,
+        },
+      );
     });
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'network',
-        event: 'response',
-        id: 'req-1',
-        status: 200,
-        statusText: 'OK',
-        duration: 150,
-        responseHeaders: { 'content-type': 'application/json' },
-        responseBody: { ok: true },
-        timestamp: 1150,
-        deviceId: DEVICE_ID,
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'network',
+          event: 'response',
+          id: 'req-1',
+          status: 200,
+          statusText: 'OK',
+          duration: 150,
+          responseHeaders: { 'content-type': 'application/json' },
+          responseBody: { ok: true },
+          timestamp: 1150,
+          deviceId: DEVICE_ID,
+        },
+      );
     });
 
     expect(result.current.requests).toHaveLength(1);
@@ -77,14 +86,17 @@ describe('useNetworkRequests', () => {
     const { result } = renderHook(() => useNetworkRequests(DEVICE_ID));
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'network',
-        event: 'response',
-        id: 'unknown-id',
-        status: 200,
-        timestamp: 1000,
-        deviceId: DEVICE_ID,
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'network',
+          event: 'response',
+          id: 'unknown-id',
+          status: 200,
+          timestamp: 1000,
+          deviceId: DEVICE_ID,
+        },
+      );
     });
 
     expect(result.current.requests).toHaveLength(0);
@@ -94,10 +106,13 @@ describe('useNetworkRequests', () => {
     const { result } = renderHook(() => useNetworkRequests(DEVICE_ID));
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'console',
-        deviceId: DEVICE_ID,
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'console',
+          deviceId: DEVICE_ID,
+        },
+      );
     });
 
     expect(result.current.requests).toHaveLength(0);
@@ -107,15 +122,18 @@ describe('useNetworkRequests', () => {
     const { result } = renderHook(() => useNetworkRequests(DEVICE_ID));
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'network',
-        event: 'request',
-        id: 'req-1',
-        method: 'GET',
-        url: 'https://example.com',
-        timestamp: 1000,
-        deviceId: DEVICE_ID,
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'network',
+          event: 'request',
+          id: 'req-1',
+          method: 'GET',
+          url: 'https://example.com',
+          timestamp: 1000,
+          deviceId: DEVICE_ID,
+        },
+      );
     });
 
     act(() => {

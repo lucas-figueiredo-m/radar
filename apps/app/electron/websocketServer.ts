@@ -1,7 +1,11 @@
 import type { BrowserWindow } from 'electron';
 import type { WebSocket as WsWebSocket } from 'ws';
 import { WebSocketServer } from 'ws';
-import type { DevicePlatform, DetectedDevice, MetadataMessage } from '@radar/types';
+import type {
+  DevicePlatform,
+  DetectedDevice,
+  MetadataMessage,
+} from '@radar/types';
 
 type ConnectedDevice = {
   socket: WsWebSocket;

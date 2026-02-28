@@ -22,7 +22,20 @@
       "Bash(tree:*)",
       "WebSearch",
       "WebFetch(domain:github.com)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(xargs kill)",
+      "Bash(node:*)",
+      "WebFetch(domain:radar.dev)",
+      "WebFetch(domain:www.godaddy.com)",
+      "WebFetch(domain:domainr.com)",
+      "WebFetch(domain:www.namecheap.com)",
+      "Bash(emulator:*)",
+      "Bash(adb devices:*)",
+      "WebFetch(domain:www.whois.com)",
+      "WebFetch(domain:instantdomainsearch.com)",
+      "Bash(kill 5166:*)",
+      "Bash(adb:*)",
+      "Bash(bun run:*)"
     ]
   }
 }

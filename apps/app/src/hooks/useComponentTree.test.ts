@@ -24,12 +24,15 @@ describe('useComponentTree', () => {
     const { result } = renderHook(() => useComponentTree(DEVICE_ID));
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'componentTree',
-        rootNodes: [{ id: 'node-1', name: 'App', children: [] }],
-        timestamp: 1000,
-        deviceId: DEVICE_ID,
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'componentTree',
+          rootNodes: [{ id: 'node-1', name: 'App', children: [] }],
+          timestamp: 1000,
+          deviceId: DEVICE_ID,
+        },
+      );
     });
 
     expect(result.current.componentTree).not.toBeNull();
@@ -47,12 +50,15 @@ describe('useComponentTree', () => {
     const inspectData = { name: 'MyComponent', props: { title: 'Hello' } };
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'inspectComponent',
-        componentId: 'comp-1',
-        data: inspectData,
-        deviceId: DEVICE_ID,
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'inspectComponent',
+          componentId: 'comp-1',
+          data: inspectData,
+          deviceId: DEVICE_ID,
+        },
+      );
     });
 
     expect(result.current.inspectedComponent).toEqual(inspectData);
@@ -66,12 +72,15 @@ describe('useComponentTree', () => {
     });
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'inspectComponent',
-        componentId: 'comp-other',
-        data: { name: 'Other' },
-        deviceId: DEVICE_ID,
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'inspectComponent',
+          componentId: 'comp-other',
+          data: { name: 'Other' },
+          deviceId: DEVICE_ID,
+        },
+      );
     });
 
     expect(result.current.inspectedComponent).toBeNull();
@@ -81,10 +90,13 @@ describe('useComponentTree', () => {
     const { result } = renderHook(() => useComponentTree(DEVICE_ID));
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'console',
-        deviceId: DEVICE_ID,
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'console',
+          deviceId: DEVICE_ID,
+        },
+      );
     });
 
     expect(result.current.componentTree).toBeNull();
@@ -94,12 +106,15 @@ describe('useComponentTree', () => {
     const { result } = renderHook(() => useComponentTree(DEVICE_ID));
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'componentTree',
-        rootNodes: [{ id: 'node-1', name: 'App', children: [] }],
-        timestamp: 1000,
-        deviceId: DEVICE_ID,
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'componentTree',
+          rootNodes: [{ id: 'node-1', name: 'App', children: [] }],
+          timestamp: 1000,
+          deviceId: DEVICE_ID,
+        },
+      );
     });
 
     act(() => {

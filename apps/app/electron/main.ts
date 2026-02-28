@@ -104,10 +104,7 @@ app.whenReady().then(() => {
     const detection = startDeviceDetection(win);
     cleanupDeviceDetection = detection.cleanup;
 
-    wsHandle = startWebSocketServer(
-      win,
-      detection.getDetectedDevices,
-    );
+    wsHandle = startWebSocketServer(win, detection.getDetectedDevices);
   }
 
   if (app.isPackaged) {

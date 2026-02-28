@@ -7,7 +7,10 @@ import type {
 import { sendCommand } from '../services';
 import type { ComponentTreeState } from '../types';
 
-type StampedMessage = Record<string, unknown> & { type: string; deviceId: string };
+type StampedMessage = Record<string, unknown> & {
+  type: string;
+  deviceId: string;
+};
 
 export const useComponentTree = (selectedDeviceId: string | null) => {
   const [componentTrees, setComponentTrees] = useState<
@@ -49,7 +52,7 @@ export const useComponentTree = (selectedDeviceId: string | null) => {
 
   const deviceComponentTree = useMemo(
     () =>
-      selectedDeviceId ? componentTrees.get(selectedDeviceId) ?? null : null,
+      selectedDeviceId ? (componentTrees.get(selectedDeviceId) ?? null) : null,
     [componentTrees, selectedDeviceId],
   );
 

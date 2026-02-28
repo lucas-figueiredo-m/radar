@@ -3,7 +3,10 @@ import type { ConsoleMessage } from '@radar/types';
 import type { LogEntry, LogLevel } from '../types';
 import { MAX_LOGS } from './constants';
 
-type StampedMessage = Record<string, unknown> & { type: string; deviceId: string };
+type StampedMessage = Record<string, unknown> & {
+  type: string;
+  deviceId: string;
+};
 type StampedConsoleMessage = ConsoleMessage & { deviceId: string };
 
 export const useConsoleLogs = (selectedDeviceId: string | null) => {

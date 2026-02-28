@@ -21,13 +21,16 @@ describe('useConsoleLogs', () => {
     const { result } = renderHook(() => useConsoleLogs(DEVICE_ID));
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'console',
-        level: 'log',
-        args: ['hello'],
-        timestamp: 1000,
-        deviceId: DEVICE_ID,
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'console',
+          level: 'log',
+          args: ['hello'],
+          timestamp: 1000,
+          deviceId: DEVICE_ID,
+        },
+      );
     });
 
     expect(result.current.logs).toHaveLength(1);
@@ -40,20 +43,26 @@ describe('useConsoleLogs', () => {
     const { result } = renderHook(() => useConsoleLogs(DEVICE_ID));
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'console',
-        level: 'log',
-        args: ['first'],
-        timestamp: 1000,
-        deviceId: DEVICE_ID,
-      });
-      result.current.handleMessage({}, {
-        type: 'console',
-        level: 'warn',
-        args: ['second'],
-        timestamp: 2000,
-        deviceId: DEVICE_ID,
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'console',
+          level: 'log',
+          args: ['first'],
+          timestamp: 1000,
+          deviceId: DEVICE_ID,
+        },
+      );
+      result.current.handleMessage(
+        {},
+        {
+          type: 'console',
+          level: 'warn',
+          args: ['second'],
+          timestamp: 2000,
+          deviceId: DEVICE_ID,
+        },
+      );
     });
 
     expect(result.current.logs[1].id).toBe(result.current.logs[0].id + 1);
@@ -63,20 +72,26 @@ describe('useConsoleLogs', () => {
     const { result } = renderHook(() => useConsoleLogs(DEVICE_ID));
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'console',
-        level: 'log',
-        args: ['mine'],
-        timestamp: 1000,
-        deviceId: DEVICE_ID,
-      });
-      result.current.handleMessage({}, {
-        type: 'console',
-        level: 'log',
-        args: ['other'],
-        timestamp: 2000,
-        deviceId: 'device-2',
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'console',
+          level: 'log',
+          args: ['mine'],
+          timestamp: 1000,
+          deviceId: DEVICE_ID,
+        },
+      );
+      result.current.handleMessage(
+        {},
+        {
+          type: 'console',
+          level: 'log',
+          args: ['other'],
+          timestamp: 2000,
+          deviceId: 'device-2',
+        },
+      );
     });
 
     expect(result.current.logs).toHaveLength(1);
@@ -87,20 +102,26 @@ describe('useConsoleLogs', () => {
     const { result } = renderHook(() => useConsoleLogs(DEVICE_ID));
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'console',
-        level: 'log',
-        args: ['info'],
-        timestamp: 1000,
-        deviceId: DEVICE_ID,
-      });
-      result.current.handleMessage({}, {
-        type: 'console',
-        level: 'warn',
-        args: ['warning'],
-        timestamp: 2000,
-        deviceId: DEVICE_ID,
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'console',
+          level: 'log',
+          args: ['info'],
+          timestamp: 1000,
+          deviceId: DEVICE_ID,
+        },
+      );
+      result.current.handleMessage(
+        {},
+        {
+          type: 'console',
+          level: 'warn',
+          args: ['warning'],
+          timestamp: 2000,
+          deviceId: DEVICE_ID,
+        },
+      );
     });
 
     act(() => {
@@ -115,10 +136,13 @@ describe('useConsoleLogs', () => {
     const { result } = renderHook(() => useConsoleLogs(DEVICE_ID));
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'network',
-        deviceId: DEVICE_ID,
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'network',
+          deviceId: DEVICE_ID,
+        },
+      );
     });
 
     expect(result.current.logs).toHaveLength(0);
@@ -128,20 +152,26 @@ describe('useConsoleLogs', () => {
     const { result } = renderHook(() => useConsoleLogs(DEVICE_ID));
 
     act(() => {
-      result.current.handleMessage({}, {
-        type: 'console',
-        level: 'log',
-        args: ['mine'],
-        timestamp: 1000,
-        deviceId: DEVICE_ID,
-      });
-      result.current.handleMessage({}, {
-        type: 'console',
-        level: 'log',
-        args: ['other'],
-        timestamp: 2000,
-        deviceId: 'device-2',
-      });
+      result.current.handleMessage(
+        {},
+        {
+          type: 'console',
+          level: 'log',
+          args: ['mine'],
+          timestamp: 1000,
+          deviceId: DEVICE_ID,
+        },
+      );
+      result.current.handleMessage(
+        {},
+        {
+          type: 'console',
+          level: 'log',
+          args: ['other'],
+          timestamp: 2000,
+          deviceId: 'device-2',
+        },
+      );
     });
 
     act(() => {

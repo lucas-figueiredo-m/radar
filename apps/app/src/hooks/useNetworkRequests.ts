@@ -3,7 +3,10 @@ import type { NetworkMessage } from '@radar/types';
 import type { NetworkEntry } from '../types';
 import { MAX_REQUESTS } from './constants';
 
-type StampedMessage = Record<string, unknown> & { type: string; deviceId: string };
+type StampedMessage = Record<string, unknown> & {
+  type: string;
+  deviceId: string;
+};
 type StampedNetworkMessage = NetworkMessage & { deviceId: string };
 
 export const useNetworkRequests = (selectedDeviceId: string | null) => {
@@ -31,9 +34,7 @@ export const useNetworkRequests = (selectedDeviceId: string | null) => {
               deviceId: msg.deviceId,
             },
           ];
-          return next.length > MAX_REQUESTS
-            ? next.slice(-MAX_REQUESTS)
-            : next;
+          return next.length > MAX_REQUESTS ? next.slice(-MAX_REQUESTS) : next;
         });
       } else if (msg.event === 'response') {
         setRequests(prev =>
