@@ -13,40 +13,27 @@ export const createProfilerService = (send: Send) => {
   const handleCommit = (root: FiberRoot) => {
     if (!isProfiling) return;
     try {
-      const snapshot = snapshotCommit(root);
-      snapshots.push(snapshot);
-      console.log(
-        `[radar:profiler] commit captured — ${snapshot.rootSnapshots.length} root components, total snapshots: ${snapshots.length}`,
-      );
-    } catch (err) {
-      console.warn('[radar:profiler] snapshot error:', err);
+      snapshots.push(snapshotCommit(root));
+    } catch {
+      // Don't let snapshot errors propagate to the component tree hook
     }
   };
 
   const startProfiling = () => {
-    console.log('[radar:profiler] startProfiling command received');
     isProfiling = true;
     snapshots = [];
   };
 
   const stopProfiling = () => {
-    console.log(
-      `[radar:profiler] stopProfiling command received — ${snapshots.length} snapshots captured`,
-    );
     isProfiling = false;
     try {
       const commits = buildProfilingData(snapshots);
-      console.log(
-        `[radar:profiler] built ${commits.length} commits, components per commit: [${commits.map(c => c.components.length).join(', ')}]`,
-      );
       send({
         type: 'profilerSession',
         commits,
         timestamp: Date.now(),
       });
-      console.log('[radar:profiler] profilerSession message sent');
-    } catch (err) {
-      console.error('[radar:profiler] buildProfilingData error:', err);
+    } catch {
       send({
         type: 'profilerSession',
         commits: [],

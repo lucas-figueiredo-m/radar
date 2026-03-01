@@ -22,14 +22,6 @@ export const useProfiler = (selectedDeviceId: string | null) => {
       if (message.type !== 'profilerSession') return;
 
       const msg = message as ProfilerSessionMessage & { deviceId: string };
-      console.log(
-        `[radar:profiler:ui] received profilerSession from ${msg.deviceId} — ${msg.commits.length} commits`,
-      );
-      if (msg.commits.length > 0) {
-        console.log(
-          `[radar:profiler:ui] first commit: ${msg.commits[0].components.length} components, duration: ${msg.commits[0].duration}ms`,
-        );
-      }
       setSessions(prev => {
         const next = new Map(prev);
         next.set(msg.deviceId, msg.commits);

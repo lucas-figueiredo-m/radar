@@ -99,14 +99,6 @@ export const startWebSocketServer = (
         }
 
         const deviceId = socketToDeviceId.get(socket);
-        if (message.type === 'profilerSession') {
-          const commits = Array.isArray(message.commits)
-            ? message.commits
-            : [];
-          console.log(
-            `[radar:ws] received profilerSession from device ${deviceId ?? 'unknown'} — ${commits.length} commits`,
-          );
-        }
         if (deviceId) {
           const stamped = { ...message, deviceId };
           win.webContents.send('radar:message', stamped);
