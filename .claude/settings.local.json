@@ -35,7 +35,12 @@
       "WebFetch(domain:instantdomainsearch.com)",
       "Bash(kill 5166:*)",
       "Bash(adb:*)",
-      "Bash(bun run:*)"
+      "Bash(bun run:*)",
+      "Bash(do echo:*)",
+      "WebFetch(domain:legacy.reactjs.org)",
+      "Bash(lsof:*)",
+      "mcp__plugin_linear_linear__list_projects",
+      "Bash(python3:*)"
     ]
   }
 }
