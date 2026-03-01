@@ -21,3 +21,13 @@ export type {
   CliToolStatus,
 } from './device';
 export type { RadarMessage, RadarCommand } from './radarMessage';
+export type {
+  ProfilerPhase,
+  RenderTrigger,
+  ProfilerComponentData,
+  ProfilerCommitData,
+  ProfilerSessionMessage,
+  StartProfilingCommand,
+  StopProfilingCommand,
+  ReloadAndProfileCommand,
+} from './profiler';

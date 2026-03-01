@@ -92,10 +92,21 @@ export const startWebSocketServer = (
           console.log('[radar] Project root set to:', message.projectRoot);
 
           sendConnectedDevices();
+          win.webContents.send('radar:device-registered', {
+            deviceId: resolvedDeviceId,
+          });
           return;
         }
 
         const deviceId = socketToDeviceId.get(socket);
+        if (message.type === 'profilerSession') {
+          const commits = Array.isArray(message.commits)
+            ? message.commits
+            : [];
+          console.log(
+            `[radar:ws] received profilerSession from device ${deviceId ?? 'unknown'} — ${commits.length} commits`,
+          );
+        }
         if (deviceId) {
           const stamped = { ...message, deviceId };
           win.webContents.send('radar:message', stamped);

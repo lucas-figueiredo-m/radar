@@ -5,3 +5,4 @@ export { useDebouncedValue } from './useDebouncedValue';
 export { useDeviceManager } from './useDeviceManager';
 export { useEditorPreference } from './useEditorPreference';
 export { useNetworkRequests } from './useNetworkRequests';
+export { useProfiler } from './useProfiler';

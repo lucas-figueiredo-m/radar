@@ -7,6 +7,7 @@ import {
   ComponentTreePanel,
   ConsolePanel,
   NetworkPanel,
+  ProfilerPanel,
   StatusBar,
   DevToolsPanel,
 } from './components';
@@ -15,6 +16,7 @@ import {
   useConsoleLogs,
   useNetworkRequests,
   useComponentTree,
+  useProfiler,
   useEditorPreference,
 } from './hooks';
 import { ipcRenderer } from './services';
@@ -65,6 +67,23 @@ const App = () => {
     handleMessage: handleTreeMessage,
   } = useComponentTree(selectedDeviceId);
 
+  const {
+    isProfiling,
+    commits: profilerCommits,
+    selectedCommitIndex,
+    selectedCommit,
+    activeView,
+    componentStats,
+    setSelectedCommitIndex,
+    setActiveView,
+    startProfiling,
+    stopProfiling,
+    reloadAndProfile,
+    clearProfilerData,
+    handleMessage: handleProfilerMessage,
+    handleDeviceConnected,
+  } = useProfiler(selectedDeviceId);
+
   useEffect(() => {
     const onMessage = (
       event: unknown,
@@ -73,6 +92,7 @@ const App = () => {
       handleConsoleMessage(event, message);
       handleNetworkMessage(event, message);
       handleTreeMessage(event, message);
+      handleProfilerMessage(event, message);
     };
 
     ipcRenderer.on('radar:message', onMessage);
@@ -80,13 +100,30 @@ const App = () => {
     return () => {
       ipcRenderer.removeListener('radar:message', onMessage);
     };
-  }, [handleConsoleMessage, handleNetworkMessage, handleTreeMessage]);
+  }, [handleConsoleMessage, handleNetworkMessage, handleTreeMessage, handleProfilerMessage]);
+
+  useEffect(() => {
+    const onDeviceRegistered = (
+      _event: unknown,
+      payload: { deviceId: string },
+    ) => {
+      handleDeviceConnected(payload.deviceId);
+    };
+
+    ipcRenderer.on('radar:device-registered', onDeviceRegistered);
+
+    return () => {
+      ipcRenderer.removeListener('radar:device-registered', onDeviceRegistered);
+    };
+  }, [handleDeviceConnected]);
 
   const handleClear = () => {
     if (tab === 'console') {
       clearLogs();
     } else if (tab === 'tree') {
       clearComponentTree();
+    } else if (tab === 'profiler') {
+      clearProfilerData();
     } else {
       clearRequests();
     }
@@ -126,6 +163,23 @@ const App = () => {
         onRequestEditorPicker={openEditorPicker}
       />
     ),
+    profiler: (
+      <ProfilerPanel
+        isProfiling={isProfiling}
+        commits={profilerCommits}
+        selectedCommitIndex={selectedCommitIndex}
+        selectedCommit={selectedCommit}
+        activeView={activeView}
+        componentStats={componentStats}
+        connected={connected}
+        onSelectCommit={setSelectedCommitIndex}
+        onChangeView={setActiveView}
+        onStartProfiling={startProfiling}
+        onStopProfiling={stopProfiling}
+        onReload={reloadAndProfile}
+        onClear={clearProfilerData}
+      />
+    ),
     devtools: <DevToolsPanel />,
   };
 
@@ -135,6 +189,9 @@ const App = () => {
     tree: componentTree
       ? `${countNodes(componentTree.rootNodes)} components`
       : '0 components',
+    profiler: isProfiling
+      ? 'Recording...'
+      : `${profilerCommits.length} commits`,
     devtools: 'Dev Tools',
   };
 

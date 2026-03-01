@@ -1,11 +1,35 @@
-import { patchConsole, patchFetch, installComponentTreeHook } from './services';
+import {
+  patchConsole,
+  patchFetch,
+  installComponentTreeHook,
+  createProfilerService,
+} from './services';
 import { inspectComponent } from './services/componentTree/inspectComponent';
 import { createConnection } from './connection';
 import { DEFAULT_HOST, DEFAULT_PORT } from './constants';
 import { getDeviceInfo } from './deviceInfo';
+import type { RadarCommand } from '@radar/types';
 import type { RadarConfig } from './config';
 
 export type { RadarConfig } from './config';
+
+const reloadApp = () => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports
+    const RN = require('react-native') as Record<string, any>;
+    if (RN.DevSettings?.reload) {
+      RN.DevSettings.reload();
+    }
+  } catch {
+    // Fallback: try TurboModules directly
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const g = globalThis as Record<string, any>;
+    const DevSettings = g.__turboModuleProxy?.('DevSettings');
+    if (DevSettings?.reload) {
+      DevSettings.reload();
+    }
+  }
+};
 
 const getProjectRoot = (config: RadarConfig): string | undefined => {
   if (config.projectRoot) return config.projectRoot;
@@ -33,18 +57,30 @@ export const init = (config: RadarConfig = {}) => {
   };
 
   const { send, connect } = createConnection(
-    command => {
-      if (command.type === 'inspectComponent') {
-        send(inspectComponent(command.componentId));
-      }
-    },
+    command => handleCommand(command),
     projectRoot,
     deviceInfo,
   );
+
+  const profiler = createProfilerService(send);
   const originalConsole = patchConsole(send);
 
+  const handleCommand = (command: RadarCommand) => {
+    if (command.type === 'inspectComponent') {
+      send(inspectComponent(command.componentId));
+    } else if (command.type === 'startProfiling') {
+      profiler.startProfiling();
+    } else if (command.type === 'stopProfiling') {
+      profiler.stopProfiling();
+    } else if (command.type === 'reloadAndProfile') {
+      profiler.startProfiling();
+      reloadApp();
+    }
+  };
+
   patchFetch(send);
-  installComponentTreeHook(send);
+  const { addCommitListener } = installComponentTreeHook(send);
+  addCommitListener(profiler.handleCommit);
   connect(host, port, originalConsole);
 
   originalConsole.log('[radar] devtools initialized');

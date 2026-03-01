@@ -52,6 +52,10 @@ ipcMain.on('radar:toggle-devtools', () => {
 ipcMain.on(
   'radar:command',
   (_event, payload: { deviceId: string; command: RadarCommand }) => {
+    console.log(
+      `[radar:main] forwarding command to device ${payload.deviceId}:`,
+      payload.command.type,
+    );
     wsHandle?.sendToDevice(payload.deviceId, JSON.stringify(payload.command));
   },
 );

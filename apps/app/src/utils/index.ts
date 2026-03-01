@@ -15,3 +15,6 @@ export { shortenPath } from './shortenPath';
 export { statusColor } from './statusColor';
 export { truncateUrl } from './truncateUrl';
 export { urlHost } from './urlHost';
+export { getDurationColor } from './getDurationColor';
+export type { FlatProfilerComponent } from './flattenProfilerComponents';
+export { flattenProfilerComponents } from './flattenProfilerComponents';

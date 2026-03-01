@@ -6,6 +6,8 @@ import { COMPONENT_TREE_THROTTLE_MS } from './constants';
 
 type Send = (message: RadarMessage) => void;
 
+type CommitListener = (root: FiberRoot) => void;
+
 type ReactDevToolsHook = {
   supportsFiber: boolean;
   inject: (renderer: Record<string, unknown>) => number;
@@ -48,6 +50,15 @@ const createThrottle = (ms: number) => {
 
 export const installComponentTreeHook = (send: Send) => {
   const throttle = createThrottle(COMPONENT_TREE_THROTTLE_MS);
+  const commitListeners: CommitListener[] = [];
+
+  const addCommitListener = (listener: CommitListener) => {
+    commitListeners.push(listener);
+    return () => {
+      const idx = commitListeners.indexOf(listener);
+      if (idx !== -1) commitListeners.splice(idx, 1);
+    };
+  };
 
   const handleCommit = (root: FiberRoot) => {
     const rootNodes = walkFiber(root.current);
@@ -62,6 +73,13 @@ export const installComponentTreeHook = (send: Send) => {
     throttle(() => handleCommit(root));
   };
 
+  const onCommitRoot = (root: FiberRoot) => {
+    throttledHandleCommit(root);
+    for (const listener of commitListeners) {
+      listener(root);
+    }
+  };
+
   const handleUnmount = (_rendererID: number, fiber: FiberNode) => {
     fiberIdMap.removeFiber(fiber);
   };
@@ -73,7 +91,7 @@ export const installComponentTreeHook = (send: Send) => {
     const originalOnCommit = existingHook.onCommitFiberRoot;
     existingHook.onCommitFiberRoot = (rendererID: number, root: FiberRoot) => {
       originalOnCommit.call(existingHook, rendererID, root);
-      throttledHandleCommit(root);
+      onCommitRoot(root);
     };
 
     const originalOnUnmount = existingHook.onCommitFiberUnmount;
@@ -89,9 +107,11 @@ export const installComponentTreeHook = (send: Send) => {
       supportsFiber: true,
       inject: () => 1,
       onCommitFiberRoot: (_rendererID: number, root: FiberRoot) => {
-        throttledHandleCommit(root);
+        onCommitRoot(root);
       },
       onCommitFiberUnmount: handleUnmount,
     };
   }
+
+  return { addCommitListener };
 };

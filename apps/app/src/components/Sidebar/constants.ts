@@ -20,7 +20,7 @@ export type NavItem = {
 export const NAV_ITEMS: NavItem[] = [
   { id: 'device', icon: Smartphone, label: 'Device View', enabled: false },
   { id: 'tree', icon: GitBranch, label: 'Components Tree', enabled: true },
-  { id: 'profiler', icon: Activity, label: 'Profiler', enabled: false },
+  { id: 'profiler', icon: Activity, label: 'Profiler', enabled: true },
   { id: 'network', icon: Wifi, label: 'Network', enabled: true },
   { id: 'storage', icon: Database, label: 'Storage', enabled: false },
   { id: 'console', icon: Terminal, label: 'Console', enabled: true },

@@ -20,6 +20,11 @@ export type FiberNode = {
   memoizedState: MemoizedState | null;
   stateNode: unknown;
   _debugHookTypes: string[] | null;
+  actualDuration?: number;
+  selfBaseDuration?: number;
+  actualStartTime?: number;
+  treeBaseDuration?: number;
+  alternate: FiberNode | null;
 };
 
 export type MemoizedState = {
