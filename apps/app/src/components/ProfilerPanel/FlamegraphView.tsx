@@ -6,6 +6,7 @@ import {
   type FlamegraphBar,
 } from './FlamegraphLayout';
 import { renderFlamegraph } from './FlamegraphCanvas';
+import { ZOOM_ANIMATION_DURATION } from './constants';
 
 export type FlamegraphViewProps = {
   components: ProfilerComponentData[];
@@ -26,11 +27,66 @@ const formatTrigger = (trigger: RenderTrigger): string => {
   }
 };
 
+const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
+
+const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
+
+const interpolateBars = (
+  from: FlamegraphBar[],
+  to: FlamegraphBar[],
+  progress: number,
+): FlamegraphBar[] => {
+  const fromMap = new Map<string, FlamegraphBar>();
+  for (const bar of from) {
+    fromMap.set(bar.component.id, bar);
+  }
+
+  const toMap = new Map<string, FlamegraphBar>();
+  for (const bar of to) {
+    toMap.set(bar.component.id, bar);
+  }
+
+  const result: FlamegraphBar[] = [];
+
+  for (const toBar of to) {
+    const fromBar = fromMap.get(toBar.component.id);
+    if (fromBar) {
+      result.push({
+        ...toBar,
+        x: lerp(fromBar.x, toBar.x, progress),
+        y: lerp(fromBar.y, toBar.y, progress),
+        width: lerp(fromBar.width, toBar.width, progress),
+        dimmed: progress < 0.5 ? fromBar.dimmed : toBar.dimmed,
+      });
+    } else {
+      result.push({
+        ...toBar,
+        x: lerp(toBar.x + toBar.width / 2, toBar.x, progress),
+        width: lerp(0, toBar.width, progress),
+      });
+    }
+  }
+
+  for (const fromBar of from) {
+    if (!toMap.has(fromBar.component.id)) {
+      result.push({
+        ...fromBar,
+        x: lerp(fromBar.x, fromBar.x + fromBar.width / 2, progress),
+        width: lerp(fromBar.width, 0, progress),
+      });
+    }
+  }
+
+  return result;
+};
+
 export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hoveredBar, setHoveredBar] = useState<FlamegraphBar | null>(null);
-  const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
+  const [selectedComponentId, setSelectedComponentId] = useState<
+    string | null
+  >(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({
     x: 0,
     y: 0,
@@ -40,6 +96,10 @@ export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
     height: number;
   }>({ width: 0, height: 0 });
   const barsRef = useRef<FlamegraphBar[]>([]);
+  const prevSelectedRef = useRef<string | null>(null);
+  const animationRef = useRef<number | null>(null);
+  const isAnimatingRef = useRef(false);
+  const hoveredBarRef = useRef<FlamegraphBar | null>(null);
 
   useEffect(() => {
     setSelectedComponentId(null);
@@ -63,6 +123,7 @@ export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
     return () => observer.disconnect();
   }, []);
 
+  // Layout effect: computes target bars, starts animation on zoom changes
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || containerSize.width === 0 || containerSize.height === 0)
@@ -74,19 +135,86 @@ export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
     canvas.style.width = `${containerSize.width}px`;
     canvas.style.height = `${containerSize.height}px`;
 
-    const bars = computeFlamegraphLayout(
+    const targetBars = computeFlamegraphLayout(
       components,
       containerSize.width,
       containerSize.height,
       selectedComponentId,
     );
-    barsRef.current = bars;
 
+    const zoomChanged = prevSelectedRef.current !== selectedComponentId;
+    prevSelectedRef.current = selectedComponentId;
+
+    const fromBars = barsRef.current;
+    const shouldAnimate = zoomChanged && fromBars.length > 0;
+
+    if (animationRef.current !== null) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+
+    if (!shouldAnimate) {
+      barsRef.current = targetBars;
+      isAnimatingRef.current = false;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        renderFlamegraph(ctx, targetBars, hoveredBarRef.current, dpr);
+      }
+      return;
+    }
+
+    isAnimatingRef.current = true;
+    const startTime = performance.now();
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const rawProgress = Math.min(elapsed / ZOOM_ANIMATION_DURATION, 1);
+      const progress = easeOutCubic(rawProgress);
+
+      const interpolated = interpolateBars(fromBars, targetBars, progress);
+      barsRef.current = interpolated;
+
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        renderFlamegraph(ctx, interpolated, hoveredBarRef.current, dpr);
+      }
+
+      if (rawProgress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        barsRef.current = targetBars;
+        isAnimatingRef.current = false;
+        animationRef.current = null;
+        if (ctx) {
+          renderFlamegraph(ctx, targetBars, hoveredBarRef.current, dpr);
+        }
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+    };
+  }, [components, containerSize, selectedComponentId]);
+
+  // Hover effect: re-renders with hover highlight, skipped during animation
+  useEffect(() => {
+    if (isAnimatingRef.current) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas || containerSize.width === 0 || containerSize.height === 0)
+      return;
+
+    const dpr = window.devicePixelRatio || 1;
     const ctx = canvas.getContext('2d');
     if (ctx) {
-      renderFlamegraph(ctx, bars, hoveredBar, dpr);
+      renderFlamegraph(ctx, barsRef.current, hoveredBar, dpr);
     }
-  }, [components, containerSize, hoveredBar, selectedComponentId]);
+  }, [hoveredBar, containerSize]);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -105,7 +233,9 @@ export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
           y <= bar.y + bar.height,
       );
 
-      setHoveredBar(hit ?? null);
+      const newHovered = hit ?? null;
+      hoveredBarRef.current = newHovered;
+      setHoveredBar(newHovered);
       setTooltipPos({ x: e.clientX, y: e.clientY });
     },
     [],
@@ -140,6 +270,7 @@ export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
   );
 
   const handleMouseLeave = useCallback(() => {
+    hoveredBarRef.current = null;
     setHoveredBar(null);
   }, []);
 

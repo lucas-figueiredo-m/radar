@@ -13,6 +13,7 @@ export type ProfilerComponentData = {
   actualDuration: number;
   selfBaseDuration: number;
   phase: ProfilerPhase;
+  skipped: boolean;
   triggers: RenderTrigger[];
   children: ProfilerComponentData[];
 };

@@ -19,3 +19,4 @@ export const TIMELINE_BAR_WIDTH = 8;
 export const TIMELINE_BAR_GAP = 2;
 export const TIMELINE_HEIGHT = 48;
 export const DID_NOT_RENDER_COLOR = '#6b7280';
+export const ZOOM_ANIMATION_DURATION = 200;

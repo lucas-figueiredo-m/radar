@@ -37,6 +37,26 @@ export const renderFlamegraph = (
     ctx.fillStyle = isHovered ? brightenColor(bar.color, 40) : bar.color;
     ctx.fillRect(bar.x, bar.y, bar.width, bar.height);
 
+    if (bar.component.skipped) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(bar.x, bar.y, bar.width, bar.height);
+      ctx.clip();
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+      ctx.lineWidth = 1;
+
+      const step = 6;
+      for (let i = -bar.height; i < bar.width + bar.height; i += step) {
+        ctx.beginPath();
+        ctx.moveTo(bar.x + i, bar.y + bar.height);
+        ctx.lineTo(bar.x + i + bar.height, bar.y);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
     if (isHovered) {
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 1;
