@@ -17,4 +17,5 @@ export type ComponentStatsEntry = {
   maxTime: number;
   mountCount: number;
   updateCount: number;
+  didNotRenderCount: number;
 };

@@ -30,6 +30,7 @@ export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hoveredBar, setHoveredBar] = useState<FlamegraphBar | null>(null);
+  const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({
     x: 0,
     y: 0,
@@ -39,6 +40,10 @@ export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
     height: number;
   }>({ width: 0, height: 0 });
   const barsRef = useRef<FlamegraphBar[]>([]);
+
+  useEffect(() => {
+    setSelectedComponentId(null);
+  }, [components]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -73,6 +78,7 @@ export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
       components,
       containerSize.width,
       containerSize.height,
+      selectedComponentId,
     );
     barsRef.current = bars;
 
@@ -80,7 +86,7 @@ export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
     if (ctx) {
       renderFlamegraph(ctx, bars, hoveredBar, dpr);
     }
-  }, [components, containerSize, hoveredBar]);
+  }, [components, containerSize, hoveredBar, selectedComponentId]);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -105,6 +111,34 @@ export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
     [],
   );
 
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const hit = barsRef.current.find(
+        bar =>
+          x >= bar.x &&
+          x <= bar.x + bar.width &&
+          y >= bar.y &&
+          y <= bar.y + bar.height,
+      );
+
+      if (!hit) {
+        setSelectedComponentId(null);
+      } else {
+        setSelectedComponentId(prev =>
+          prev === hit.component.id ? null : hit.component.id,
+        );
+      }
+    },
+    [],
+  );
+
   const handleMouseLeave = useCallback(() => {
     setHoveredBar(null);
   }, []);
@@ -123,7 +157,8 @@ export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
         ref={canvasRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="cursor-crosshair"
+        onClick={handleClick}
+        className="cursor-pointer"
       />
       {hoveredBar && (
         <div
@@ -136,21 +171,27 @@ export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
           <div className="font-semibold text-text-primary mb-1">
             {hoveredBar.component.name}
           </div>
-          <div className="text-text-secondary">
-            Duration: {formatDuration(hoveredBar.component.actualDuration)}
-          </div>
-          <div className="text-text-secondary">
-            Self: {formatDuration(hoveredBar.component.selfBaseDuration)}
-          </div>
-          <div className="text-text-secondary capitalize">
-            Phase: {hoveredBar.component.phase}
-          </div>
-          {hoveredBar.component.triggers.length > 0 && (
-            <div className="mt-1 text-text-tertiary">
-              {hoveredBar.component.triggers.map((trigger, i) => (
-                <div key={i}>{formatTrigger(trigger)}</div>
-              ))}
-            </div>
+          {hoveredBar.component.phase === 'did-not-render' ? (
+            <div className="text-text-tertiary">Did not render</div>
+          ) : (
+            <>
+              <div className="text-text-secondary">
+                Duration: {formatDuration(hoveredBar.component.actualDuration)}
+              </div>
+              <div className="text-text-secondary">
+                Self: {formatDuration(hoveredBar.component.selfBaseDuration)}
+              </div>
+              <div className="text-text-secondary capitalize">
+                Phase: {hoveredBar.component.phase}
+              </div>
+              {hoveredBar.component.triggers.length > 0 && (
+                <div className="mt-1 text-text-tertiary">
+                  {hoveredBar.component.triggers.map((trigger, i) => (
+                    <div key={i}>{formatTrigger(trigger)}</div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

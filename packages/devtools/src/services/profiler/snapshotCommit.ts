@@ -6,6 +6,7 @@ export type FiberSnapshot = {
   actualDuration: number;
   selfBaseDuration: number;
   hasAlternate: boolean;
+  flags: number;
   children: FiberSnapshot[];
 };
 
@@ -37,6 +38,7 @@ const snapshotFiber = (fiber: FiberNode): FiberSnapshot[] => {
           actualDuration: fiber.actualDuration ?? 0,
           selfBaseDuration: fiber.selfBaseDuration ?? 0,
           hasAlternate: !!fiber.alternate,
+          flags: fiber.flags ?? 0,
           children: childSnapshots,
         },
       ];

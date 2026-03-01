@@ -4,13 +4,23 @@ import { fiberIdMap } from '../componentTree/fiberIdMap';
 import { detectRenderTriggers } from './detectRenderTriggers';
 import type { CommitSnapshot, FiberSnapshot } from './snapshotCommit';
 
+const PERFORMED_WORK = 0b1;
+
 const buildComponentData = (snapshot: FiberSnapshot): ProfilerComponentData | null => {
   try {
     const name = getComponentName(snapshot.fiber) ?? 'Unknown';
-    const phase: ProfilerPhase = snapshot.hasAlternate ? 'update' : 'mount';
+
+    let phase: ProfilerPhase;
+    if (!snapshot.hasAlternate) {
+      phase = 'mount';
+    } else if (snapshot.flags & PERFORMED_WORK) {
+      phase = 'update';
+    } else {
+      phase = 'did-not-render';
+    }
 
     let triggers: ProfilerComponentData['triggers'] = [];
-    if (snapshot.hasAlternate) {
+    if (phase === 'update') {
       try {
         triggers = detectRenderTriggers(snapshot.fiber);
       } catch {
@@ -22,13 +32,15 @@ const buildComponentData = (snapshot: FiberSnapshot): ProfilerComponentData | nu
       .map(buildComponentData)
       .filter((c): c is ProfilerComponentData => c !== null);
 
+    const didNotRender = phase === 'did-not-render';
+
     return {
       id: fiberIdMap.getFiberId(snapshot.fiber),
       name,
-      actualDuration: snapshot.actualDuration,
-      selfBaseDuration: snapshot.selfBaseDuration,
+      actualDuration: didNotRender ? 0 : snapshot.actualDuration,
+      selfBaseDuration: didNotRender ? 0 : snapshot.selfBaseDuration,
       phase,
-      triggers,
+      triggers: didNotRender ? [] : triggers,
       children,
     };
   } catch {

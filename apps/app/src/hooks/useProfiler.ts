@@ -52,25 +52,31 @@ export const useProfiler = (selectedDeviceId: string | null) => {
         components: ProfilerCommitData['components'],
       ) => {
         for (const c of components) {
+          const isDidNotRender = c.phase === 'did-not-render';
           const existing = statsMap.get(c.id);
           if (existing) {
-            existing.renderCount += 1;
-            existing.totalTime += c.actualDuration;
-            existing.avgTime = existing.totalTime / existing.renderCount;
-            if (c.actualDuration > existing.maxTime)
-              existing.maxTime = c.actualDuration;
-            if (c.phase === 'mount') existing.mountCount += 1;
-            else existing.updateCount += 1;
+            if (isDidNotRender) {
+              existing.didNotRenderCount += 1;
+            } else {
+              existing.renderCount += 1;
+              existing.totalTime += c.actualDuration;
+              existing.avgTime = existing.totalTime / existing.renderCount;
+              if (c.actualDuration > existing.maxTime)
+                existing.maxTime = c.actualDuration;
+              if (c.phase === 'mount') existing.mountCount += 1;
+              else existing.updateCount += 1;
+            }
           } else {
             statsMap.set(c.id, {
               id: c.id,
               name: c.name,
-              renderCount: 1,
-              totalTime: c.actualDuration,
-              avgTime: c.actualDuration,
-              maxTime: c.actualDuration,
+              renderCount: isDidNotRender ? 0 : 1,
+              totalTime: isDidNotRender ? 0 : c.actualDuration,
+              avgTime: isDidNotRender ? 0 : c.actualDuration,
+              maxTime: isDidNotRender ? 0 : c.actualDuration,
               mountCount: c.phase === 'mount' ? 1 : 0,
               updateCount: c.phase === 'update' ? 1 : 0,
+              didNotRenderCount: isDidNotRender ? 1 : 0,
             });
           }
           walkComponents(c.children);

@@ -25,6 +25,7 @@ export type FiberNode = {
   actualStartTime?: number;
   treeBaseDuration?: number;
   alternate: FiberNode | null;
+  flags?: number;
 };
 
 export type MemoizedState = {

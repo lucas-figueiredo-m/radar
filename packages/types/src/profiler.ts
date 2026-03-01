@@ -1,4 +1,4 @@
-export type ProfilerPhase = 'mount' | 'update';
+export type ProfilerPhase = 'mount' | 'update' | 'did-not-render';
 
 export type RenderTrigger =
   | { type: 'props'; changedKeys: string[] }

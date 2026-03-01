@@ -13,7 +13,8 @@ type SortField =
   | 'avgTime'
   | 'maxTime'
   | 'mountCount'
-  | 'updateCount';
+  | 'updateCount'
+  | 'didNotRenderCount';
 
 type SortDirection = 'asc' | 'desc';
 
@@ -25,6 +26,7 @@ const COLUMNS: { key: SortField; label: string; align: 'left' | 'right' }[] = [
   { key: 'maxTime', label: 'Max', align: 'right' },
   { key: 'mountCount', label: 'Mounts', align: 'right' },
   { key: 'updateCount', label: 'Updates', align: 'right' },
+  { key: 'didNotRenderCount', label: 'Skipped', align: 'right' },
 ];
 
 export const ComponentStats = ({ stats }: ComponentStatsProps) => {
@@ -113,6 +115,9 @@ export const ComponentStats = ({ stats }: ComponentStatsProps) => {
               </td>
               <td className="px-4 py-1.5 text-text-secondary text-xs text-right tabular-nums">
                 {entry.updateCount}
+              </td>
+              <td className="px-4 py-1.5 text-text-secondary text-xs text-right tabular-nums">
+                {entry.didNotRenderCount}
               </td>
             </tr>
           ))}

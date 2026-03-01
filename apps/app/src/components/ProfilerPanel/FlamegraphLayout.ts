@@ -5,6 +5,7 @@ import {
   FLAMEGRAPH_ROW_GAP,
   FLAMEGRAPH_PADDING,
   FLAMEGRAPH_MIN_WIDTH,
+  DID_NOT_RENDER_COLOR,
 } from './constants';
 
 export type FlamegraphBar = {
@@ -15,6 +16,7 @@ export type FlamegraphBar = {
   color: string;
   label: string;
   component: ProfilerComponentData;
+  dimmed: boolean;
 };
 
 const processComponent = (
@@ -33,19 +35,23 @@ const processComponent = (
   const barWidth = Math.max(widthRatio * parentWidth, FLAMEGRAPH_MIN_WIDTH);
   const y = depth * (FLAMEGRAPH_ROW_HEIGHT + FLAMEGRAPH_ROW_GAP);
 
+  const isDidNotRender = component.phase === 'did-not-render';
   const label =
-    barWidth > 60
-      ? `${component.name} (${component.actualDuration.toFixed(1)}ms)`
-      : component.name;
+    isDidNotRender
+      ? component.name
+      : barWidth > 60
+        ? `${component.name} (${component.actualDuration.toFixed(1)}ms)`
+        : component.name;
 
   bars.push({
     x: parentX,
     y,
     width: barWidth,
     height: FLAMEGRAPH_ROW_HEIGHT,
-    color: getDurationColor(component.actualDuration),
+    color: isDidNotRender ? DID_NOT_RENDER_COLOR : getDurationColor(component.actualDuration),
     label,
     component,
+    dimmed: false,
   });
 
   let childX = parentX;
@@ -67,14 +73,107 @@ const processComponent = (
   }
 };
 
+const findPathToComponent = (
+  components: ProfilerComponentData[],
+  targetId: string,
+): ProfilerComponentData[] | null => {
+  for (const component of components) {
+    if (component.id === targetId) return [component];
+    const childPath = findPathToComponent(component.children, targetId);
+    if (childPath) return [component, ...childPath];
+  }
+  return null;
+};
+
+const makeLabel = (
+  component: ProfilerComponentData,
+  barWidth: number,
+): string => {
+  if (component.phase === 'did-not-render') return component.name;
+  return barWidth > 60
+    ? `${component.name} (${component.actualDuration.toFixed(1)}ms)`
+    : component.name;
+};
+
+const getBarColor = (component: ProfilerComponentData): string =>
+  component.phase === 'did-not-render'
+    ? DID_NOT_RENDER_COLOR
+    : getDurationColor(component.actualDuration);
+
+const computeZoomedLayout = (
+  path: ProfilerComponentData[],
+  containerWidth: number,
+): FlamegraphBar[] => {
+  const bars: FlamegraphBar[] = [];
+  const availableWidth = containerWidth - 2 * FLAMEGRAPH_PADDING;
+  const x = FLAMEGRAPH_PADDING;
+
+  for (let i = 0; i < path.length - 1; i++) {
+    const component = path[i];
+    const y = i * (FLAMEGRAPH_ROW_HEIGHT + FLAMEGRAPH_ROW_GAP);
+    bars.push({
+      x,
+      y,
+      width: availableWidth,
+      height: FLAMEGRAPH_ROW_HEIGHT,
+      color: getBarColor(component),
+      label: makeLabel(component, availableWidth),
+      component,
+      dimmed: true,
+    });
+  }
+
+  const selected = path[path.length - 1];
+  const selectedDepth = path.length - 1;
+  const selectedY = selectedDepth * (FLAMEGRAPH_ROW_HEIGHT + FLAMEGRAPH_ROW_GAP);
+
+  bars.push({
+    x,
+    y: selectedY,
+    width: availableWidth,
+    height: FLAMEGRAPH_ROW_HEIGHT,
+    color: getBarColor(selected),
+    label: makeLabel(selected, availableWidth),
+    component: selected,
+    dimmed: false,
+  });
+
+  let childX = x;
+  const childCount = selected.children.length;
+  for (const child of selected.children) {
+    processComponent(
+      child,
+      childX,
+      availableWidth,
+      selected.actualDuration,
+      childCount,
+      selectedDepth + 1,
+      bars,
+    );
+    const childRatio =
+      selected.actualDuration <= 0
+        ? 1 / Math.max(childCount, 1)
+        : child.actualDuration / selected.actualDuration;
+    childX += Math.max(childRatio * availableWidth, FLAMEGRAPH_MIN_WIDTH);
+  }
+
+  return bars;
+};
+
 export const computeFlamegraphLayout = (
   components: ProfilerComponentData[],
   containerWidth: number,
   _containerHeight: number,
+  selectedComponentId?: string | null,
 ): FlamegraphBar[] => {
   const bars: FlamegraphBar[] = [];
 
   if (components.length === 0) return bars;
+
+  if (selectedComponentId) {
+    const path = findPathToComponent(components, selectedComponentId);
+    if (path) return computeZoomedLayout(path, containerWidth);
+  }
 
   const totalDuration = components.reduce(
     (sum, c) => sum + c.actualDuration,
@@ -91,19 +190,15 @@ export const computeFlamegraphLayout = (
       : component.actualDuration / totalDuration;
     const barWidth = Math.max(widthRatio * availableWidth, FLAMEGRAPH_MIN_WIDTH);
 
-    const label =
-      barWidth > 60
-        ? `${component.name} (${component.actualDuration.toFixed(1)}ms)`
-        : component.name;
-
     bars.push({
       x: currentX,
       y: 0,
       width: barWidth,
       height: FLAMEGRAPH_ROW_HEIGHT,
-      color: getDurationColor(component.actualDuration),
-      label,
+      color: getBarColor(component),
+      label: makeLabel(component, barWidth),
       component,
+      dimmed: false,
     });
 
     let childX = currentX;

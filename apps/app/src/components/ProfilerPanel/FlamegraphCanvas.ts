@@ -33,6 +33,7 @@ export const renderFlamegraph = (
     const isHovered =
       hoveredBar !== null && hoveredBar.component.id === bar.component.id;
 
+    ctx.globalAlpha = bar.dimmed ? 0.4 : 1;
     ctx.fillStyle = isHovered ? brightenColor(bar.color, 40) : bar.color;
     ctx.fillRect(bar.x, bar.y, bar.width, bar.height);
 
@@ -43,6 +44,7 @@ export const renderFlamegraph = (
     }
 
     if (bar.width > 30) {
+      ctx.globalAlpha = bar.dimmed ? 0.6 : 1;
       ctx.fillStyle = '#ffffff';
       ctx.font = '11px ui-monospace, monospace';
       ctx.textBaseline = 'middle';
@@ -54,6 +56,8 @@ export const renderFlamegraph = (
       ctx.fillText(bar.label, bar.x + 4, bar.y + bar.height / 2);
       ctx.restore();
     }
+
+    ctx.globalAlpha = 1;
   }
 
   ctx.restore();
