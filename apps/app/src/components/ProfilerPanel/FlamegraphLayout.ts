@@ -31,7 +31,7 @@ const processComponent = (
   const useEqualWidth = parentDuration <= 0;
   const widthRatio = useEqualWidth
     ? 1 / Math.max(siblingCount, 1)
-    : component.actualDuration / parentDuration;
+    : component.treeBaseDuration / parentDuration;
   const barWidth = Math.max(widthRatio * parentWidth, FLAMEGRAPH_MIN_WIDTH);
   const y = depth * (FLAMEGRAPH_ROW_HEIGHT + FLAMEGRAPH_ROW_GAP);
 
@@ -61,14 +61,15 @@ const processComponent = (
       child,
       childX,
       barWidth,
-      component.actualDuration,
+      component.treeBaseDuration,
       childCount,
       depth + 1,
       bars,
     );
-    const childRatio = useEqualWidth
+    const childUseEqual = component.treeBaseDuration <= 0;
+    const childRatio = childUseEqual
       ? 1 / Math.max(childCount, 1)
-      : child.actualDuration / component.actualDuration;
+      : child.treeBaseDuration / component.treeBaseDuration;
     childX += Math.max(childRatio * barWidth, FLAMEGRAPH_MIN_WIDTH);
   }
 };
@@ -145,15 +146,15 @@ const computeZoomedLayout = (
       child,
       childX,
       availableWidth,
-      selected.actualDuration,
+      selected.treeBaseDuration,
       childCount,
       selectedDepth + 1,
       bars,
     );
     const childRatio =
-      selected.actualDuration <= 0
+      selected.treeBaseDuration <= 0
         ? 1 / Math.max(childCount, 1)
-        : child.actualDuration / selected.actualDuration;
+        : child.treeBaseDuration / selected.treeBaseDuration;
     childX += Math.max(childRatio * availableWidth, FLAMEGRAPH_MIN_WIDTH);
   }
 
@@ -176,7 +177,7 @@ export const computeFlamegraphLayout = (
   }
 
   const totalDuration = components.reduce(
-    (sum, c) => sum + c.actualDuration,
+    (sum, c) => sum + c.treeBaseDuration,
     0,
   );
   const useEqualWidth = totalDuration <= 0;
@@ -187,7 +188,7 @@ export const computeFlamegraphLayout = (
   for (const component of components) {
     const widthRatio = useEqualWidth
       ? 1 / components.length
-      : component.actualDuration / totalDuration;
+      : component.treeBaseDuration / totalDuration;
     const barWidth = Math.max(widthRatio * availableWidth, FLAMEGRAPH_MIN_WIDTH);
 
     bars.push({
@@ -208,15 +209,15 @@ export const computeFlamegraphLayout = (
         child,
         childX,
         barWidth,
-        component.actualDuration,
+        component.treeBaseDuration,
         childCount,
         1,
         bars,
       );
       const childRatio =
-        component.actualDuration <= 0
+        component.treeBaseDuration <= 0
           ? 1 / Math.max(childCount, 1)
-          : child.actualDuration / component.actualDuration;
+          : child.treeBaseDuration / component.treeBaseDuration;
       childX += Math.max(childRatio * barWidth, FLAMEGRAPH_MIN_WIDTH);
     }
 

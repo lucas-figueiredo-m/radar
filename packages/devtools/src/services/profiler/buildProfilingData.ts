@@ -1,16 +1,11 @@
 import type { ProfilerCommitData, ProfilerComponentData, ProfilerPhase } from '@radar/types';
 import { getComponentName } from '../componentTree/getComponentName';
 import { fiberIdMap } from '../componentTree/fiberIdMap';
-import type { FiberNode } from '../componentTree/fiberTypes';
 import { detectRenderTriggers } from './detectRenderTriggers';
 import type { CommitSnapshot, FiberSnapshot } from './snapshotCommit';
 
-const PERFORMED_WORK = 0b1;
-
 const buildComponentData = (
   snapshot: FiberSnapshot,
-  seenFibers: WeakSet<FiberNode>,
-  parentRendered: boolean,
 ): ProfilerComponentData | null => {
   try {
     const name = getComponentName(snapshot.fiber) ?? 'Unknown';
@@ -19,24 +14,23 @@ const buildComponentData = (
     let phase: ProfilerPhase;
     let skipped = false;
 
-    if (!snapshot.hasAlternate) {
-      // No alternate means React never created a work-in-progress for this fiber
-      // in this commit. It's either a genuine first mount or a reused fiber from
-      // a previous commit where the parent bailed out entirely.
-      //
-      // Key insight: when a parent renders, reconcileChildFibers gives ALL
-      // existing children alternates via useFiber/createWorkInProgress. So a
-      // child with !hasAlternate under a rendered parent is genuinely new.
-      // Under a non-rendered parent, it's a reused/skipped fiber.
-      if (seenFibers.has(snapshot.fiber) || !parentRendered) {
-        phase = 'did-not-render';
-        skipped = true;
-      } else {
-        phase = 'mount';
-      }
-    } else if (snapshot.flags & PERFORMED_WORK) {
+    if (!snapshot.isFresh) {
+      // Stale fiber: not cloned in this commit. Its flags, actualDuration,
+      // and props/state are carried over from a previous commit and don't
+      // reflect this commit's work. React skipped this entire subtree.
+      phase = 'did-not-render';
+      skipped = true;
+    } else if (!snapshot.hasAlternate) {
+      // Fresh fiber with no alternate = genuinely new (first-time mount).
+      // createWorkInProgress always sets up alternates for existing fibers,
+      // so !hasAlternate on a fresh fiber means createFiber was called.
+      phase = 'mount';
+    } else if (snapshot.didRender) {
+      // Fresh fiber with alternate, props/state changed from alternate.
+      // Same approach as React DevTools' didFiberRender check.
       phase = 'update';
     } else {
+      // Fresh fiber with alternate, but props/state unchanged = bailed out.
       phase = 'did-not-render';
     }
 
@@ -49,10 +43,8 @@ const buildComponentData = (
       }
     }
 
-    const thisRendered = phase === 'mount' || phase === 'update';
-
     const children = snapshot.children
-      .map((child) => buildComponentData(child, seenFibers, thisRendered))
+      .map(buildComponentData)
       .filter((c): c is ProfilerComponentData => c !== null);
 
     const didNotRender = phase === 'did-not-render';
@@ -62,6 +54,7 @@ const buildComponentData = (
       name,
       actualDuration: didNotRender ? 0 : snapshot.actualDuration,
       selfBaseDuration: didNotRender ? 0 : snapshot.selfBaseDuration,
+      treeBaseDuration: snapshot.treeBaseDuration,
       phase,
       skipped,
       triggers: didNotRender ? [] : triggers,
@@ -80,28 +73,13 @@ const computeCommitDuration = (components: ProfilerComponentData[]): number => {
   return max;
 };
 
-const collectSnapshotFibers = (
-  snapshots: FiberSnapshot[],
-  target: WeakSet<FiberNode>,
-): void => {
-  for (const s of snapshots) {
-    target.add(s.fiber);
-    collectSnapshotFibers(s.children, target);
-  }
-};
-
 export const buildProfilingData = (
   snapshots: CommitSnapshot[],
-): ProfilerCommitData[] => {
-  const seenFibers = new WeakSet<FiberNode>();
-
-  return snapshots.map((snapshot, index) => {
+): ProfilerCommitData[] =>
+  snapshots.map((snapshot, index) => {
     const components = snapshot.rootSnapshots
-      .map((s) => buildComponentData(s, seenFibers, true))
+      .map(buildComponentData)
       .filter((c): c is ProfilerComponentData => c !== null);
-
-    collectSnapshotFibers(snapshot.rootSnapshots, seenFibers);
-
     return {
       index,
       timestamp: snapshot.timestamp,
@@ -109,4 +87,3 @@ export const buildProfilingData = (
       components,
     };
   });
-};
