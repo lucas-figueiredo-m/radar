@@ -1,6 +1,7 @@
 import { Wrench, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import type { Tab } from '../../types';
 import { NAV_ITEMS } from './constants';
+import logo from '../../assets/logo.png';
 
 export type SidebarProps = {
   tab: Tab;
@@ -30,9 +31,7 @@ export const Sidebar = ({
         justifyContent: expanded ? 'flex-start' : 'center',
       }}
     >
-      <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center font-mono text-base font-bold text-text-inverse shrink-0">
-        R
-      </div>
+      <img src={logo} alt="Radar" className="w-8 h-8 rounded-lg shrink-0" />
       {expanded && (
         <span className="text-sm font-bold text-text-primary whitespace-nowrap">
           Radar
