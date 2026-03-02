@@ -92,9 +92,7 @@ export const ValueRenderer = ({
             <span style={{ color: SYNTAX_COLORS.undefined }}>undefined</span>
           );
         case 'Circular':
-          return (
-            <span style={{ color: SYNTAX_COLORS.null }}>[Circular]</span>
-          );
+          return <span style={{ color: SYNTAX_COLORS.null }}>[Circular]</span>;
         case 'ReactElement':
           return (
             <span style={{ color: SYNTAX_COLORS.function }}>
