@@ -46,7 +46,7 @@ const snapshotFiber = (
       isFresh && (alternate === null || fiber.child !== alternate.child);
 
     if (isUserComponent) {
-      const childSnapshots = children.flatMap((c) =>
+      const childSnapshots = children.flatMap(c =>
         snapshotFiber(c, childrenFresh),
       );
       return [
@@ -66,7 +66,7 @@ const snapshotFiber = (
       ];
     }
 
-    return children.flatMap((c) => snapshotFiber(c, childrenFresh));
+    return children.flatMap(c => snapshotFiber(c, childrenFresh));
   } catch {
     return [];
   }
@@ -74,7 +74,5 @@ const snapshotFiber = (
 
 export const snapshotCommit = (root: FiberRoot): CommitSnapshot => ({
   timestamp: Date.now(),
-  rootSnapshots: getChildren(root.current).flatMap((c) =>
-    snapshotFiber(c, true),
-  ),
+  rootSnapshots: getChildren(root.current).flatMap(c => snapshotFiber(c, true)),
 });

@@ -1,4 +1,8 @@
-import type { ProfilerCommitData, ProfilerComponentData, ProfilerPhase } from '@radar/types';
+import type {
+  ProfilerCommitData,
+  ProfilerComponentData,
+  ProfilerPhase,
+} from '@radar/types';
 import { getComponentName } from '../componentTree/getComponentName';
 import { fiberIdMap } from '../componentTree/fiberIdMap';
 import { detectRenderTriggers } from './detectRenderTriggers';

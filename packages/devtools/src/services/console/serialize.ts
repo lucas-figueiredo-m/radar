@@ -54,7 +54,11 @@ const serializeRecursive = (
   if (value === null) return null;
   if (value === undefined) return { __type: 'Undefined' };
 
-  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean')
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  )
     return value;
 
   if (typeof value === 'bigint')
@@ -78,14 +82,11 @@ const serializeRecursive = (
   seen.add(value);
 
   if (Array.isArray(value)) {
-    if (depth >= MAX_DEPTH)
-      return { __type: 'Array', length: value.length };
-
+    if (depth >= MAX_DEPTH) return { __type: 'Array', length: value.length };
     return value.map(item => serializeRecursive(item, depth + 1, seen));
   }
 
-  if (depth >= MAX_DEPTH)
-    return { __type: 'Object', preview: '{...}' };
+  if (depth >= MAX_DEPTH) return { __type: 'Object', preview: '{...}' };
 
   const result: Record<string, unknown> = {};
   for (const key of Object.keys(value)) {
