@@ -84,9 +84,9 @@ export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hoveredBar, setHoveredBar] = useState<FlamegraphBar | null>(null);
-  const [selectedComponentId, setSelectedComponentId] = useState<
-    string | null
-  >(null);
+  const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
+    null,
+  );
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({
     x: 0,
     y: 0,
@@ -241,33 +241,30 @@ export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
     [],
   );
 
-  const handleClick = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+  const handleClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-      const hit = barsRef.current.find(
-        bar =>
-          x >= bar.x &&
-          x <= bar.x + bar.width &&
-          y >= bar.y &&
-          y <= bar.y + bar.height,
+    const hit = barsRef.current.find(
+      bar =>
+        x >= bar.x &&
+        x <= bar.x + bar.width &&
+        y >= bar.y &&
+        y <= bar.y + bar.height,
+    );
+
+    if (!hit) {
+      setSelectedComponentId(null);
+    } else {
+      setSelectedComponentId(prev =>
+        prev === hit.component.id ? null : hit.component.id,
       );
-
-      if (!hit) {
-        setSelectedComponentId(null);
-      } else {
-        setSelectedComponentId(prev =>
-          prev === hit.component.id ? null : hit.component.id,
-        );
-      }
-    },
-    [],
-  );
+    }
+  }, []);
 
   const handleMouseLeave = useCallback(() => {
     hoveredBarRef.current = null;

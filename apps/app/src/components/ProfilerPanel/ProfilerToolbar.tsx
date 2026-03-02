@@ -25,7 +25,11 @@ export type ProfilerToolbarProps = {
   onClear: () => void;
 };
 
-const VIEW_OPTIONS: { view: ProfilerView; icon: typeof Flame; label: string }[] = [
+const VIEW_OPTIONS: {
+  view: ProfilerView;
+  icon: typeof Flame;
+  label: string;
+}[] = [
   { view: 'flamegraph', icon: Flame, label: 'Flamegraph' },
   { view: 'ranked', icon: BarChart3, label: 'Ranked' },
   { view: 'stats', icon: Table2, label: 'Stats' },

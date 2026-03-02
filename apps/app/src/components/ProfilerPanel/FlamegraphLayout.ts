@@ -36,19 +36,20 @@ const processComponent = (
   const y = depth * (FLAMEGRAPH_ROW_HEIGHT + FLAMEGRAPH_ROW_GAP);
 
   const isDidNotRender = component.phase === 'did-not-render';
-  const label =
-    isDidNotRender
-      ? component.name
-      : barWidth > 60
-        ? `${component.name} (${component.actualDuration.toFixed(1)}ms)`
-        : component.name;
+  const label = isDidNotRender
+    ? component.name
+    : barWidth > 60
+    ? `${component.name} (${component.actualDuration.toFixed(1)}ms)`
+    : component.name;
 
   bars.push({
     x: parentX,
     y,
     width: barWidth,
     height: FLAMEGRAPH_ROW_HEIGHT,
-    color: isDidNotRender ? DID_NOT_RENDER_COLOR : getDurationColor(component.actualDuration),
+    color: isDidNotRender
+      ? DID_NOT_RENDER_COLOR
+      : getDurationColor(component.actualDuration),
     label,
     component,
     dimmed: false,
@@ -126,7 +127,8 @@ const computeZoomedLayout = (
 
   const selected = path[path.length - 1];
   const selectedDepth = path.length - 1;
-  const selectedY = selectedDepth * (FLAMEGRAPH_ROW_HEIGHT + FLAMEGRAPH_ROW_GAP);
+  const selectedY =
+    selectedDepth * (FLAMEGRAPH_ROW_HEIGHT + FLAMEGRAPH_ROW_GAP);
 
   bars.push({
     x,
@@ -189,7 +191,10 @@ export const computeFlamegraphLayout = (
     const widthRatio = useEqualWidth
       ? 1 / components.length
       : component.treeBaseDuration / totalDuration;
-    const barWidth = Math.max(widthRatio * availableWidth, FLAMEGRAPH_MIN_WIDTH);
+    const barWidth = Math.max(
+      widthRatio * availableWidth,
+      FLAMEGRAPH_MIN_WIDTH,
+    );
 
     bars.push({
       x: currentX,

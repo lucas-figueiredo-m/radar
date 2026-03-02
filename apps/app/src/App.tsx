@@ -100,7 +100,12 @@ const App = () => {
     return () => {
       ipcRenderer.removeListener('radar:message', onMessage);
     };
-  }, [handleConsoleMessage, handleNetworkMessage, handleTreeMessage, handleProfilerMessage]);
+  }, [
+    handleConsoleMessage,
+    handleNetworkMessage,
+    handleTreeMessage,
+    handleProfilerMessage,
+  ]);
 
   useEffect(() => {
     const onDeviceRegistered = (
