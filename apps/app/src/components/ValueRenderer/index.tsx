@@ -14,10 +14,10 @@ export type { ObjectEntryProps } from './ObjectEntry';
 export { ArrayEntry } from './ArrayEntry';
 export type { ArrayEntryProps } from './ArrayEntry';
 
-const isErrorObject = (
-  arg: object,
-): arg is { __type: 'Error'; message: string; stack?: string } =>
-  '__type' in arg && (arg as Record<string, unknown>).__type === 'Error';
+type MarkerObject = Record<string, unknown> & { __type: string };
+
+const isMarker = (arg: object): arg is MarkerObject =>
+  '__type' in arg && typeof (arg as MarkerObject).__type === 'string';
 
 export type ValueRendererProps = {
   value: unknown;
@@ -43,8 +43,6 @@ export const ValueRenderer = ({
     return <span style={{ color: SYNTAX_COLORS.undefined }}>undefined</span>;
 
   if (typeof value === 'string') {
-    // Top-level inline strings (direct console.log args) stay default text color
-    // Nested strings (inside objects/arrays) render in green with quotes
     if (inline)
       return (
         <span style={{ color: colorValues['text-primary'] }}>{value}</span>
@@ -62,8 +60,62 @@ export const ValueRenderer = ({
     );
 
   if (typeof value === 'object') {
-    if (isErrorObject(value))
-      return <ErrorEntry message={value.message} stack={value.stack} />;
+    if (isMarker(value)) {
+      switch (value.__type) {
+        case 'Error':
+          return (
+            <ErrorEntry
+              message={value.message as string}
+              stack={value.stack as string | undefined}
+            />
+          );
+        case 'Function':
+          return (
+            <span style={{ color: SYNTAX_COLORS.function }}>
+              ƒ {value.name as string}()
+            </span>
+          );
+        case 'Symbol':
+          return (
+            <span style={{ color: SYNTAX_COLORS.symbol }}>
+              Symbol({value.description as string})
+            </span>
+          );
+        case 'BigInt':
+          return (
+            <span style={{ color: SYNTAX_COLORS.number }}>
+              {value.value as string}
+            </span>
+          );
+        case 'Undefined':
+          return (
+            <span style={{ color: SYNTAX_COLORS.undefined }}>undefined</span>
+          );
+        case 'Circular':
+          return (
+            <span style={{ color: SYNTAX_COLORS.null }}>[Circular]</span>
+          );
+        case 'ReactElement':
+          return (
+            <span style={{ color: SYNTAX_COLORS.function }}>
+              &lt;{value.name as string} /&gt;
+            </span>
+          );
+        case 'Object':
+          return (
+            <span style={{ color: SYNTAX_COLORS.null }}>
+              {value.preview as string}
+            </span>
+          );
+        case 'Array':
+          return (
+            <span style={{ color: SYNTAX_COLORS.null }}>
+              Array({value.length as number})
+            </span>
+          );
+      }
+    }
+
     if (Array.isArray(value))
       return <ArrayEntry value={value} depth={depth} maxDepth={maxDepth} />;
     return (

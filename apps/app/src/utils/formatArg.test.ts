@@ -53,4 +53,42 @@ describe('formatArg', () => {
     circular.self = circular;
     expect(formatArg(circular)).toBe('[object Object]');
   });
+
+  it('formats Function marker', () => {
+    expect(formatArg({ __type: 'Function', name: 'handleClick' })).toBe(
+      'ƒ handleClick()',
+    );
+  });
+
+  it('formats Symbol marker', () => {
+    expect(formatArg({ __type: 'Symbol', description: 'foo' })).toBe(
+      'Symbol(foo)',
+    );
+  });
+
+  it('formats BigInt marker', () => {
+    expect(formatArg({ __type: 'BigInt', value: '123n' })).toBe('123n');
+  });
+
+  it('formats Undefined marker', () => {
+    expect(formatArg({ __type: 'Undefined' })).toBe('undefined');
+  });
+
+  it('formats Circular marker', () => {
+    expect(formatArg({ __type: 'Circular' })).toBe('[Circular]');
+  });
+
+  it('formats ReactElement marker', () => {
+    expect(formatArg({ __type: 'ReactElement', name: 'MyButton' })).toBe(
+      '<MyButton />',
+    );
+  });
+
+  it('formats dehydrated Object marker', () => {
+    expect(formatArg({ __type: 'Object', preview: '{...}' })).toBe('{...}');
+  });
+
+  it('formats dehydrated Array marker', () => {
+    expect(formatArg({ __type: 'Array', length: 5 })).toBe('Array(5)');
+  });
 });
