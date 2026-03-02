@@ -36,7 +36,9 @@ export const RankedView = ({ components }: RankedViewProps) => {
     );
   }
 
-  const maxDuration = sortedComponents.find(c => c.phase !== 'did-not-render')?.actualDuration ?? 0;
+  const maxDuration =
+    sortedComponents.find(c => c.phase !== 'did-not-render')?.actualDuration ??
+    0;
 
   return (
     <div className="flex-1 overflow-auto">
@@ -50,7 +52,9 @@ export const RankedView = ({ components }: RankedViewProps) => {
         return (
           <div
             key={component.id}
-            className={`flex items-center gap-3 px-4 py-1.5 border-b border-border-subtle ${isDidNotRender ? 'opacity-50' : ''}`}
+            className={`flex items-center gap-3 px-4 py-1.5 border-b border-border-subtle ${
+              isDidNotRender ? 'opacity-50' : ''
+            }`}
           >
             {/* Duration bar */}
             <div className="flex-1 flex items-center gap-2 min-w-0">
@@ -75,7 +79,9 @@ export const RankedView = ({ components }: RankedViewProps) => {
 
             {/* Phase badge */}
             <span
-              className={`text-caption font-semibold px-1.5 py-[1px] rounded-sm shrink-0 ${PHASE_STYLES[component.phase]}`}
+              className={`text-caption font-semibold px-1.5 py-[1px] rounded-sm shrink-0 ${
+                PHASE_STYLES[component.phase]
+              }`}
             >
               {isDidNotRender ? 'did not render' : component.phase}
             </span>
@@ -95,7 +101,9 @@ export const RankedView = ({ components }: RankedViewProps) => {
 
             {/* Duration value */}
             <span className="text-xs text-text-secondary tabular-nums shrink-0 w-[60px] text-right">
-              {isDidNotRender ? 'Did not render' : formatDuration(component.actualDuration)}
+              {isDidNotRender
+                ? 'Did not render'
+                : formatDuration(component.actualDuration)}
             </span>
           </div>
         );

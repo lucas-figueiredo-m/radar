@@ -48,9 +48,7 @@ export const useProfiler = (selectedDeviceId: string | null) => {
     const statsMap = new Map<string, ComponentStatsEntry>();
 
     for (const commit of commits) {
-      const walkComponents = (
-        components: ProfilerCommitData['components'],
-      ) => {
+      const walkComponents = (components: ProfilerCommitData['components']) => {
         for (const c of components) {
           const isDidNotRender = c.phase === 'did-not-render';
           const existing = statsMap.get(c.id);

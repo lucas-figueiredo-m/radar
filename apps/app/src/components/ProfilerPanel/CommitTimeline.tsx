@@ -33,7 +33,9 @@ export const CommitTimeline = ({
           <button
             key={commit.index}
             onClick={() => onSelect(index)}
-            title={`Commit ${index + 1} - ${formatTime(commit.timestamp)} (${commit.duration.toFixed(1)}ms)`}
+            title={`Commit ${index + 1} - ${formatTime(
+              commit.timestamp,
+            )} (${commit.duration.toFixed(1)}ms)`}
             className={`shrink-0 rounded-sm cursor-pointer transition-opacity ${
               isSelected
                 ? 'ring-1 ring-text-primary ring-offset-1 ring-offset-bg-base'
