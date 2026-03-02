@@ -90,6 +90,12 @@ export const useProfiler = (selectedDeviceId: string | null) => {
 
   const startProfiling = useCallback(() => {
     if (!selectedDeviceId) return;
+    setSessions(prev => {
+      const next = new Map(prev);
+      next.delete(selectedDeviceId);
+      return next;
+    });
+    setSelectedCommitIndex(0);
     setIsProfiling(true);
     isProfilingRef.current = true;
     sendCommand(selectedDeviceId, { type: 'startProfiling' });
@@ -102,6 +108,12 @@ export const useProfiler = (selectedDeviceId: string | null) => {
 
   const reloadAndProfile = useCallback(() => {
     if (!selectedDeviceId) return;
+    setSessions(prev => {
+      const next = new Map(prev);
+      next.delete(selectedDeviceId);
+      return next;
+    });
+    setSelectedCommitIndex(0);
     setIsProfiling(true);
     isProfilingRef.current = true;
     sendCommand(selectedDeviceId, { type: 'reloadAndProfile' });

@@ -19,6 +19,21 @@ export type FlamegraphBar = {
   dimmed: boolean;
 };
 
+const computeChildrenTotalWidth = (
+  children: ProfilerComponentData[],
+  parentBarWidth: number,
+  parentDuration: number,
+): number => {
+  const useEqualWidth = parentDuration <= 0;
+  const childCount = children.length;
+  return children.reduce((sum, child) => {
+    const ratio = useEqualWidth
+      ? 1 / Math.max(childCount, 1)
+      : child.treeBaseDuration / parentDuration;
+    return sum + Math.max(ratio * parentBarWidth, FLAMEGRAPH_MIN_WIDTH);
+  }, 0);
+};
+
 const processComponent = (
   component: ProfilerComponentData,
   parentX: number,
@@ -55,8 +70,13 @@ const processComponent = (
     dimmed: false,
   });
 
-  let childX = parentX;
   const childCount = component.children.length;
+  const totalChildrenWidth = computeChildrenTotalWidth(
+    component.children,
+    barWidth,
+    component.treeBaseDuration,
+  );
+  let childX = parentX + barWidth - totalChildrenWidth;
   for (const child of component.children) {
     processComponent(
       child,
@@ -141,8 +161,13 @@ const computeZoomedLayout = (
     dimmed: false,
   });
 
-  let childX = x;
   const childCount = selected.children.length;
+  const totalChildrenWidth = computeChildrenTotalWidth(
+    selected.children,
+    availableWidth,
+    selected.treeBaseDuration,
+  );
+  let childX = x + availableWidth - totalChildrenWidth;
   for (const child of selected.children) {
     processComponent(
       child,
@@ -207,8 +232,13 @@ export const computeFlamegraphLayout = (
       dimmed: false,
     });
 
-    let childX = currentX;
     const childCount = component.children.length;
+    const totalChildrenWidth = computeChildrenTotalWidth(
+      component.children,
+      barWidth,
+      component.treeBaseDuration,
+    );
+    let childX = currentX + barWidth - totalChildrenWidth;
     for (const child of component.children) {
       processComponent(
         child,
