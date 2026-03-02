@@ -1,5 +1,5 @@
 import type { FiberNode, FiberRoot } from '../componentTree/fiberTypes';
-import { USER_COMPONENT_TAGS } from '../componentTree/constants';
+import { USER_COMPONENT_TAGS, PERFORMED_WORK } from '../componentTree/constants';
 
 export type FiberSnapshot = {
   fiber: FiberNode;
@@ -49,6 +49,12 @@ const snapshotFiber = (
       const childSnapshots = children.flatMap((c) =>
         snapshotFiber(c, childrenFresh),
       );
+
+      const didRender =
+        alternate !== null &&
+        typeof fiber.flags === 'number' &&
+        (fiber.flags & PERFORMED_WORK) === PERFORMED_WORK;
+
       return [
         {
           fiber,
@@ -57,10 +63,7 @@ const snapshotFiber = (
           treeBaseDuration: fiber.treeBaseDuration ?? 0,
           hasAlternate: !!alternate,
           isFresh,
-          didRender:
-            alternate !== null &&
-            (fiber.memoizedProps !== alternate.memoizedProps ||
-              fiber.memoizedState !== alternate.memoizedState),
+          didRender,
           children: childSnapshots,
         },
       ];

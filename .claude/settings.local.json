@@ -40,7 +40,13 @@
       "WebFetch(domain:legacy.reactjs.org)",
       "Bash(lsof:*)",
       "mcp__plugin_linear_linear__list_projects",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(gh api:*)",
+      "Bash(gh search:*)",
+      "Bash(curl:*)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(log show:*)"
     ]
   }
 }

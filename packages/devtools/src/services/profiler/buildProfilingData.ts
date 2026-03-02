@@ -26,11 +26,12 @@ const buildComponentData = (
       // so !hasAlternate on a fresh fiber means createFiber was called.
       phase = 'mount';
     } else if (snapshot.didRender) {
-      // Fresh fiber with alternate, props/state changed from alternate.
-      // Same approach as React DevTools' didFiberRender check.
+      // Fresh fiber with alternate and PerformedWork flag set.
+      // React sets PerformedWork (bit 0 of fiber.flags) when the
+      // render function actually executes.
       phase = 'update';
     } else {
-      // Fresh fiber with alternate, but props/state unchanged = bailed out.
+      // Fresh fiber with alternate, but PerformedWork not set = bailed out.
       phase = 'did-not-render';
     }
 

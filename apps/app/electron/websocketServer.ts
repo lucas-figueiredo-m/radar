@@ -99,6 +99,7 @@ export const startWebSocketServer = (
         }
 
         const deviceId = socketToDeviceId.get(socket);
+
         if (deviceId) {
           const stamped = { ...message, deviceId };
           win.webContents.send('radar:message', stamped);

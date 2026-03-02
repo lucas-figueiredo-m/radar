@@ -16,3 +16,8 @@ export const USER_COMPONENT_TAGS = [
   MEMO,
   SIMPLE_MEMO,
 ];
+
+// React's PerformedWork flag — bit 0 of fiber.flags.
+// Set by the reconciler when a component's render function actually executes.
+// Used by React DevTools' didFiberRender() to detect rendered user components.
+export const PERFORMED_WORK = 0b1;
