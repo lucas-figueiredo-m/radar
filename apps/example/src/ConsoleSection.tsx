@@ -1,3 +1,4 @@
+import React from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import ConsoleOption from './ConsoleOption';
 
@@ -50,6 +51,69 @@ const CONSOLE_OPTIONS = [
           { orderId: 'ORD-991', total: 59.99, status: 'delivered' },
           { orderId: 'ORD-1042', total: 124.5, status: 'pending' },
         ],
+      }),
+  },
+  {
+    title: 'console.log (function)',
+    color: '#8b5cf6',
+    onPress: () =>
+      console.log('Function:', {
+        handler: () => {},
+        add: function add(_a: number, _b: number) {
+          return 0;
+        },
+      }),
+  },
+  {
+    title: 'console.log (undefined & null)',
+    color: '#64748b',
+    onPress: () =>
+      console.log('Undefined:', undefined, {
+        missing: undefined,
+        present: null,
+      }),
+  },
+  {
+    title: 'console.log (Symbol)',
+    color: '#ec4899',
+    onPress: () =>
+      console.log('Symbol:', Symbol('mySymbol'), {
+        id: Symbol('unique'),
+      }),
+  },
+  {
+    title: 'console.log (BigInt)',
+    color: '#14b8a6',
+    onPress: () =>
+      console.log('BigInt:', BigInt(9007199254740991), {
+        count: BigInt(42),
+      }),
+  },
+  {
+    title: 'console.log (circular ref)',
+    color: '#f97316',
+    onPress: () => {
+      const obj: Record<string, unknown> = { name: 'circular', children: [] };
+      (obj.children as unknown[]).push(obj);
+      console.log('Circular:', obj);
+    },
+  },
+  {
+    title: 'console.log (React element)',
+    color: '#06b6d4',
+    onPress: () =>
+      console.log('Element:', React.createElement(Text, null, 'Hello')),
+  },
+  {
+    title: 'console.log (mixed)',
+    color: '#a855f7',
+    onPress: () =>
+      console.log('Mixed:', {
+        fn: () => {},
+        sym: Symbol('x'),
+        undef: undefined,
+        big: BigInt(1),
+        nested: { deep: true },
       }),
   },
 ];

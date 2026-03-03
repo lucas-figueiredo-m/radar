@@ -135,6 +135,62 @@ describe('ValueRenderer', () => {
     });
   });
 
+  describe('marker objects', () => {
+    it('renders Circular marker with keys preview', () => {
+      const circular = { __type: 'Circular', keys: ['name', 'children'] };
+      const { container } = render(
+        <ValueRenderer value={circular} inline={false} />,
+      );
+      expect(container.textContent).toContain('[Circular: {name, children}]');
+    });
+
+    it('renders Circular marker without keys', () => {
+      const circular = { __type: 'Circular', keys: [] };
+      const { container } = render(
+        <ValueRenderer value={circular} inline={false} />,
+      );
+      expect(container.textContent).toBe('[Circular]');
+    });
+
+    it('renders ReactElement with expandable props', () => {
+      const element = {
+        __type: 'ReactElement',
+        name: 'MyText',
+        props: { children: 'Hello' },
+        key: null,
+        ref: null,
+      };
+      const { container } = render(
+        <ValueRenderer value={element} inline={false} />,
+      );
+      // Should show the element tag in collapsed state
+      expect(container.textContent).toContain('<MyText />');
+      // Should show key and ref in collapsed preview
+      expect(container.textContent).toContain('key');
+      expect(container.textContent).toContain('ref');
+      expect(container.textContent).toContain('props');
+    });
+
+    it('expands ReactElement to show props, key, ref on separate lines', () => {
+      const element = {
+        __type: 'ReactElement',
+        name: 'MyText',
+        props: { children: 'Hello' },
+        key: null,
+        ref: null,
+      };
+      render(<ValueRenderer value={element} inline={false} />);
+      // Click the first ▶ (the ReactElementEntry toggle)
+      fireEvent.click(screen.getAllByText('▶')[0]);
+      // After expansion, should show ▼ indicator
+      expect(screen.getByText('▼')).toBeInTheDocument();
+      // Should show props, key, ref labels
+      expect(screen.getByText('props')).toBeInTheDocument();
+      expect(screen.getByText('key')).toBeInTheDocument();
+      expect(screen.getByText('ref')).toBeInTheDocument();
+    });
+  });
+
   describe('error objects', () => {
     it('renders error message', () => {
       const errorObj = {

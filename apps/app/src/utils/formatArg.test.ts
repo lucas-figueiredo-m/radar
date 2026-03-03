@@ -53,4 +53,58 @@ describe('formatArg', () => {
     circular.self = circular;
     expect(formatArg(circular)).toBe('[object Object]');
   });
+
+  it('formats Function marker', () => {
+    expect(formatArg({ __type: 'Function', name: 'handleClick' })).toBe(
+      'ƒ handleClick()',
+    );
+  });
+
+  it('formats Symbol marker', () => {
+    expect(formatArg({ __type: 'Symbol', description: 'foo' })).toBe(
+      'Symbol(foo)',
+    );
+  });
+
+  it('formats BigInt marker', () => {
+    expect(formatArg({ __type: 'BigInt', value: '123n' })).toBe('123n');
+  });
+
+  it('formats Undefined marker', () => {
+    expect(formatArg({ __type: 'Undefined' })).toBe('undefined');
+  });
+
+  it('formats Circular marker without keys', () => {
+    expect(formatArg({ __type: 'Circular', keys: [] })).toBe('[Circular]');
+  });
+
+  it('formats Circular marker with keys', () => {
+    expect(formatArg({ __type: 'Circular', keys: ['name', 'children'] })).toBe(
+      '[Circular: {name, children}]',
+    );
+  });
+
+  it('formats ReactElement marker without props', () => {
+    expect(
+      formatArg({ __type: 'ReactElement', name: 'MyButton', props: {} }),
+    ).toBe('<MyButton />');
+  });
+
+  it('formats ReactElement marker with props', () => {
+    expect(
+      formatArg({
+        __type: 'ReactElement',
+        name: 'MyButton',
+        props: { title: 'Click' },
+      }),
+    ).toBe('<MyButton props={...} />');
+  });
+
+  it('formats dehydrated Object marker', () => {
+    expect(formatArg({ __type: 'Object', preview: '{...}' })).toBe('{...}');
+  });
+
+  it('formats dehydrated Array marker', () => {
+    expect(formatArg({ __type: 'Array', length: 5 })).toBe('Array(5)');
+  });
 });
