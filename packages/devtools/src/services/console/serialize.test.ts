@@ -74,6 +74,7 @@ describe('serialize', () => {
   });
 
   it('returns Function marker for named functions with parameters', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     function greet(_name: string, _age: number) {
       return 'hi';
     }
