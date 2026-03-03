@@ -43,3 +43,8 @@ export type StopProfilingCommand = {
 export type ReloadAndProfileCommand = {
   type: 'reloadAndProfile';
 };
+
+export type ProfilingStatusCommand = {
+  type: 'profilingStatus';
+  isProfiling: boolean;
+};

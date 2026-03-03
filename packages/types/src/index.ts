@@ -30,4 +30,5 @@ export type {
   StartProfilingCommand,
   StopProfilingCommand,
   ReloadAndProfileCommand,
+  ProfilingStatusCommand,
 } from './profiler';

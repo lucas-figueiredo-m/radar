@@ -65,6 +65,11 @@ export const init = (config: RadarConfig = {}) => {
   const profiler = createProfilerService(send);
   const originalConsole = patchConsole(send);
 
+  // Always start profiling eagerly to capture early commits.
+  // When the WebSocket connects, Electron will send a profilingStatus
+  // command — if profiling is not active, we discard the buffer.
+  profiler.startProfiling();
+
   const handleCommand = (command: RadarCommand) => {
     if (command.type === 'inspectComponent') {
       send(inspectComponent(command.componentId));
@@ -73,14 +78,18 @@ export const init = (config: RadarConfig = {}) => {
     } else if (command.type === 'stopProfiling') {
       profiler.stopProfiling();
     } else if (command.type === 'reloadAndProfile') {
-      profiler.startProfiling();
       reloadApp();
+    } else if (command.type === 'profilingStatus') {
+      if (!command.isProfiling) {
+        profiler.discardProfiling();
+      }
     }
   };
 
   patchFetch(send);
   const { addCommitListener } = installComponentTreeHook(send);
   addCommitListener(profiler.handleCommit);
+
   connect(host, port, originalConsole);
 
   originalConsole.log('[radar] devtools initialized');

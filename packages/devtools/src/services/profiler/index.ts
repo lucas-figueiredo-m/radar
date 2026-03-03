@@ -43,5 +43,10 @@ export const createProfilerService = (send: Send) => {
     snapshots = [];
   };
 
-  return { handleCommit, startProfiling, stopProfiling };
+  const discardProfiling = () => {
+    isProfiling = false;
+    snapshots = [];
+  };
+
+  return { handleCommit, startProfiling, stopProfiling, discardProfiling };
 };
