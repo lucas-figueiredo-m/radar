@@ -20,6 +20,27 @@ const getTextColor = (hex: string): string => {
   return luminance > 160 ? '#1e1e2e' : '#ffffff';
 };
 
+const ELLIPSIS = '\u2026';
+
+const ellipsize = (
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+): string => {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let lo = 0;
+  let hi = text.length;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (ctx.measureText(text.slice(0, mid) + ELLIPSIS).width <= maxWidth) {
+      lo = mid;
+    } else {
+      hi = mid - 1;
+    }
+  }
+  return lo === 0 ? ELLIPSIS : text.slice(0, lo) + ELLIPSIS;
+};
+
 export const renderFlamegraph = (
   ctx: CanvasRenderingContext2D,
   bars: FlamegraphBar[],
@@ -73,12 +94,10 @@ export const renderFlamegraph = (
       ctx.font = '11px ui-monospace, monospace';
       ctx.textBaseline = 'middle';
 
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(bar.x + 4, bar.y, bar.width - 8, bar.height);
-      ctx.clip();
-      ctx.fillText(bar.label, bar.x + 4, bar.y + bar.height / 2);
-      ctx.restore();
+      const padding = 8;
+      const maxTextWidth = bar.width - padding;
+      const label = ellipsize(ctx, bar.label, maxTextWidth);
+      ctx.fillText(label, bar.x + 4, bar.y + bar.height / 2);
     }
 
     ctx.globalAlpha = 1;
