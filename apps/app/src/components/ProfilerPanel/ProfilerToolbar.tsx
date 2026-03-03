@@ -132,11 +132,8 @@ export const ProfilerToolbar = ({
         </button>
       </div>
 
-      {/* Commit timeline bars */}
-      {commitTimeline}
-
-      {/* Spacer */}
-      <div className="flex-1" />
+      {/* Commit timeline bars (flex-1 fills remaining space) */}
+      {commitTimeline ?? <div className="flex-1" />}
 
       {/* Clear button */}
       <button
