@@ -121,9 +121,11 @@ export const useProfiler = (selectedDeviceId: string | null) => {
 
   const handleDeviceConnected = useCallback(
     (deviceId: string) => {
-      if (!isProfilingRef.current) return;
       if (deviceId !== selectedDeviceId) return;
-      sendCommand(deviceId, { type: 'startProfiling' });
+      sendCommand(deviceId, {
+        type: 'profilingStatus',
+        isProfiling: isProfilingRef.current,
+      });
     },
     [selectedDeviceId],
   );
