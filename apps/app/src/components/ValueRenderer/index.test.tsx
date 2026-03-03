@@ -141,9 +141,7 @@ describe('ValueRenderer', () => {
       const { container } = render(
         <ValueRenderer value={circular} inline={false} />,
       );
-      expect(container.textContent).toContain(
-        '[Circular: {name, children}]',
-      );
+      expect(container.textContent).toContain('[Circular: {name, children}]');
     });
 
     it('renders Circular marker without keys', () => {

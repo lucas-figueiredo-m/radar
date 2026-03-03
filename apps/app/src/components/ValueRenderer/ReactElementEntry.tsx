@@ -23,9 +23,7 @@ const ReactElementEntryInner = ({
   const [expanded, setExpanded] = useState(false);
 
   const tag = (
-    <span style={{ color: SYNTAX_COLORS.function }}>
-      &lt;{name} /&gt;
-    </span>
+    <span style={{ color: SYNTAX_COLORS.function }}>&lt;{name} /&gt;</span>
   );
 
   if (expanded) {
@@ -91,8 +89,7 @@ const ReactElementEntryInner = ({
         ▶
       </span>
       <span className="truncate">
-        {tag}{' '}
-        <span style={{ color: SYNTAX_COLORS.bracket }}>{'{ '}</span>
+        {tag} <span style={{ color: SYNTAX_COLORS.bracket }}>{'{ '}</span>
         <span style={{ color: SYNTAX_COLORS.key }}>key</span>
         <span style={{ color: SYNTAX_COLORS.bracket }}>: </span>
         <ValueRenderer

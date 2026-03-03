@@ -30,9 +30,7 @@ const renderMarker = (marker: MarkerObject) => {
         </span>
       );
     case 'Undefined':
-      return (
-        <span style={{ color: SYNTAX_COLORS.undefined }}>undefined</span>
-      );
+      return <span style={{ color: SYNTAX_COLORS.undefined }}>undefined</span>;
     case 'Circular': {
       const keys = marker.keys as string[] | undefined;
       const keysPreview =
