@@ -4,3 +4,5 @@ dist-electron/
 release/
 **/.DS_Store
 *.tsbuildinfo
+
+.claude/worktrees
