@@ -3,6 +3,7 @@ import { MAX_RENDER_DEPTH, SYNTAX_COLORS } from './constants';
 import { ErrorEntry } from './ErrorEntry';
 import { ObjectEntry } from './ObjectEntry';
 import { ArrayEntry } from './ArrayEntry';
+import { ReactElementEntry } from './ReactElementEntry';
 
 export { SYNTAX_COLORS } from './constants';
 export { ErrorEntry } from './ErrorEntry';
@@ -13,6 +14,8 @@ export { ObjectEntry } from './ObjectEntry';
 export type { ObjectEntryProps } from './ObjectEntry';
 export { ArrayEntry } from './ArrayEntry';
 export type { ArrayEntryProps } from './ArrayEntry';
+export { ReactElementEntry } from './ReactElementEntry';
+export type { ReactElementEntryProps } from './ReactElementEntry';
 
 type MarkerObject = Record<string, unknown> & { __type: string };
 
@@ -91,13 +94,26 @@ export const ValueRenderer = ({
           return (
             <span style={{ color: SYNTAX_COLORS.undefined }}>undefined</span>
           );
-        case 'Circular':
-          return <span style={{ color: SYNTAX_COLORS.null }}>[Circular]</span>;
+        case 'Circular': {
+          const keys = value.keys as string[] | undefined;
+          const keysPreview =
+            keys && keys.length > 0 ? `: {${keys.join(', ')}}` : '';
+          return (
+            <span style={{ color: SYNTAX_COLORS.null }}>
+              [Circular{keysPreview}]
+            </span>
+          );
+        }
         case 'ReactElement':
           return (
-            <span style={{ color: SYNTAX_COLORS.function }}>
-              &lt;{value.name as string} /&gt;
-            </span>
+            <ReactElementEntry
+              name={value.name as string}
+              props={value.props as Record<string, unknown>}
+              keyProp={value.key as string | null}
+              refProp={value.ref as unknown}
+              depth={depth}
+              maxDepth={maxDepth}
+            />
           );
         case 'Object':
           return (

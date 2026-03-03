@@ -16,7 +16,13 @@ type ElementType =
   | ((...args: unknown[]) => unknown)
   | string;
 
-type ReactElementLike = { $$typeof?: symbol; type?: ElementType };
+type ReactElementLike = {
+  $$typeof?: symbol;
+  type?: ElementType;
+  props?: Record<string, unknown>;
+  key?: string | null;
+  ref?: unknown;
+};
 
 const isReactElement = (value: object): value is ReactElementLike =>
   '$$typeof' in value &&
@@ -75,10 +81,24 @@ const serializeRecursive = (
   if (value instanceof Error)
     return { __type: 'Error', message: value.message, stack: value.stack };
 
-  if (isReactElement(value))
-    return { __type: 'ReactElement', name: getElementName(value) };
+  if (isReactElement(value)) {
+    seen.add(value);
+    return {
+      __type: 'ReactElement',
+      name: getElementName(value),
+      props:
+        value.props && typeof value.props === 'object'
+          ? serializeRecursive(value.props, depth + 1, seen)
+          : {},
+      key: value.key ?? null,
+      ref: serializeRecursive(value.ref, depth + 1, seen),
+    };
+  }
 
-  if (seen.has(value)) return { __type: 'Circular' };
+  if (seen.has(value)) {
+    const keys = Object.keys(value as Record<string, unknown>);
+    return { __type: 'Circular', keys };
+  }
   seen.add(value);
 
   if (Array.isArray(value)) {

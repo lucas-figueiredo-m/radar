@@ -73,11 +73,13 @@ describe('serialize', () => {
     expect(serialize(greet)).toEqual({ __type: 'Function', name: 'greet' });
   });
 
-  it('returns Circular marker for circular references', () => {
+  it('returns Circular marker with keys for circular references', () => {
     const circular: Record<string, unknown> = {};
     circular.self = circular;
 
-    expect(serialize(circular)).toEqual({ self: { __type: 'Circular' } });
+    expect(serialize(circular)).toEqual({
+      self: { __type: 'Circular', keys: ['self'] },
+    });
   });
 
   it('returns Symbol marker for symbols', () => {
@@ -121,7 +123,7 @@ describe('serialize', () => {
     });
   });
 
-  it('handles nested circular references', () => {
+  it('handles nested circular references with keys', () => {
     const a: Record<string, unknown> = { name: 'a' };
     const b: Record<string, unknown> = { name: 'b', ref: a };
     a.ref = b;
@@ -131,33 +133,64 @@ describe('serialize', () => {
       name: 'a',
       ref: {
         name: 'b',
-        ref: { __type: 'Circular' },
+        ref: { __type: 'Circular', keys: ['name', 'ref'] },
       },
     });
   });
 
-  it('serializes React elements with __type ReactElement', () => {
+  it('serializes React elements with props, key, and ref', () => {
     const element = {
       $$typeof: Symbol.for('react.element'),
       type: 'div',
       props: { children: 'hello' },
+      key: null,
+      ref: null,
     };
     expect(serialize(element)).toEqual({
       __type: 'ReactElement',
       name: 'div',
+      props: { children: 'hello' },
+      key: null,
+      ref: null,
     });
   });
 
-  it('serializes React elements with function type', () => {
+  it('serializes React elements with function type and props', () => {
     const MyComponent = () => null;
     const element = {
       $$typeof: Symbol.for('react.element'),
       type: MyComponent,
-      props: {},
+      props: { title: 'test', count: 5 },
+      key: 'item-1',
+      ref: null,
     };
     expect(serialize(element)).toEqual({
       __type: 'ReactElement',
       name: 'MyComponent',
+      props: { title: 'test', count: 5 },
+      key: 'item-1',
+      ref: null,
+    });
+  });
+
+  it('recursively serializes non-JSON-safe values in React element props', () => {
+    const element = {
+      $$typeof: Symbol.for('react.element'),
+      type: 'View',
+      props: { onPress: () => {}, style: { flex: 1 } },
+      key: null,
+      ref: null,
+    };
+    const result = serialize(element) as Record<string, unknown>;
+    expect(result).toEqual({
+      __type: 'ReactElement',
+      name: 'View',
+      props: {
+        onPress: { __type: 'Function', name: 'onPress' },
+        style: { flex: 1 },
+      },
+      key: null,
+      ref: null,
     });
   });
 

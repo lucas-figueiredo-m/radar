@@ -74,14 +74,30 @@ describe('formatArg', () => {
     expect(formatArg({ __type: 'Undefined' })).toBe('undefined');
   });
 
-  it('formats Circular marker', () => {
-    expect(formatArg({ __type: 'Circular' })).toBe('[Circular]');
+  it('formats Circular marker without keys', () => {
+    expect(formatArg({ __type: 'Circular', keys: [] })).toBe('[Circular]');
   });
 
-  it('formats ReactElement marker', () => {
-    expect(formatArg({ __type: 'ReactElement', name: 'MyButton' })).toBe(
-      '<MyButton />',
+  it('formats Circular marker with keys', () => {
+    expect(formatArg({ __type: 'Circular', keys: ['name', 'children'] })).toBe(
+      '[Circular: {name, children}]',
     );
+  });
+
+  it('formats ReactElement marker without props', () => {
+    expect(
+      formatArg({ __type: 'ReactElement', name: 'MyButton', props: {} }),
+    ).toBe('<MyButton />');
+  });
+
+  it('formats ReactElement marker with props', () => {
+    expect(
+      formatArg({
+        __type: 'ReactElement',
+        name: 'MyButton',
+        props: { title: 'Click' },
+      }),
+    ).toBe('<MyButton props={...} />');
   });
 
   it('formats dehydrated Object marker', () => {

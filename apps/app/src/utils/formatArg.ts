@@ -22,10 +22,19 @@ export const formatArg = (arg: unknown): string => {
         return marker.value as string;
       case 'Undefined':
         return 'undefined';
-      case 'Circular':
-        return '[Circular]';
-      case 'ReactElement':
-        return `<${marker.name as string} />`;
+      case 'Circular': {
+        const keys = marker.keys as string[] | undefined;
+        const keysPreview =
+          keys && keys.length > 0 ? `: {${keys.join(', ')}}` : '';
+        return `[Circular${keysPreview}]`;
+      }
+      case 'ReactElement': {
+        const props = marker.props as Record<string, unknown> | undefined;
+        const hasProps = props && Object.keys(props).length > 0;
+        return hasProps
+          ? `<${marker.name as string} props={...} />`
+          : `<${marker.name as string} />`;
+      }
       case 'Object':
         return marker.preview as string;
       case 'Array':

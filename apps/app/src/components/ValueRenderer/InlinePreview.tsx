@@ -4,6 +4,74 @@ export type InlinePreviewProps = {
   value: unknown;
 };
 
+type MarkerObject = Record<string, unknown> & { __type: string };
+
+const isMarker = (arg: object): arg is MarkerObject =>
+  '__type' in arg && typeof (arg as MarkerObject).__type === 'string';
+
+const renderMarker = (marker: MarkerObject) => {
+  switch (marker.__type) {
+    case 'Function':
+      return (
+        <span style={{ color: SYNTAX_COLORS.function }}>
+          ƒ {marker.name as string}()
+        </span>
+      );
+    case 'Symbol':
+      return (
+        <span style={{ color: SYNTAX_COLORS.symbol }}>
+          Symbol({marker.description as string})
+        </span>
+      );
+    case 'BigInt':
+      return (
+        <span style={{ color: SYNTAX_COLORS.number }}>
+          {marker.value as string}
+        </span>
+      );
+    case 'Undefined':
+      return (
+        <span style={{ color: SYNTAX_COLORS.undefined }}>undefined</span>
+      );
+    case 'Circular': {
+      const keys = marker.keys as string[] | undefined;
+      const keysPreview =
+        keys && keys.length > 0 ? `: {${keys.join(', ')}}` : '';
+      return (
+        <span style={{ color: SYNTAX_COLORS.null }}>
+          [Circular{keysPreview}]
+        </span>
+      );
+    }
+    case 'ReactElement':
+      return (
+        <span style={{ color: SYNTAX_COLORS.function }}>
+          &lt;{marker.name as string} /&gt;
+        </span>
+      );
+    case 'Error':
+      return (
+        <span style={{ color: SYNTAX_COLORS.null }}>
+          Error: {marker.message as string}
+        </span>
+      );
+    case 'Object':
+      return (
+        <span style={{ color: SYNTAX_COLORS.bracket }}>
+          {marker.preview as string}
+        </span>
+      );
+    case 'Array':
+      return (
+        <span style={{ color: SYNTAX_COLORS.bracket }}>
+          Array({marker.length as number})
+        </span>
+      );
+    default:
+      return <span style={{ color: SYNTAX_COLORS.bracket }}>Object</span>;
+  }
+};
+
 export const InlinePreview = ({ value }: InlinePreviewProps) => {
   if (value === null)
     return <span style={{ color: SYNTAX_COLORS.null }}>null</span>;
@@ -27,7 +95,9 @@ export const InlinePreview = ({ value }: InlinePreviewProps) => {
     );
   if (typeof value === 'function')
     return <span style={{ color: SYNTAX_COLORS.function }}>Function</span>;
-  if (typeof value === 'object')
+  if (typeof value === 'object') {
+    if (isMarker(value)) return renderMarker(value);
     return <span style={{ color: SYNTAX_COLORS.bracket }}>Object</span>;
+  }
   return <span>{String(value)}</span>;
 };
