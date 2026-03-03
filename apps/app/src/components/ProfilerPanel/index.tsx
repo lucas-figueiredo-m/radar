@@ -128,15 +128,16 @@ export const ProfilerPanel = ({
         onPrevCommit={handlePrevCommit}
         onNextCommit={handleNextCommit}
         onClear={onClear}
+        commitTimeline={
+          hasCommits ? (
+            <CommitTimeline
+              commits={commits}
+              selectedIndex={selectedCommitIndex}
+              onSelect={onSelectCommit}
+            />
+          ) : undefined
+        }
       />
-
-      {hasCommits && (
-        <CommitTimeline
-          commits={commits}
-          selectedIndex={selectedCommitIndex}
-          onSelect={onSelectCommit}
-        />
-      )}
 
       <div className="flex-1 flex overflow-hidden">
         {hasCommits && selectedCommit ? renderContent() : renderEmptyState()}

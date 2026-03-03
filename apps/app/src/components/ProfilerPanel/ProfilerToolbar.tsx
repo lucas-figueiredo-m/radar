@@ -23,6 +23,7 @@ export type ProfilerToolbarProps = {
   onPrevCommit: () => void;
   onNextCommit: () => void;
   onClear: () => void;
+  commitTimeline?: React.ReactNode;
 };
 
 const VIEW_OPTIONS: {
@@ -48,6 +49,7 @@ export const ProfilerToolbar = ({
   onPrevCommit,
   onNextCommit,
   onClear,
+  commitTimeline,
 }: ProfilerToolbarProps) => {
   const canGoPrev = hasCommits && selectedCommitIndex > 0;
   const canGoNext = hasCommits && selectedCommitIndex < totalCommits - 1;
@@ -83,6 +85,28 @@ export const ProfilerToolbar = ({
       {/* Separator */}
       <div className="w-px h-4 bg-border-subtle mx-1" />
 
+      {/* View switcher */}
+      <div className="flex items-center gap-0.5">
+        {VIEW_OPTIONS.map(({ view, icon: Icon, label }) => (
+          <button
+            key={view}
+            onClick={() => onChangeView(view)}
+            className={`flex items-center gap-1 px-2 py-[3px] rounded-md cursor-pointer text-xs border ${
+              activeView === view
+                ? 'bg-bg-elevated border-border-strong text-text-primary'
+                : 'border-transparent text-text-secondary hover:bg-bg-surface'
+            }`}
+            title={label}
+          >
+            <Icon size={12} />
+            <span className="hidden sm:inline">{label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Separator */}
+      <div className="w-px h-4 bg-border-subtle mx-1" />
+
       {/* Commit navigator */}
       <div className="flex items-center gap-0.5">
         <button
@@ -108,30 +132,8 @@ export const ProfilerToolbar = ({
         </button>
       </div>
 
-      {/* Separator */}
-      <div className="w-px h-4 bg-border-subtle mx-1" />
-
-      {/* View switcher */}
-      <div className="flex items-center gap-0.5">
-        {VIEW_OPTIONS.map(({ view, icon: Icon, label }) => (
-          <button
-            key={view}
-            onClick={() => onChangeView(view)}
-            className={`flex items-center gap-1 px-2 py-[3px] rounded-md cursor-pointer text-xs border ${
-              activeView === view
-                ? 'bg-bg-elevated border-border-strong text-text-primary'
-                : 'border-transparent text-text-secondary hover:bg-bg-surface'
-            }`}
-            title={label}
-          >
-            <Icon size={12} />
-            <span className="hidden sm:inline">{label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Spacer */}
-      <div className="flex-1" />
+      {/* Commit timeline bars (flex-1 fills remaining space) */}
+      {commitTimeline ?? <div className="flex-1" />}
 
       {/* Clear button */}
       <button

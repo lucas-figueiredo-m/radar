@@ -6,3 +6,4 @@ export { useDeviceManager } from './useDeviceManager';
 export { useEditorPreference } from './useEditorPreference';
 export { useNetworkRequests } from './useNetworkRequests';
 export { useProfiler } from './useProfiler';
+export { useResizeObserver } from './useResizeObserver';

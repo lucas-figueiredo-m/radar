@@ -1,10 +1,44 @@
 import type { FlamegraphBar } from './FlamegraphLayout';
 
+const parseHex = (hex: string): [number, number, number] => [
+  parseInt(hex.slice(1, 3), 16),
+  parseInt(hex.slice(3, 5), 16),
+  parseInt(hex.slice(5, 7), 16),
+];
+
 const brightenColor = (hex: string, amount: number): string => {
-  const r = Math.min(255, parseInt(hex.slice(1, 3), 16) + amount);
-  const g = Math.min(255, parseInt(hex.slice(3, 5), 16) + amount);
-  const b = Math.min(255, parseInt(hex.slice(5, 7), 16) + amount);
-  return `rgb(${r}, ${g}, ${b})`;
+  const [r, g, b] = parseHex(hex);
+  return `rgb(${Math.min(255, r + amount)}, ${Math.min(
+    255,
+    g + amount,
+  )}, ${Math.min(255, b + amount)})`;
+};
+
+const getTextColor = (hex: string): string => {
+  const [r, g, b] = parseHex(hex);
+  const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+  return luminance > 160 ? '#1e1e2e' : '#ffffff';
+};
+
+const ELLIPSIS = '\u2026';
+
+const ellipsize = (
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+): string => {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let lo = 0;
+  let hi = text.length;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (ctx.measureText(text.slice(0, mid) + ELLIPSIS).width <= maxWidth) {
+      lo = mid;
+    } else {
+      hi = mid - 1;
+    }
+  }
+  return lo === 0 ? ELLIPSIS : text.slice(0, lo) + ELLIPSIS;
 };
 
 export const renderFlamegraph = (
@@ -56,16 +90,14 @@ export const renderFlamegraph = (
 
     if (bar.width > 30) {
       ctx.globalAlpha = bar.dimmed ? 0.6 : 1;
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = getTextColor(bar.color);
       ctx.font = '11px ui-monospace, monospace';
       ctx.textBaseline = 'middle';
 
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(bar.x + 4, bar.y, bar.width - 8, bar.height);
-      ctx.clip();
-      ctx.fillText(bar.label, bar.x + 4, bar.y + bar.height / 2);
-      ctx.restore();
+      const padding = 8;
+      const maxTextWidth = bar.width - padding;
+      const label = ellipsize(ctx, bar.label, maxTextWidth);
+      ctx.fillText(label, bar.x + 4, bar.y + bar.height / 2);
     }
 
     ctx.globalAlpha = 1;
