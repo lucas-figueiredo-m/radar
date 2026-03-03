@@ -74,6 +74,8 @@ const computeCommitDuration = (components: ProfilerComponentData[]): number => {
   let max = 0;
   for (const c of components) {
     if (c.actualDuration > max) max = c.actualDuration;
+    const childMax = computeCommitDuration(c.children);
+    if (childMax > max) max = childMax;
   }
   return max;
 };
