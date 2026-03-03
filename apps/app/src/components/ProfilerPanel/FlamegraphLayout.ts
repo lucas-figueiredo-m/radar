@@ -54,10 +54,12 @@ const processComponent = (
   const label = isDidNotRender
     ? component.name
     : barWidth > 120
-      ? `${component.name} (${component.actualDuration.toFixed(3)}ms of ${component.treeBaseDuration.toFixed(3)}ms)`
-      : barWidth > 60
-        ? `${component.name} (${component.actualDuration.toFixed(3)}ms)`
-        : component.name;
+    ? `${component.name} (${component.actualDuration.toFixed(
+        3,
+      )}ms of ${component.treeBaseDuration.toFixed(3)}ms)`
+    : barWidth > 60
+    ? `${component.name} (${component.actualDuration.toFixed(3)}ms)`
+    : component.name;
 
   bars.push({
     x: parentX,
@@ -115,7 +117,9 @@ const makeLabel = (
 ): string => {
   if (component.phase === 'did-not-render') return component.name;
   if (barWidth > 120)
-    return `${component.name} (${component.actualDuration.toFixed(3)}ms of ${component.treeBaseDuration.toFixed(3)}ms)`;
+    return `${component.name} (${component.actualDuration.toFixed(
+      3,
+    )}ms of ${component.treeBaseDuration.toFixed(3)}ms)`;
   return barWidth > 60
     ? `${component.name} (${component.actualDuration.toFixed(3)}ms)`
     : component.name;

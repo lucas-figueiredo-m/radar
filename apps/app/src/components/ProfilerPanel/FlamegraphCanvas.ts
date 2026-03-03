@@ -8,7 +8,10 @@ const parseHex = (hex: string): [number, number, number] => [
 
 const brightenColor = (hex: string, amount: number): string => {
   const [r, g, b] = parseHex(hex);
-  return `rgb(${Math.min(255, r + amount)}, ${Math.min(255, g + amount)}, ${Math.min(255, b + amount)})`;
+  return `rgb(${Math.min(255, r + amount)}, ${Math.min(
+    255,
+    g + amount,
+  )}, ${Math.min(255, b + amount)})`;
 };
 
 const getTextColor = (hex: string): string => {
