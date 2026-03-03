@@ -35,7 +35,7 @@ export const CommitTimeline = ({
             onClick={() => onSelect(index)}
             title={`Commit ${index + 1} - ${formatTime(
               commit.timestamp,
-            )} (${commit.duration.toFixed(1)}ms)`}
+            )} (${commit.duration.toFixed(3)}ms)`}
             className={`shrink-0 rounded-sm cursor-pointer transition-opacity ${
               isSelected
                 ? 'ring-1 ring-text-primary ring-offset-1 ring-offset-bg-base'

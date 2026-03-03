@@ -1,5 +1,5 @@
 export const formatDuration = (ms?: number): string => {
   if (ms === undefined) return '...';
-  if (ms < 1000) return `${ms}ms`;
-  return `${(ms / 1000).toFixed(2)}s`;
+  if (ms < 1000) return `${ms.toFixed(3)}ms`;
+  return `${(ms / 1000).toFixed(3)}s`;
 };

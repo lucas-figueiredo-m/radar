@@ -1,10 +1,20 @@
 import type { FlamegraphBar } from './FlamegraphLayout';
 
+const parseHex = (hex: string): [number, number, number] => [
+  parseInt(hex.slice(1, 3), 16),
+  parseInt(hex.slice(3, 5), 16),
+  parseInt(hex.slice(5, 7), 16),
+];
+
 const brightenColor = (hex: string, amount: number): string => {
-  const r = Math.min(255, parseInt(hex.slice(1, 3), 16) + amount);
-  const g = Math.min(255, parseInt(hex.slice(3, 5), 16) + amount);
-  const b = Math.min(255, parseInt(hex.slice(5, 7), 16) + amount);
-  return `rgb(${r}, ${g}, ${b})`;
+  const [r, g, b] = parseHex(hex);
+  return `rgb(${Math.min(255, r + amount)}, ${Math.min(255, g + amount)}, ${Math.min(255, b + amount)})`;
+};
+
+const getTextColor = (hex: string): string => {
+  const [r, g, b] = parseHex(hex);
+  const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+  return luminance > 160 ? '#1e1e2e' : '#ffffff';
 };
 
 export const renderFlamegraph = (
@@ -56,7 +66,7 @@ export const renderFlamegraph = (
 
     if (bar.width > 30) {
       ctx.globalAlpha = bar.dimmed ? 0.6 : 1;
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = getTextColor(bar.color);
       ctx.font = '11px ui-monospace, monospace';
       ctx.textBaseline = 'middle';
 
