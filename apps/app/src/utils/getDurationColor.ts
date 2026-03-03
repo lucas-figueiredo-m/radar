@@ -20,7 +20,10 @@ export const getDurationColor = (ms: number): string => {
       const [prevMs, pr, pg, pb] = STOPS[i - 1];
       const [currMs, cr, cg, cb] = STOPS[i];
       const t = (ms - prevMs) / (currMs - prevMs);
-      return `#${toHex(lerp(pr, cr, t))}${toHex(lerp(pg, cg, t))}${toHex(lerp(pb, cb, t))}`;
+      const r = toHex(lerp(pr, cr, t));
+      const g = toHex(lerp(pg, cg, t));
+      const b = toHex(lerp(pb, cb, t));
+      return `#${r}${g}${b}`;
     }
   }
 
