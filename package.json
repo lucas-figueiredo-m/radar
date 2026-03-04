@@ -9,9 +9,12 @@
     "dev:app": "bun run --filter=radar-app dev",
     "dev:devtools": "bun run --filter=@radar/devtools dev",
     "build:devtools": "bun run --filter=@radar/devtools build",
+    "dev:landing": "bun run --filter=radar-landing dev",
+    "build:landing": "bun run --filter=radar-landing build",
     "start:test-app": "bun run --filter=RadarTestApp start",
     "prepare": "husky"
   },
+  "packageManager": "bun@1.3.3",
   "engines": {
     "node": ">= 22.11.0"
   },
