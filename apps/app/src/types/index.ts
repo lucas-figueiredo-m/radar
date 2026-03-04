@@ -7,6 +7,7 @@ export type {
   ProfilerSessionState,
   ComponentStatsEntry,
 } from './profiler';
+export type { PerformanceDataPoint, MetricThresholds } from './performance';
 export type {
   DevicePlatform,
   DeviceConnectionStatus,

@@ -46,7 +46,8 @@
       "Bash(gh search:*)",
       "Bash(curl:*)",
       "WebFetch(domain:api.github.com)",
-      "Bash(log show:*)"
+      "Bash(log show:*)",
+      "WebFetch(domain:dev.to)"
     ]
   }
 }

@@ -12,6 +12,8 @@ export { ErrorBoundary } from './ErrorBoundary';
 export { Header } from './Header';
 export { NetworkDetailPanel } from './NetworkDetailPanel';
 export { NetworkPanel } from './NetworkPanel';
+export { PerformancePanel } from './PerformancePanel';
+export type { PerformancePanelProps } from './PerformancePanel';
 export { ProfilerPanel } from './ProfilerPanel';
 export type { ProfilerPanelProps } from './ProfilerPanel';
 export { Sidebar } from './Sidebar';

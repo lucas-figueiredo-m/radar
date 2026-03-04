@@ -24,5 +24,5 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'network', icon: Wifi, label: 'Network', enabled: true },
   { id: 'storage', icon: Database, label: 'Storage', enabled: false },
   { id: 'console', icon: Terminal, label: 'Console', enabled: true },
-  { id: 'metrics', icon: Gauge, label: 'Native Metrics', enabled: false },
+  { id: 'performance', icon: Gauge, label: 'Performance', enabled: true },
 ];

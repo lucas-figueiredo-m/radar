@@ -5,5 +5,6 @@ export { useDebouncedValue } from './useDebouncedValue';
 export { useDeviceManager } from './useDeviceManager';
 export { useEditorPreference } from './useEditorPreference';
 export { useNetworkRequests } from './useNetworkRequests';
+export { usePerformanceMetrics } from './usePerformanceMetrics';
 export { useProfiler } from './useProfiler';
 export { useResizeObserver } from './useResizeObserver';

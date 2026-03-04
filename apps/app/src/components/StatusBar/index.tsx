@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { EditorPicker } from './EditorPicker';
 
@@ -15,6 +16,7 @@ export type StatusBarProps = {
   pickerOpen: boolean;
   onTogglePicker: () => void;
   onClosePicker: () => void;
+  performanceIndicator?: ReactNode;
 };
 
 export const StatusBar = ({
@@ -26,6 +28,7 @@ export const StatusBar = ({
   pickerOpen,
   onTogglePicker,
   onClosePicker,
+  performanceIndicator,
 }: StatusBarProps) => {
   const editorName = editors.find(e => e.id === preferredEditor)?.name ?? null;
 
@@ -33,6 +36,7 @@ export const StatusBar = ({
     <div className="px-4 py-1.5 border-t border-border-default text-detail text-text-tertiary shrink-0 flex justify-between items-center">
       <div className="flex items-center gap-2">
         <span>{label}</span>
+        {performanceIndicator}
         {selectedDeviceName && (
           <>
             <span className="text-text-disabled">&middot;</span>
@@ -71,3 +75,5 @@ export const StatusBar = ({
 
 export { EditorPicker } from './EditorPicker';
 export type { EditorPickerProps } from './EditorPicker';
+export { PerformanceIndicator } from './PerformanceIndicator';
+export type { PerformanceIndicatorProps } from './PerformanceIndicator';

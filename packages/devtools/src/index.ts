@@ -3,6 +3,7 @@ import {
   patchFetch,
   installComponentTreeHook,
   createProfilerService,
+  createPerformanceService,
 } from './services';
 import { inspectComponent } from './services/componentTree/inspectComponent';
 import { createConnection } from './connection';
@@ -63,12 +64,14 @@ export const init = (config: RadarConfig = {}) => {
   );
 
   const profiler = createProfilerService(send);
+  const performanceService = createPerformanceService(send);
   const originalConsole = patchConsole(send);
 
   // Always start profiling eagerly to capture early commits.
   // When the WebSocket connects, Electron will send a profilingStatus
   // command — if profiling is not active, we discard the buffer.
   profiler.startProfiling();
+  performanceService.start();
 
   const handleCommand = (command: RadarCommand) => {
     if (command.type === 'inspectComponent') {
