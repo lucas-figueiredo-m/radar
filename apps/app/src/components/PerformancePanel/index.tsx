@@ -23,7 +23,6 @@ export {
 
 export type PerformancePanelProps = {
   metrics: PerformanceDataPoint[];
-  latestMetric: PerformanceDataPoint | null;
   totalDroppedFrames: number;
   totalGcEvents: number;
   connected: boolean;
@@ -31,16 +30,15 @@ export type PerformancePanelProps = {
 
 export const PerformancePanel = ({
   metrics,
-  latestMetric: _latestMetric,
   totalDroppedFrames,
   totalGcEvents,
   connected,
 }: PerformancePanelProps) => {
-  const jsFpsValues = metrics.map((m) => m.jsFps);
-  const uiFpsValues = metrics.map((m) => m.uiFps);
-  const ramValues = metrics.map((m) => m.ram);
-  const droppedFramesCounts = metrics.map((m) => m.droppedFrames);
-  const gcEventCounts = metrics.map((m) => m.gcEvents);
+  const jsFpsValues = metrics.map(m => m.jsFps);
+  const uiFpsValues = metrics.map(m => m.uiFps);
+  const ramValues = metrics.map(m => m.ram);
+  const droppedFramesCounts = metrics.map(m => m.droppedFrames);
+  const gcEventCounts = metrics.map(m => m.gcEvents);
 
   if (metrics.length === 0) {
     return (

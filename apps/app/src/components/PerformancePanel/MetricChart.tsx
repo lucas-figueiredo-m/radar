@@ -30,7 +30,7 @@ export const MetricChart = ({
 
     if (!node) return;
 
-    const observer = new ResizeObserver((entries) => {
+    const observer = new ResizeObserver(entries => {
       const entry = entries[0];
       if (entry) {
         setSize({
@@ -76,10 +76,7 @@ export const MetricChart = ({
       className="relative aspect-square rounded-lg overflow-hidden"
       style={{ backgroundColor: '#111827' }}
     >
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
-      />
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
     </div>
   );
 };

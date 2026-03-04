@@ -204,7 +204,6 @@ const App = () => {
     performance: (
       <PerformancePanel
         metrics={performanceMetrics}
-        latestMetric={latestMetric}
         totalDroppedFrames={totalDroppedFrames}
         totalGcEvents={totalGcEvents}
         connected={connected}

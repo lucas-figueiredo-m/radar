@@ -176,7 +176,7 @@ export const MemoryTrend = ({
 
     if (!node) return;
 
-    const observer = new ResizeObserver((entries) => {
+    const observer = new ResizeObserver(entries => {
       const entry = entries[0];
       if (entry) {
         setWidth(entry.contentRect.width);
@@ -201,18 +201,22 @@ export const MemoryTrend = ({
   }, [ramValues, gcEventCounts, width]);
 
   return (
-    <div className="rounded-lg overflow-hidden" style={{ backgroundColor: '#111827' }}>
+    <div
+      className="rounded-lg overflow-hidden"
+      style={{ backgroundColor: '#111827' }}
+    >
       <div className="flex items-center justify-between px-3 pt-1">
         <span />
         <span className="text-xs font-mono text-zinc-500">
           GC Events: <span className="text-purple-400">{totalGcEvents}</span>
         </span>
       </div>
-      <div ref={containerRef} className="relative" style={{ height: CHART_HEIGHT }}>
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full"
-        />
+      <div
+        ref={containerRef}
+        className="relative"
+        style={{ height: CHART_HEIGHT }}
+      >
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
       </div>
     </div>
   );

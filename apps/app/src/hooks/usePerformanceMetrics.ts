@@ -54,9 +54,7 @@ export const usePerformanceMetrics = (selectedDeviceId: string | null) => {
   );
 
   const latestMetric =
-    deviceMetrics.length > 0
-      ? deviceMetrics[deviceMetrics.length - 1]
-      : null;
+    deviceMetrics.length > 0 ? deviceMetrics[deviceMetrics.length - 1] : null;
 
   const totalDroppedFrames = useMemo(
     () => deviceMetrics.reduce((sum, m) => sum + m.droppedFrames, 0),

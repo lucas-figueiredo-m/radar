@@ -23,8 +23,7 @@ export const PerformanceIndicator = ({
   return (
     <span className="text-xs font-mono flex items-center gap-2">
       <span>
-        JS:{' '}
-        <span style={{ color: jsFpsColor }}>{latestMetric.jsFps}fps</span>
+        JS: <span style={{ color: jsFpsColor }}>{latestMetric.jsFps}fps</span>
       </span>
       <span className="text-zinc-600">&middot;</span>
       <span>
