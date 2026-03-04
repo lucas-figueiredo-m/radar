@@ -1,1 +1,1 @@
-export type Tab = 'console' | 'network' | 'tree' | 'profiler' | 'devtools';
+export type Tab = 'console' | 'network' | 'tree' | 'profiler' | 'performance' | 'devtools';

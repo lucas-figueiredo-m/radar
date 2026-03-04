@@ -21,6 +21,7 @@ export type {
   CliToolStatus,
 } from './device';
 export type { RadarMessage, RadarCommand } from './radarMessage';
+export type { PerformanceMetricMessage } from './performance';
 export type {
   ProfilerPhase,
   RenderTrigger,

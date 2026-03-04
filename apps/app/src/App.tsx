@@ -8,15 +8,18 @@ import {
   ConsolePanel,
   NetworkPanel,
   ProfilerPanel,
+  PerformancePanel,
   StatusBar,
   DevToolsPanel,
 } from './components';
+import { PerformanceIndicator } from './components/StatusBar/PerformanceIndicator';
 import {
   useDeviceManager,
   useConsoleLogs,
   useNetworkRequests,
   useComponentTree,
   useProfiler,
+  usePerformanceMetrics,
   useEditorPreference,
 } from './hooks';
 import { ipcRenderer } from './services';
@@ -84,6 +87,15 @@ const App = () => {
     handleDeviceConnected,
   } = useProfiler(selectedDeviceId);
 
+  const {
+    metrics: performanceMetrics,
+    latestMetric,
+    totalDroppedFrames,
+    totalGcEvents,
+    clearMetrics: clearPerformanceMetrics,
+    handleMessage: handlePerformanceMessage,
+  } = usePerformanceMetrics(selectedDeviceId);
+
   useEffect(() => {
     const onMessage = (
       event: unknown,
@@ -93,6 +105,7 @@ const App = () => {
       handleNetworkMessage(event, message);
       handleTreeMessage(event, message);
       handleProfilerMessage(event, message);
+      handlePerformanceMessage(event, message);
     };
 
     ipcRenderer.on('radar:message', onMessage);
@@ -105,6 +118,7 @@ const App = () => {
     handleNetworkMessage,
     handleTreeMessage,
     handleProfilerMessage,
+    handlePerformanceMessage,
   ]);
 
   useEffect(() => {
@@ -129,6 +143,8 @@ const App = () => {
       clearComponentTree();
     } else if (tab === 'profiler') {
       clearProfilerData();
+    } else if (tab === 'performance') {
+      clearPerformanceMetrics();
     } else {
       clearRequests();
     }
@@ -185,6 +201,15 @@ const App = () => {
         onClear={clearProfilerData}
       />
     ),
+    performance: (
+      <PerformancePanel
+        metrics={performanceMetrics}
+        latestMetric={latestMetric}
+        totalDroppedFrames={totalDroppedFrames}
+        totalGcEvents={totalGcEvents}
+        connected={connected}
+      />
+    ),
     devtools: <DevToolsPanel />,
   };
 
@@ -197,6 +222,7 @@ const App = () => {
     profiler: isProfiling
       ? 'Recording...'
       : `${profilerCommits.length} commits`,
+    performance: `${performanceMetrics.length} samples`,
     devtools: 'Dev Tools',
   };
 
@@ -232,6 +258,11 @@ const App = () => {
           pickerOpen={editorPickerOpen}
           onTogglePicker={() => setEditorPickerOpen(prev => !prev)}
           onClosePicker={() => setEditorPickerOpen(false)}
+          performanceIndicator={
+            tab === 'performance' ? (
+              <PerformanceIndicator latestMetric={latestMetric} />
+            ) : undefined
+          }
         />
       </div>
 

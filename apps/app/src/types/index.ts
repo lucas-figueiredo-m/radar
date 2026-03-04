@@ -8,6 +8,10 @@ export type {
   ComponentStatsEntry,
 } from './profiler';
 export type {
+  PerformanceDataPoint,
+  MetricThresholds,
+} from './performance';
+export type {
   DevicePlatform,
   DeviceConnectionStatus,
   DetectedDevice,

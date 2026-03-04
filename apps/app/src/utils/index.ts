@@ -16,5 +16,7 @@ export { statusColor } from './statusColor';
 export { truncateUrl } from './truncateUrl';
 export { urlHost } from './urlHost';
 export { getDurationColor } from './getDurationColor';
+export { getMetricColor } from './getMetricColor';
+export { formatMemory } from './formatMemory';
 export type { FlatProfilerComponent } from './flattenProfilerComponents';
 export { flattenProfilerComponents } from './flattenProfilerComponents';
