@@ -31,9 +31,7 @@ export const createJsFpsSampler = () => {
       if (timestamps.length < 2) return 0;
       const duration =
         (timestamps[timestamps.length - 1] - timestamps[0]) / 1000;
-      return duration > 0
-        ? Math.round((timestamps.length - 1) / duration)
-        : 0;
+      return duration > 0 ? Math.round((timestamps.length - 1) / duration) : 0;
     },
     getDroppedFrames: () => {
       const count = droppedFrames;
