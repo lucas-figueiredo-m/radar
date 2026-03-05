@@ -1,6 +1,6 @@
 {
   "name": "radar-devtools",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Radar client SDK for React Native apps",
   "main": "src/index.ts",
   "types": "src/index.ts",
