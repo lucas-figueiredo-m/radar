@@ -1,5 +1,5 @@
 {
-  "name": "@radar/devtools",
+  "name": "radar-devtools",
   "version": "0.1.0",
   "description": "Radar client SDK for React Native apps",
   "main": "src/index.ts",

@@ -5,6 +5,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Download, BookOpen } from "lucide-react";
 import { AnimatedSection } from "../AnimatedSection";
 import { GradientText } from "../GradientText";
+import { DOWNLOAD_URL } from "@/utils/constants";
 
 export const Hero = () => {
   const screenshotRef = useRef<HTMLDivElement>(null);
@@ -34,7 +35,9 @@ export const Hero = () => {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="#download"
+              href={DOWNLOAD_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-2 bg-accent hover:bg-accent-hover text-white rounded-xl px-8 py-3 font-semibold transition-colors"
             >
               <Download className="w-5 h-5" />

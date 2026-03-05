@@ -95,8 +95,8 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "your-org",
-      "repo": "radar-app"
+      "owner": "trontechnologies",
+      "repo": "radar-releases"
     }
   },
   "engines": {

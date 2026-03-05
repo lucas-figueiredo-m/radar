@@ -1,3 +1,6 @@
+export const DOWNLOAD_URL =
+  "https://github.com/trontechnologies/radar-releases/releases/latest";
+
 import type {
   NavItem,
   Feature,
@@ -90,13 +93,13 @@ export const HOW_IT_WORKS_STEPS: HowItWorksStep[] = [
     step: 1,
     title: "Install",
     description: "Add the devtools package to your React Native project.",
-    code: "bun add @radar/devtools",
+    code: "bun add radar-devtools",
   },
   {
     step: 2,
     title: "Initialize",
     description: "Import and call init in your app's entry point.",
-    code: `import { init } from '@radar/devtools';\n\ninit();`,
+    code: `import { init } from 'radar-devtools';\n\ninit();`,
   },
   {
     step: 3,

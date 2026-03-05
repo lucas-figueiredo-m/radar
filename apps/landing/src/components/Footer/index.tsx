@@ -1,4 +1,5 @@
 import { Radar } from "lucide-react";
+import { DOWNLOAD_URL } from "@/utils/constants";
 
 export const Footer = () => {
   return (
@@ -24,7 +25,7 @@ export const Footer = () => {
               <div className="flex flex-col gap-3">
                 <a href="#features" className="text-text-secondary text-sm hover:text-text-primary transition-colors">Features</a>
                 <a href="/docs" className="text-text-secondary text-sm hover:text-text-primary transition-colors">Docs</a>
-                <a href="#download" className="text-text-secondary text-sm hover:text-text-primary transition-colors">Download</a>
+                <a href={DOWNLOAD_URL} target="_blank" rel="noopener noreferrer" className="text-text-secondary text-sm hover:text-text-primary transition-colors">Download</a>
               </div>
             </div>
             <div>

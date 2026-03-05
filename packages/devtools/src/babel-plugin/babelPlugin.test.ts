@@ -129,13 +129,13 @@ describe('babelPlugin', () => {
     expect(output).toContain('lineNumber: 3');
   });
 
-  it('injects __RADAR_PROJECT_ROOT__ for files importing @radar/devtools', () => {
-    const input = `import { init } from '@radar/devtools';\nconst App = () => null;`;
+  it('injects __RADAR_PROJECT_ROOT__ for files importing radar-devtools', () => {
+    const input = `import { init } from 'radar-devtools';\nconst App = () => null;`;
     const output = transform(input);
     expect(output).toContain('globalThis.__RADAR_PROJECT_ROOT__ = "/project"');
   });
 
-  it('does not inject __RADAR_PROJECT_ROOT__ for files without @radar/devtools import', () => {
+  it('does not inject __RADAR_PROJECT_ROOT__ for files without radar-devtools import', () => {
     const input = `const App = () => null;`;
     const output = transform(input);
     expect(output).not.toContain('__RADAR_PROJECT_ROOT__');
