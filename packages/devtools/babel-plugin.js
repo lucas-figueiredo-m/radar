@@ -68,7 +68,7 @@ module.exports = (babel) => {
         const hasRadarImport = path.node.body.some(
           (node) =>
             types.isImportDeclaration(node) &&
-            node.source.value === '@radar/devtools',
+            node.source.value === 'radar-devtools',
         );
         if (!hasRadarImport) return;
 

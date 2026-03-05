@@ -19,14 +19,14 @@ const DocsPage = () => {
             </p>
 
             <h2 className="font-semibold text-lg mb-3">Step 1: Install the package</h2>
-            <CodeBlock code="bun add @radar/devtools" className="mb-6" />
+            <CodeBlock code="bun add radar-devtools" className="mb-6" />
 
             <h2 className="font-semibold text-lg mb-3">Step 2: Initialize in your app</h2>
             <p className="text-text-secondary leading-relaxed mb-4">
               Add the following to your app&apos;s entry point (e.g., <code className="font-mono text-sm bg-bg-surface px-1.5 py-0.5 rounded">App.tsx</code> or <code className="font-mono text-sm bg-bg-surface px-1.5 py-0.5 rounded">index.ts</code>):
             </p>
             <CodeBlock
-              code={`import { init } from '@radar/devtools';\n\n// Initialize Radar devtools\ninit();`}
+              code={`import { init } from 'radar-devtools';\n\n// Initialize Radar devtools\ninit();`}
               className="mb-6"
             />
 
@@ -85,7 +85,7 @@ const DocsPage = () => {
               If your development machine is on a different network or you need to specify an IP address:
             </p>
             <CodeBlock
-              code={`import { init } from '@radar/devtools';\n\ninit({\n  host: '192.168.1.100',\n  port: 8347,\n});`}
+              code={`import { init } from 'radar-devtools';\n\ninit({\n  host: '192.168.1.100',\n  port: 8347,\n});`}
               className="mb-8"
             />
 

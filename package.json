@@ -7,11 +7,15 @@
   ],
   "scripts": {
     "dev:app": "bun run --filter=radar-app dev",
-    "dev:devtools": "bun run --filter=@radar/devtools dev",
-    "build:devtools": "bun run --filter=@radar/devtools build",
+    "dev:devtools": "bun run --filter=radar-devtools dev",
+    "build:devtools": "bun run --filter=radar-devtools build",
+    "publish:devtools": "bun run --filter=radar-devtools build && cd packages/devtools && npm publish --access public",
     "dev:landing": "bun run --filter=radar-landing dev",
     "build:landing": "bun run --filter=radar-landing build",
     "start:test-app": "bun run --filter=RadarTestApp start",
+    "lint": "bun run --filter=radar-app lint && bun run --filter=radar-devtools lint",
+    "typecheck": "bun run --filter=radar-app typecheck && bun run --filter=radar-devtools typecheck && bun run --filter=@radar/types typecheck && bun run --filter=radar-landing typecheck",
+    "test": "bun run --filter=radar-app test:run && bun run --filter=radar-devtools test:run",
     "prepare": "husky"
   },
   "packageManager": "bun@1.3.3",

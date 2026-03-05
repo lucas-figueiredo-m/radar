@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Radar, Menu, X } from "lucide-react";
-import { NAV_ITEMS } from "@/utils/constants";
+import { NAV_ITEMS, DOWNLOAD_URL } from "@/utils/constants";
 
 export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -32,7 +32,7 @@ export const Navbar = () => {
         {/* Desktop CTA */}
         <div className="hidden md:block">
           <a
-            href="#download"
+            href={DOWNLOAD_URL}
             className="bg-accent hover:bg-accent-hover text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors"
           >
             Download
@@ -64,7 +64,7 @@ export const Navbar = () => {
               </a>
             ))}
             <a
-              href="#download"
+              href={DOWNLOAD_URL}
               className="bg-accent hover:bg-accent-hover text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors text-center"
             >
               Download

@@ -10,7 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@radar/devtools": "workspace:*",
+    "radar-devtools": "workspace:*",
     "@react-native/new-app-screen": "0.84.0",
     "react": "19.2.3",
     "react-native": "0.84.0",
