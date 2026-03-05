@@ -37,7 +37,7 @@ jobs:
         run: bun run scripts/sync-version.ts ${{ steps.version.outputs.VERSION }}
 
       - name: Build radar-devtools
-        run: bun run --filter=radar-devtools build
+        run: cd packages/devtools && bun run build
 
       - name: Publish to npm
         run: cd packages/devtools && npm publish --provenance --access public
