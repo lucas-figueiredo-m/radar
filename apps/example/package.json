@@ -10,11 +10,14 @@
     "test": "jest"
   },
   "dependencies": {
-    "radar-devtools": "workspace:*",
     "@react-native/new-app-screen": "0.84.0",
+    "@react-navigation/bottom-tabs": "^7.15.5",
+    "@react-navigation/native": "^7.1.33",
+    "radar-devtools": "workspace:*",
     "react": "19.2.3",
     "react-native": "0.84.0",
-    "react-native-safe-area-context": "^5.5.2"
+    "react-native-safe-area-context": "^5.5.2",
+    "react-native-screens": "^4.24.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

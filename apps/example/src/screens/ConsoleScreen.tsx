@@ -1,10 +1,13 @@
 import React from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
-import ConsoleOption from './ConsoleOption';
+import { Platform, Text } from 'react-native';
+import ActionButton from '../components/ActionButton';
+import ConsoleOption from '../components/ConsoleOption';
+import ScreenContainer from '../components/ScreenContainer';
+import SectionGroup from '../components/SectionGroup';
 
 const tag = `[iOS ${String(Platform.Version)}]`;
 
-const CONSOLE_OPTIONS = [
+const BASIC_OPTIONS = [
   {
     title: 'console.log',
     color: '#22c55e',
@@ -30,8 +33,11 @@ const CONSOLE_OPTIONS = [
     onPress: () =>
       console.debug(`${tag} Debug data:`, { user: 'test', items: [1, 2, 3] }),
   },
+];
+
+const DATA_TYPE_OPTIONS = [
   {
-    title: 'console.log (large object)',
+    title: 'Large object',
     color: '#6366f1',
     onPress: () =>
       console.log('User profile:', {
@@ -54,7 +60,7 @@ const CONSOLE_OPTIONS = [
       }),
   },
   {
-    title: 'console.log (function)',
+    title: 'Function',
     color: '#8b5cf6',
     onPress: () =>
       console.log('Function:', {
@@ -65,7 +71,7 @@ const CONSOLE_OPTIONS = [
       }),
   },
   {
-    title: 'console.log (undefined & null)',
+    title: 'undefined & null',
     color: '#64748b',
     onPress: () =>
       console.log('Undefined:', undefined, {
@@ -74,7 +80,7 @@ const CONSOLE_OPTIONS = [
       }),
   },
   {
-    title: 'console.log (Symbol)',
+    title: 'Symbol',
     color: '#ec4899',
     onPress: () =>
       console.log('Symbol:', Symbol('mySymbol'), {
@@ -82,7 +88,7 @@ const CONSOLE_OPTIONS = [
       }),
   },
   {
-    title: 'console.log (BigInt)',
+    title: 'BigInt',
     color: '#14b8a6',
     onPress: () =>
       console.log('BigInt:', BigInt(9007199254740991), {
@@ -90,7 +96,7 @@ const CONSOLE_OPTIONS = [
       }),
   },
   {
-    title: 'console.log (circular ref)',
+    title: 'Circular reference',
     color: '#f97316',
     onPress: () => {
       const obj: Record<string, unknown> = { name: 'circular', children: [] };
@@ -99,13 +105,13 @@ const CONSOLE_OPTIONS = [
     },
   },
   {
-    title: 'console.log (React element)',
+    title: 'React element',
     color: '#06b6d4',
     onPress: () =>
       console.log('Element:', React.createElement(Text, null, 'Hello')),
   },
   {
-    title: 'console.log (mixed)',
+    title: 'Mixed types',
     color: '#a855f7',
     onPress: () =>
       console.log('Mixed:', {
@@ -118,11 +124,38 @@ const CONSOLE_OPTIONS = [
   },
 ];
 
-const ConsoleSection = () => (
-  <View style={styles.section}>
-    <Text style={styles.sectionTitle}>Console</Text>
-    <View style={styles.optionsList}>
-      {CONSOLE_OPTIONS.map(option => (
+const BATCH_OPTIONS = [
+  {
+    title: 'Burst 50 logs',
+    subtitle: 'Rapid-fire 50 log messages',
+    color: '#f43f5e',
+    onPress: () => {
+      for (let i = 0; i < 50; i++) {
+        console.log(`Burst log #${i + 1}`, { index: i, timestamp: Date.now() });
+      }
+    },
+  },
+  {
+    title: 'Mixed burst',
+    subtitle: '20 logs across all levels',
+    color: '#d946ef',
+    onPress: () => {
+      const levels = ['log', 'warn', 'error', 'debug'] as const;
+      for (let i = 0; i < 20; i++) {
+        const level = levels[i % levels.length];
+        console[level](`Mixed burst #${i + 1}`, { level, index: i });
+      }
+    },
+  },
+];
+
+const ConsoleScreen = () => (
+  <ScreenContainer
+    title="Console"
+    subtitle="Test console log capture and serialization"
+  >
+    <SectionGroup title="Log Levels">
+      {BASIC_OPTIONS.map(option => (
         <ConsoleOption
           key={option.title}
           title={option.title}
@@ -130,28 +163,31 @@ const ConsoleSection = () => (
           onPress={option.onPress}
         />
       ))}
-    </View>
-  </View>
+    </SectionGroup>
+
+    <SectionGroup title="Data Types">
+      {DATA_TYPE_OPTIONS.map(option => (
+        <ConsoleOption
+          key={option.title}
+          title={option.title}
+          color={option.color}
+          onPress={option.onPress}
+        />
+      ))}
+    </SectionGroup>
+
+    <SectionGroup title="Stress Test">
+      {BATCH_OPTIONS.map(option => (
+        <ActionButton
+          key={option.title}
+          title={option.title}
+          subtitle={option.subtitle}
+          color={option.color}
+          onPress={option.onPress}
+        />
+      ))}
+    </SectionGroup>
+  </ScreenContainer>
 );
 
-const styles = StyleSheet.create({
-  section: {
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748b',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    paddingHorizontal: 24,
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  optionsList: {
-    paddingHorizontal: 24,
-    gap: 8,
-  },
-});
-
-export default ConsoleSection;
+export default ConsoleScreen;
