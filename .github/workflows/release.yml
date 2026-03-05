@@ -51,7 +51,7 @@ jobs:
         run: cd packages/devtools && bun run build
 
       - name: Publish to npm
-        run: cd packages/devtools && npm publish --provenance --access public
+        run: cd packages/devtools && npm publish --access public
 
       - name: Create GitHub Release
         run: gh release create ${{ github.ref_name }} --generate-notes
