@@ -1,3 +1,4 @@
+import axios from 'axios';
 import ActionButton from '../components/ActionButton';
 import NetworkItem from '../components/NetworkItem';
 import ScreenContainer from '../components/ScreenContainer';
@@ -112,6 +113,35 @@ const ERROR_ITEMS = [
   },
 ];
 
+const AXIOS_ITEMS = [
+  {
+    method: 'GET' as const,
+    path: '/posts?_limit=2 (axios)',
+    color: '#06b6d4',
+    onPress: () => {
+      axios
+        .get('https://jsonplaceholder.typicode.com/posts?_limit=2')
+        .then(res => console.log('Axios GET posts:', res.data.length))
+        .catch(err => console.error('Axios GET failed:', err));
+    },
+  },
+  {
+    method: 'POST' as const,
+    path: '/posts (axios)',
+    color: '#14b8a6',
+    onPress: () => {
+      axios
+        .post('https://jsonplaceholder.typicode.com/posts', {
+          title: 'Axios Post',
+          body: 'Hello from Axios',
+          userId: 1,
+        })
+        .then(res => console.log('Axios POST created:', res.data))
+        .catch(err => console.error('Axios POST failed:', err));
+    },
+  },
+];
+
 const BATCH_ITEMS = [
   {
     title: 'Burst 10 requests',
@@ -183,6 +213,18 @@ const NetworkScreen = () => (
       {ERROR_ITEMS.map(item => (
         <NetworkItem
           key={item.path}
+          method={item.method}
+          path={item.path}
+          color={item.color}
+          onPress={item.onPress}
+        />
+      ))}
+    </SectionGroup>
+
+    <SectionGroup title="XHR / Axios">
+      {AXIOS_ITEMS.map(item => (
+        <NetworkItem
+          key={`${item.method}-${item.path}`}
           method={item.method}
           path={item.path}
           color={item.color}

@@ -4,10 +4,11 @@ import { extractUrl } from './extractUrl';
 import { parseHeaders } from './parseHeaders';
 import { parseRequestBody } from './parseRequestBody';
 import { parseResponseBody } from './parseResponseBody';
+import { generateRequestId } from './requestId';
+
+export { patchXHR } from './patchXHR';
 
 type Send = (message: RadarMessage) => void;
-
-let requestIdCounter = 0;
 
 export const patchFetch = (send: Send) => {
   const originalFetch = globalThis.fetch;
@@ -16,7 +17,7 @@ export const patchFetch = (send: Send) => {
     input: string | URL | Request,
     init?: RequestInit,
   ) => {
-    const id = `req_${requestIdCounter++}`;
+    const id = generateRequestId();
     const startTime = Date.now();
 
     const method = init?.method ?? 'GET';
