@@ -113,7 +113,7 @@ jobs:
 
   deploy-landing:
     name: Deploy Landing Page
-    needs: version-and-publish
+    needs: build-electron
     runs-on: ubuntu-latest
 
     steps:

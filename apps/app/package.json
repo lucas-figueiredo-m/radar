@@ -67,6 +67,7 @@
       "dist-electron/**/*"
     ],
     "mac": {
+      "artifactName": "Radar.${ext}",
       "target": [
         {
           "target": "dmg",
@@ -105,7 +106,8 @@
     "publish": {
       "provider": "github",
       "owner": "trontechnologies",
-      "repo": "radar-releases"
+      "repo": "radar-releases",
+      "releaseType": "release"
     }
   },
   "engines": {

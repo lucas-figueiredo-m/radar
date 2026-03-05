@@ -1,5 +1,5 @@
 export const DOWNLOAD_URL =
-  "https://github.com/trontechnologies/radar-releases/releases/latest";
+  "https://github.com/trontechnologies/radar-releases/releases/latest/download/Radar.dmg";
 
 import type {
   NavItem,
