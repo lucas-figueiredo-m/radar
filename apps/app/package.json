@@ -1,6 +1,6 @@
 {
   "name": "radar-app",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Radar — Unified React Native developer tools",
   "main": "dist-electron/main.js",
   "private": true,
@@ -70,22 +70,31 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["universal"]
+          "arch": [
+            "universal"
+          ]
         },
         {
           "target": "zip",
-          "arch": ["universal"]
+          "arch": [
+            "universal"
+          ]
         }
       ],
       "category": "public.app-category.developer-tools",
       "icon": "build/icon.icns"
     },
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "icon": "build/icon.ico"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "category": "Development",
       "icon": "build/icon.png"
     },
