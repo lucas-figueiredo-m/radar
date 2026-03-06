@@ -41,6 +41,8 @@ export const colors = {
   'method-post': 'var(--color-method-post)',
   'method-put': 'var(--color-method-put)',
   'method-delete': 'var(--color-method-delete)',
+  'method-query': 'var(--color-method-query)',
+  'method-mutation': 'var(--color-method-mutation)',
 
   'syntax-string': 'var(--color-syntax-string)',
   'syntax-number': 'var(--color-syntax-number)',
@@ -97,6 +99,8 @@ export const colorValues = {
   'method-post': '#4ADE80',
   'method-put': '#FBBF24',
   'method-delete': '#F87171',
+  'method-query': '#22D3EE',
+  'method-mutation': '#E879F9',
 
   'syntax-string': '#a6e3a1',
   'syntax-number': '#89b4fa',

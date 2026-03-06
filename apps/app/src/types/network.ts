@@ -1,7 +1,10 @@
+import type { GraphQLInfo } from '@radar/types';
+
 export type NetworkEntry = {
   id: string;
   method: string;
   url: string;
+  graphql?: GraphQLInfo;
   status?: number;
   statusText?: string;
   duration?: number;

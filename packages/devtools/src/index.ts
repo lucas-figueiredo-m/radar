@@ -45,7 +45,12 @@ const getProjectRoot = (config: RadarConfig): string | undefined => {
   return undefined;
 };
 
+let initialized = false;
+
 export const init = (config: RadarConfig = {}) => {
+  if (initialized) return;
+  initialized = true;
+
   const host = config.host ?? DEFAULT_HOST;
   const port = config.port ?? DEFAULT_PORT;
   const projectRoot = getProjectRoot(config);

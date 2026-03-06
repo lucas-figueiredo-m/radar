@@ -142,6 +142,69 @@ const AXIOS_ITEMS = [
   },
 ];
 
+const GRAPHQL_ITEMS = [
+  {
+    method: 'POST' as const,
+    path: 'Query: countries',
+    color: '#22D3EE',
+    onPress: () => {
+      fetch('https://countries.trevorblades.com/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: '{ countries { name code emoji } }',
+          operationName: 'GetCountries',
+        }),
+      })
+        .then(r => r.json())
+        .then(data =>
+          console.log('GraphQL countries:', data.data?.countries?.length),
+        )
+        .catch(err => console.error('GraphQL query failed:', err));
+    },
+  },
+  {
+    method: 'POST' as const,
+    path: 'Query: continent',
+    color: '#22D3EE',
+    onPress: () => {
+      fetch('https://countries.trevorblades.com/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query:
+            'query GetContinent($code: ID!) { continent(code: $code) { name countries { name } } }',
+          variables: { code: 'EU' },
+          operationName: 'GetContinent',
+        }),
+      })
+        .then(r => r.json())
+        .then(data =>
+          console.log('GraphQL continent:', data.data?.continent?.name),
+        )
+        .catch(err => console.error('GraphQL query failed:', err));
+    },
+  },
+  {
+    method: 'POST' as const,
+    path: 'Mutation (simulated)',
+    color: '#E879F9',
+    onPress: () => {
+      fetch('https://countries.trevorblades.com/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: 'mutation CreateCountry { createCountry(name: "Test") { name } }',
+          operationName: 'CreateCountry',
+        }),
+      })
+        .then(r => r.json())
+        .then(data => console.log('GraphQL mutation response:', data))
+        .catch(err => console.error('GraphQL mutation failed:', err));
+    },
+  },
+];
+
 const BATCH_ITEMS = [
   {
     title: 'Burst 10 requests',
@@ -225,6 +288,18 @@ const NetworkScreen = () => (
       {AXIOS_ITEMS.map(item => (
         <NetworkItem
           key={`${item.method}-${item.path}`}
+          method={item.method}
+          path={item.path}
+          color={item.color}
+          onPress={item.onPress}
+        />
+      ))}
+    </SectionGroup>
+
+    <SectionGroup title="GraphQL">
+      {GRAPHQL_ITEMS.map(item => (
+        <NetworkItem
+          key={item.path}
           method={item.method}
           path={item.path}
           color={item.color}

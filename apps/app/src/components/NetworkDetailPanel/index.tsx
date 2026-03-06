@@ -27,6 +27,16 @@ export const NetworkDetailPanel = ({
       <DetailRow label="URL" value={request.url} />
       <DetailRow label="Method" value={request.method} />
       <DetailRow
+        label="Protocol"
+        value={request.graphql ? 'GraphQL' : 'HTTP'}
+      />
+      {request.graphql?.operationName && (
+        <DetailRow
+          label="Operation Name"
+          value={request.graphql.operationName}
+        />
+      )}
+      <DetailRow
         label="Status"
         value={
           request.status

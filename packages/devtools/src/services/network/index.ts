@@ -5,6 +5,7 @@ import { parseHeaders } from './parseHeaders';
 import { parseRequestBody } from './parseRequestBody';
 import { parseResponseBody } from './parseResponseBody';
 import { generateRequestId } from './requestId';
+import { detectGraphQL } from './detectGraphQL';
 
 export { patchXHR } from './patchXHR';
 
@@ -24,6 +25,7 @@ export const patchFetch = (send: Send) => {
     const url = extractUrl(input);
     const requestHeaders = parseHeaders(init?.headers);
     const requestBody = parseRequestBody(init?.body);
+    const graphql = detectGraphQL(requestBody);
 
     send({
       type: 'network',
@@ -33,6 +35,7 @@ export const patchFetch = (send: Send) => {
       url,
       requestHeaders,
       requestBody,
+      graphql,
       timestamp: startTime,
     });
 

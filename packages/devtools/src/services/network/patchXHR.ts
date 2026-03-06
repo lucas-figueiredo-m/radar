@@ -2,6 +2,7 @@ import type { RadarMessage } from '@radar/types';
 import { generateRequestId } from './requestId';
 import { parseRawHeaders } from './parseRawHeaders';
 import { parseRequestBody } from './parseRequestBody';
+import { detectGraphQL } from './detectGraphQL';
 
 type Send = (message: RadarMessage) => void;
 
@@ -85,6 +86,9 @@ export const patchXHR = (send: Send) => {
     metadata.startTime = Date.now();
     metadata.requestBody = body as BodyInit | null | undefined;
 
+    const requestBody = parseRequestBody(metadata.requestBody);
+    const graphql = detectGraphQL(requestBody);
+
     send({
       type: 'network',
       id: metadata.id,
@@ -92,7 +96,8 @@ export const patchXHR = (send: Send) => {
       method: metadata.method,
       url: metadata.url,
       requestHeaders: metadata.requestHeaders,
-      requestBody: parseRequestBody(metadata.requestBody),
+      requestBody,
+      graphql,
       timestamp: metadata.startTime,
     });
 

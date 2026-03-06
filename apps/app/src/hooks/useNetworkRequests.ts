@@ -27,6 +27,7 @@ export const useNetworkRequests = (selectedDeviceId: string | null) => {
               id: msg.id,
               method: msg.method,
               url: msg.url,
+              graphql: msg.graphql,
               requestHeaders: msg.requestHeaders,
               requestBody: msg.requestBody,
               timestamp: msg.timestamp,
