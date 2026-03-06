@@ -51,17 +51,17 @@ export const NetworkDetailPanel = ({
     : request.method;
   const methodColor = METHOD_COLORS[methodLabel] ?? METHOD_COLORS['GET'];
 
-  const statusText = request.status
-    ? `${request.status} ${request.statusText ?? ''}`
-    : request.pending
-      ? 'Pending...'
-      : 'Failed';
+  const statusText = (() => {
+    if (request.status) return `${request.status} ${request.statusText ?? ''}`;
+    if (request.pending) return 'Pending...';
+    return 'Failed';
+  })();
 
-  const statusStyle = request.status
-    ? statusColor(request.status)
-    : request.pending
-      ? undefined
-      : statusColor(0);
+  const statusStyle = (() => {
+    if (request.status) return statusColor(request.status);
+    if (request.pending) return undefined;
+    return statusColor(0);
+  })();
 
   return (
     <div className="w-[var(--detail-panel-width)] overflow-auto p-4 shrink-0">
