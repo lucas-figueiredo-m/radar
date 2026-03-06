@@ -24,9 +24,7 @@ export const detectGraphQL = (body: unknown): GraphQLInfo | undefined => {
     : 'query';
 
   const operationName =
-    typeof record.operationName === 'string'
-      ? record.operationName
-      : undefined;
+    typeof record.operationName === 'string' ? record.operationName : undefined;
 
   return { operationType, operationName };
 };

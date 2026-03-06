@@ -23,22 +23,38 @@ describe('detectGraphQL', () => {
 
   it('detects a query operation', () => {
     const result = detectGraphQL({ query: '{ countries { name } }' });
-    expect(result).toEqual({ operationType: 'query', operationName: undefined });
+    expect(result).toEqual({
+      operationType: 'query',
+      operationName: undefined,
+    });
   });
 
   it('detects a query with "query" keyword', () => {
-    const result = detectGraphQL({ query: 'query GetCountries { countries { name } }' });
-    expect(result).toEqual({ operationType: 'query', operationName: undefined });
+    const result = detectGraphQL({
+      query: 'query GetCountries { countries { name } }',
+    });
+    expect(result).toEqual({
+      operationType: 'query',
+      operationName: undefined,
+    });
   });
 
   it('detects a mutation', () => {
-    const result = detectGraphQL({ query: 'mutation CreateUser { createUser { id } }' });
-    expect(result).toEqual({ operationType: 'mutation', operationName: undefined });
+    const result = detectGraphQL({
+      query: 'mutation CreateUser { createUser { id } }',
+    });
+    expect(result).toEqual({
+      operationType: 'mutation',
+      operationName: undefined,
+    });
   });
 
   it('detects mutation with leading whitespace', () => {
     const result = detectGraphQL({ query: '  mutation Foo { bar }' });
-    expect(result).toEqual({ operationType: 'mutation', operationName: undefined });
+    expect(result).toEqual({
+      operationType: 'mutation',
+      operationName: undefined,
+    });
   });
 
   it('extracts operationName when present', () => {
@@ -46,7 +62,10 @@ describe('detectGraphQL', () => {
       query: 'query GetCountries { countries { name } }',
       operationName: 'GetCountries',
     });
-    expect(result).toEqual({ operationType: 'query', operationName: 'GetCountries' });
+    expect(result).toEqual({
+      operationType: 'query',
+      operationName: 'GetCountries',
+    });
   });
 
   it('ignores non-string operationName', () => {
@@ -54,6 +73,9 @@ describe('detectGraphQL', () => {
       query: '{ hello }',
       operationName: 123,
     });
-    expect(result).toEqual({ operationType: 'query', operationName: undefined });
+    expect(result).toEqual({
+      operationType: 'query',
+      operationName: undefined,
+    });
   });
 });
