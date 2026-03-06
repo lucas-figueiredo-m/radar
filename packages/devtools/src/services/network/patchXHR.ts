@@ -29,10 +29,7 @@ const readXHRText = (xhr: XMLHttpRequest): string => {
   // In React Native, accessing responseText throws when responseType
   // is not "" or "text". Try responseText first, then fall back to response.
   try {
-    if (
-      xhr.responseType === '' ||
-      xhr.responseType === 'text'
-    ) {
+    if (xhr.responseType === '' || xhr.responseType === 'text') {
       return xhr.responseText;
     }
   } catch {
