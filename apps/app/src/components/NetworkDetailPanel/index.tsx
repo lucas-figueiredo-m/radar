@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 
-import { CopyButton } from '../CopyButton';
 import { DetailRow } from '../DetailRow';
 import { DetailSection } from '../DetailSection';
 import { ValueRenderer } from '../ValueRenderer';

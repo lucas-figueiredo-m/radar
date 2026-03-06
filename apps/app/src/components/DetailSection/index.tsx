@@ -25,7 +25,11 @@ export const DetailSection = ({
         <button
           type="button"
           onClick={collapsible ? () => setCollapsed(c => !c) : undefined}
-          className={`text-detail font-bold text-text-secondary uppercase tracking-[0.5px] bg-transparent border-none p-0 flex items-center gap-1 ${collapsible ? 'cursor-pointer hover:text-text-primary' : 'cursor-default'}`}
+          className={`text-detail font-bold text-text-secondary uppercase tracking-[0.5px] bg-transparent border-none p-0 flex items-center gap-1 ${
+            collapsible
+              ? 'cursor-pointer hover:text-text-primary'
+              : 'cursor-default'
+          }`}
         >
           {collapsible && (
             <span className="text-[8px] inline-block w-3">
