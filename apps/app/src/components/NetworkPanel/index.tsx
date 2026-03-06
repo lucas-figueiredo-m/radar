@@ -70,8 +70,9 @@ export const NetworkPanel = ({
                 <span
                   style={{
                     color: req.graphql
-                      ? METHOD_COLORS[req.graphql.operationType.toUpperCase()] ??
-                        colorValues['text-secondary']
+                      ? METHOD_COLORS[
+                          req.graphql.operationType.toUpperCase()
+                        ] ?? colorValues['text-secondary']
                       : METHOD_COLORS[req.method] ??
                         colorValues['text-secondary'],
                   }}
