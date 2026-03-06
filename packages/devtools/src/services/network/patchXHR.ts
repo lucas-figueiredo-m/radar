@@ -17,24 +17,49 @@ type RequestMetadata = {
 
 const MAX_TEXT_LENGTH = 5000;
 
+type XHRListeners = {
+  handleResponse: () => void;
+  handleError: () => void;
+};
+
 const xhrMetadata = new WeakMap<XMLHttpRequest, RequestMetadata>();
+const xhrListeners = new WeakMap<XMLHttpRequest, XHRListeners>();
 
-const parseXHRResponseBody = (xhr: XMLHttpRequest): unknown => {
+const readXHRText = (xhr: XMLHttpRequest): string => {
+  // In React Native, accessing responseText throws when responseType
+  // is not "" or "text". Try responseText first, then fall back to response.
   try {
-    const text =
-      typeof xhr.responseText === 'string'
-        ? xhr.responseText
-        : String(xhr.response ?? '');
-
-    try {
-      return JSON.parse(text);
-    } catch {
-      return text.length > MAX_TEXT_LENGTH
-        ? text.slice(0, MAX_TEXT_LENGTH) + '...'
-        : text;
+    if (
+      xhr.responseType === '' ||
+      xhr.responseType === 'text'
+    ) {
+      return xhr.responseText;
     }
   } catch {
-    return '[Could not read body]';
+    // ignored — fall through to response
+  }
+
+  const raw = xhr.response;
+  if (typeof raw === 'string') return raw;
+  if (raw == null) return '';
+
+  try {
+    return JSON.stringify(raw);
+  } catch {
+    return String(raw);
+  }
+};
+
+const parseXHRResponseBody = (xhr: XMLHttpRequest): unknown => {
+  const text = readXHRText(xhr);
+  if (!text) return undefined;
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text.length > MAX_TEXT_LENGTH
+      ? text.slice(0, MAX_TEXT_LENGTH) + '...'
+      : text;
   }
 };
 
@@ -135,6 +160,16 @@ export const patchXHR = (send: Send) => {
       });
     };
 
+    // Remove previous listeners to avoid duplicates if send() is called
+    // multiple times on the same XHR instance (e.g. React Native's fetch polyfill).
+    const prev = xhrListeners.get(this);
+    if (prev) {
+      this.removeEventListener('load', prev.handleResponse);
+      this.removeEventListener('error', prev.handleError);
+      this.removeEventListener('timeout', prev.handleError);
+    }
+
+    xhrListeners.set(this, { handleResponse, handleError });
     this.addEventListener('load', handleResponse);
     this.addEventListener('error', handleError);
     this.addEventListener('timeout', handleError);
