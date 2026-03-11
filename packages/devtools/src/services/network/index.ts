@@ -6,6 +6,7 @@ import { parseRequestBody } from './parseRequestBody';
 import { parseResponseBody } from './parseResponseBody';
 import { generateRequestId } from './requestId';
 import { detectGraphQL } from './detectGraphQL';
+import { fetchFlag } from './fetchFlag';
 
 export { patchXHR } from './patchXHR';
 
@@ -40,7 +41,13 @@ export const patchFetch = (send: Send) => {
     });
 
     try {
-      const response = await originalFetch(input, init);
+      // Flag is set synchronously around originalFetch so that patchXHR
+      // can mark the internal XHR instance created by RN's fetch polyfill.
+      fetchFlag.set();
+      const responsePromise = originalFetch(input, init);
+      fetchFlag.reset();
+
+      const response = await responsePromise;
       const duration = Date.now() - startTime;
       const responseBody = await parseResponseBody(response);
 
@@ -60,6 +67,7 @@ export const patchFetch = (send: Send) => {
 
       return response;
     } catch (error) {
+      fetchFlag.reset();
       const duration = Date.now() - startTime;
 
       send({

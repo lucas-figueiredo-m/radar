@@ -1,5 +1,6 @@
 import {
   patchConsole,
+  patchFetch,
   patchXHR,
   installComponentTreeHook,
   createProfilerService,
@@ -95,6 +96,7 @@ export const init = (config: RadarConfig = {}) => {
   };
 
   patchXHR(send);
+  patchFetch(send);
   const { addCommitListener } = installComponentTreeHook(send);
   addCommitListener(profiler.handleCommit);
 
