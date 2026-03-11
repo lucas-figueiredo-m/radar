@@ -1,3 +1,4 @@
+import axios from 'axios';
 import ActionButton from '../components/ActionButton';
 import NetworkItem from '../components/NetworkItem';
 import ScreenContainer from '../components/ScreenContainer';
@@ -112,6 +113,154 @@ const ERROR_ITEMS = [
   },
 ];
 
+const AXIOS_ITEMS = [
+  {
+    method: 'GET' as const,
+    path: '/posts?_limit=2 (axios)',
+    color: '#06b6d4',
+    onPress: () => {
+      axios
+        .get('https://jsonplaceholder.typicode.com/posts?_limit=2')
+        .then(res => console.log('Axios GET posts:', res.data.length))
+        .catch(err => console.error('Axios GET failed:', err));
+    },
+  },
+  {
+    method: 'POST' as const,
+    path: '/posts (axios)',
+    color: '#14b8a6',
+    onPress: () => {
+      axios
+        .post('https://jsonplaceholder.typicode.com/posts', {
+          title: 'Axios Post',
+          body: 'Hello from Axios',
+          userId: 1,
+        })
+        .then(res => console.log('Axios POST created:', res.data))
+        .catch(err => console.error('Axios POST failed:', err));
+    },
+  },
+];
+
+const GRAPHQL_ITEMS = [
+  {
+    method: 'POST' as const,
+    path: 'Query: countries',
+    color: '#22D3EE',
+    onPress: () => {
+      fetch('https://countries.trevorblades.com/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: '{ countries { name code emoji } }',
+          operationName: 'GetCountries',
+        }),
+      })
+        .then(r => r.json())
+        .then(data =>
+          console.log('GraphQL countries:', data.data?.countries?.length),
+        )
+        .catch(err => console.error('GraphQL query failed:', err));
+    },
+  },
+  {
+    method: 'POST' as const,
+    path: 'Query: continent',
+    color: '#22D3EE',
+    onPress: () => {
+      fetch('https://countries.trevorblades.com/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query:
+            'query GetContinent($code: ID!) { continent(code: $code) { name countries { name } } }',
+          variables: { code: 'EU' },
+          operationName: 'GetContinent',
+        }),
+      })
+        .then(r => r.json())
+        .then(data =>
+          console.log('GraphQL continent:', data.data?.continent?.name),
+        )
+        .catch(err => console.error('GraphQL query failed:', err));
+    },
+  },
+  {
+    method: 'POST' as const,
+    path: 'Mutation (simulated)',
+    color: '#E879F9',
+    onPress: () => {
+      fetch('https://countries.trevorblades.com/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query:
+            'mutation CreateCountry { createCountry(name: "Test") { name } }',
+          operationName: 'CreateCountry',
+        }),
+      })
+        .then(r => r.json())
+        .then(data => console.log('GraphQL mutation response:', data))
+        .catch(err => console.error('GraphQL mutation failed:', err));
+    },
+  },
+];
+
+const CONTENT_TYPE_ITEMS = [
+  {
+    method: 'GET' as const,
+    path: '/photo (image/jpeg)',
+    color: '#ec4899',
+    onPress: () => {
+      fetch('https://picsum.photos/200/300')
+        .then(r => console.log('Image response, status:', r.status))
+        .catch(err => console.error('Image fetch failed:', err));
+    },
+  },
+  {
+    method: 'GET' as const,
+    path: '/icon (image/png)',
+    color: '#ec4899',
+    onPress: () => {
+      fetch('https://www.google.com/favicon.ico')
+        .then(r => console.log('Icon response, status:', r.status))
+        .catch(err => console.error('Icon fetch failed:', err));
+    },
+  },
+  {
+    method: 'GET' as const,
+    path: '/page (text/html)',
+    color: '#f97316',
+    onPress: () => {
+      fetch('https://example.com')
+        .then(r => console.log('HTML response, status:', r.status))
+        .catch(err => console.error('HTML fetch failed:', err));
+    },
+  },
+  {
+    method: 'GET' as const,
+    path: '/robots.txt (text/plain)',
+    color: '#64748b',
+    onPress: () => {
+      fetch('https://www.google.com/robots.txt')
+        .then(r => console.log('Text response, status:', r.status))
+        .catch(err => console.error('Text fetch failed:', err));
+    },
+  },
+  {
+    method: 'GET' as const,
+    path: '/sample.pdf (binary)',
+    color: '#dc2626',
+    onPress: () => {
+      fetch(
+        'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+      )
+        .then(r => console.log('PDF response, status:', r.status))
+        .catch(err => console.error('PDF fetch failed:', err));
+    },
+  },
+];
+
 const BATCH_ITEMS = [
   {
     title: 'Burst 10 requests',
@@ -137,18 +286,15 @@ const BATCH_ITEMS = [
         ).then(r => r.json());
         console.log('Step 1 - Got user:', user.name);
 
-        const post = await fetch(
-          'https://jsonplaceholder.typicode.com/posts',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              title: `Post by ${user.name}`,
-              body: 'Chained request',
-              userId: user.id,
-            }),
-          },
-        ).then(r => r.json());
+        const post = await fetch('https://jsonplaceholder.typicode.com/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: `Post by ${user.name}`,
+            body: 'Chained request',
+            userId: user.id,
+          }),
+        }).then(r => r.json());
         console.log('Step 2 - Created post:', post.id);
 
         const comments = await fetch(
@@ -163,10 +309,7 @@ const BATCH_ITEMS = [
 ];
 
 const NetworkScreen = () => (
-  <ScreenContainer
-    title="Network"
-    subtitle="Test HTTP request interception"
-  >
+  <ScreenContainer title="Network" subtitle="Test HTTP request interception">
     <SectionGroup title="REST Methods">
       {REST_ITEMS.map(item => (
         <NetworkItem
@@ -181,6 +324,42 @@ const NetworkScreen = () => (
 
     <SectionGroup title="Error Responses">
       {ERROR_ITEMS.map(item => (
+        <NetworkItem
+          key={item.path}
+          method={item.method}
+          path={item.path}
+          color={item.color}
+          onPress={item.onPress}
+        />
+      ))}
+    </SectionGroup>
+
+    <SectionGroup title="XHR / Axios">
+      {AXIOS_ITEMS.map(item => (
+        <NetworkItem
+          key={`${item.method}-${item.path}`}
+          method={item.method}
+          path={item.path}
+          color={item.color}
+          onPress={item.onPress}
+        />
+      ))}
+    </SectionGroup>
+
+    <SectionGroup title="GraphQL">
+      {GRAPHQL_ITEMS.map(item => (
+        <NetworkItem
+          key={item.path}
+          method={item.method}
+          path={item.path}
+          color={item.color}
+          onPress={item.onPress}
+        />
+      ))}
+    </SectionGroup>
+
+    <SectionGroup title="Content Types">
+      {CONTENT_TYPE_ITEMS.map(item => (
         <NetworkItem
           key={item.path}
           method={item.method}

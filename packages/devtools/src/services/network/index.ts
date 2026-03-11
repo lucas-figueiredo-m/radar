@@ -4,10 +4,13 @@ import { extractUrl } from './extractUrl';
 import { parseHeaders } from './parseHeaders';
 import { parseRequestBody } from './parseRequestBody';
 import { parseResponseBody } from './parseResponseBody';
+import { generateRequestId } from './requestId';
+import { detectGraphQL } from './detectGraphQL';
+import { fetchFlag } from './fetchFlag';
+
+export { patchXHR } from './patchXHR';
 
 type Send = (message: RadarMessage) => void;
-
-let requestIdCounter = 0;
 
 export const patchFetch = (send: Send) => {
   const originalFetch = globalThis.fetch;
@@ -16,13 +19,14 @@ export const patchFetch = (send: Send) => {
     input: string | URL | Request,
     init?: RequestInit,
   ) => {
-    const id = `req_${requestIdCounter++}`;
+    const id = generateRequestId();
     const startTime = Date.now();
 
     const method = init?.method ?? 'GET';
     const url = extractUrl(input);
     const requestHeaders = parseHeaders(init?.headers);
     const requestBody = parseRequestBody(init?.body);
+    const graphql = detectGraphQL(requestBody);
 
     send({
       type: 'network',
@@ -32,11 +36,18 @@ export const patchFetch = (send: Send) => {
       url,
       requestHeaders,
       requestBody,
+      graphql,
       timestamp: startTime,
     });
 
     try {
-      const response = await originalFetch(input, init);
+      // Flag is set synchronously around originalFetch so that patchXHR
+      // can mark the internal XHR instance created by RN's fetch polyfill.
+      fetchFlag.set();
+      const responsePromise = originalFetch(input, init);
+      fetchFlag.reset();
+
+      const response = await responsePromise;
       const duration = Date.now() - startTime;
       const responseBody = await parseResponseBody(response);
 
@@ -56,6 +67,7 @@ export const patchFetch = (send: Send) => {
 
       return response;
     } catch (error) {
+      fetchFlag.reset();
       const duration = Date.now() - startTime;
 
       send({

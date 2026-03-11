@@ -1,6 +1,7 @@
 import {
   patchConsole,
   patchFetch,
+  patchXHR,
   installComponentTreeHook,
   createProfilerService,
   createPerformanceService,
@@ -44,7 +45,12 @@ const getProjectRoot = (config: RadarConfig): string | undefined => {
   return undefined;
 };
 
+let initialized = false;
+
 export const init = (config: RadarConfig = {}) => {
+  if (initialized) return;
+  initialized = true;
+
   const host = config.host ?? DEFAULT_HOST;
   const port = config.port ?? DEFAULT_PORT;
   const projectRoot = getProjectRoot(config);
@@ -89,6 +95,7 @@ export const init = (config: RadarConfig = {}) => {
     }
   };
 
+  patchXHR(send);
   patchFetch(send);
   const { addCommitListener } = installComponentTreeHook(send);
   addCommitListener(profiler.handleCommit);

@@ -47,6 +47,8 @@
   --color-method-post: #4ADE80;
   --color-method-put: #FBBF24;
   --color-method-delete: #F87171;
+  --color-method-query: #22D3EE;
+  --color-method-mutation: #E879F9;
 
   /* ─── Syntax Highlighting (Catppuccin Mocha) ────────── */
   --color-syntax-string: #a6e3a1;

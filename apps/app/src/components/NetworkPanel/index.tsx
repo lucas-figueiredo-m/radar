@@ -41,7 +41,7 @@ export const NetworkPanel = ({
       >
         {/* Column headers */}
         <div className="flex px-4 py-2 border-b border-border-default text-detail text-text-disabled font-semibold sticky top-0 bg-bg-base z-sticky">
-          <span className="w-[60px]">Method</span>
+          <span className="w-[108px]">Method</span>
           <span className="flex-1">URL</span>
           <span className="w-[60px] text-right">Status</span>
           <span className="w-[80px] text-right">Time</span>
@@ -66,17 +66,37 @@ export const NetworkPanel = ({
                   : 'bg-transparent hover:bg-bg-surface'
               }`}
             >
-              <span
-                className="w-[60px] text-detail font-bold"
-                style={{
-                  color:
-                    METHOD_COLORS[req.method] ?? colorValues['text-secondary'],
-                }}
-              >
-                {req.method}
+              <span className="w-[108px] flex items-center gap-1.5 text-detail font-bold">
+                <span
+                  style={{
+                    color: req.graphql
+                      ? METHOD_COLORS[
+                          req.graphql.operationType.toUpperCase()
+                        ] ?? colorValues['text-secondary']
+                      : METHOD_COLORS[req.method] ??
+                        colorValues['text-secondary'],
+                  }}
+                >
+                  {req.graphql
+                    ? req.graphql.operationType.toUpperCase()
+                    : req.method}
+                </span>
+                {req.graphql && (
+                  <span
+                    className="text-[9px] font-semibold px-1 py-px rounded"
+                    style={{
+                      color: colorValues['method-mutation'],
+                      backgroundColor: `${colorValues['method-mutation']}1A`,
+                    }}
+                  >
+                    GQL
+                  </span>
+                )}
               </span>
               <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-text-primary">
-                {truncateUrl(req.url)}
+                {req.graphql?.operationName
+                  ? req.graphql.operationName
+                  : truncateUrl(req.url)}
                 <span className="ml-2 text-detail text-text-disabled">
                   {urlHost(req.url)}
                 </span>

@@ -47,7 +47,12 @@
       "Bash(curl:*)",
       "WebFetch(domain:api.github.com)",
       "Bash(log show:*)",
-      "WebFetch(domain:dev.to)"
+      "WebFetch(domain:dev.to)",
+      "WebFetch(domain:medium.com)",
+      "mcp__plugin_linear_linear__list_issue_labels",
+      "Bash(bundle install:*)",
+      "Bash(bundle exec:*)",
+      "Bash(gh pr:*)"
     ]
   }
 }

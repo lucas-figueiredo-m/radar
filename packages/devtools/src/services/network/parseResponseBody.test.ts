@@ -14,11 +14,28 @@ describe('parseResponseBody', () => {
     expect(await parseResponseBody(response)).toBe('hello world');
   });
 
-  it('truncates text longer than 5000 characters', async () => {
-    const longText = 'a'.repeat(6000);
+  it('truncates text longer than 50000 characters', async () => {
+    const longText = 'a'.repeat(60000);
     const response = new Response(longText);
     const result = await parseResponseBody(response);
-    expect(result).toBe('a'.repeat(5000) + '...');
+    expect(result).toBe('a'.repeat(50000) + '...');
+  });
+
+  it('returns HTML body as string', async () => {
+    const html = '<html><body>Hello</body></html>';
+    const response = new Response(html, {
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+    });
+    expect(await parseResponseBody(response)).toBe(html);
+  });
+
+  it('returns binary placeholder for PDF', async () => {
+    const buffer = new ArrayBuffer(1024);
+    const response = new Response(buffer, {
+      headers: { 'content-type': 'application/pdf' },
+    });
+    const result = await parseResponseBody(response);
+    expect(result).toBe('[Binary: application/pdf, 1.0 KB]');
   });
 
   it('returns placeholder when body cannot be read', async () => {
