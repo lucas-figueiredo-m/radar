@@ -194,13 +194,69 @@ const GRAPHQL_ITEMS = [
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query: 'mutation CreateCountry { createCountry(name: "Test") { name } }',
+          query:
+            'mutation CreateCountry { createCountry(name: "Test") { name } }',
           operationName: 'CreateCountry',
         }),
       })
         .then(r => r.json())
         .then(data => console.log('GraphQL mutation response:', data))
         .catch(err => console.error('GraphQL mutation failed:', err));
+    },
+  },
+];
+
+const CONTENT_TYPE_ITEMS = [
+  {
+    method: 'GET' as const,
+    path: '/photo (image/jpeg)',
+    color: '#ec4899',
+    onPress: () => {
+      fetch('https://picsum.photos/200/300')
+        .then(r => console.log('Image response, status:', r.status))
+        .catch(err => console.error('Image fetch failed:', err));
+    },
+  },
+  {
+    method: 'GET' as const,
+    path: '/icon (image/png)',
+    color: '#ec4899',
+    onPress: () => {
+      fetch('https://www.google.com/favicon.ico')
+        .then(r => console.log('Icon response, status:', r.status))
+        .catch(err => console.error('Icon fetch failed:', err));
+    },
+  },
+  {
+    method: 'GET' as const,
+    path: '/page (text/html)',
+    color: '#f97316',
+    onPress: () => {
+      fetch('https://example.com')
+        .then(r => console.log('HTML response, status:', r.status))
+        .catch(err => console.error('HTML fetch failed:', err));
+    },
+  },
+  {
+    method: 'GET' as const,
+    path: '/robots.txt (text/plain)',
+    color: '#64748b',
+    onPress: () => {
+      fetch('https://www.google.com/robots.txt')
+        .then(r => console.log('Text response, status:', r.status))
+        .catch(err => console.error('Text fetch failed:', err));
+    },
+  },
+  {
+    method: 'GET' as const,
+    path: '/sample.pdf (binary)',
+    color: '#dc2626',
+    onPress: () => {
+      fetch(
+        'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+      )
+        .then(r => console.log('PDF response, status:', r.status))
+        .catch(err => console.error('PDF fetch failed:', err));
     },
   },
 ];
@@ -230,18 +286,15 @@ const BATCH_ITEMS = [
         ).then(r => r.json());
         console.log('Step 1 - Got user:', user.name);
 
-        const post = await fetch(
-          'https://jsonplaceholder.typicode.com/posts',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              title: `Post by ${user.name}`,
-              body: 'Chained request',
-              userId: user.id,
-            }),
-          },
-        ).then(r => r.json());
+        const post = await fetch('https://jsonplaceholder.typicode.com/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: `Post by ${user.name}`,
+            body: 'Chained request',
+            userId: user.id,
+          }),
+        }).then(r => r.json());
         console.log('Step 2 - Created post:', post.id);
 
         const comments = await fetch(
@@ -256,10 +309,7 @@ const BATCH_ITEMS = [
 ];
 
 const NetworkScreen = () => (
-  <ScreenContainer
-    title="Network"
-    subtitle="Test HTTP request interception"
-  >
+  <ScreenContainer title="Network" subtitle="Test HTTP request interception">
     <SectionGroup title="REST Methods">
       {REST_ITEMS.map(item => (
         <NetworkItem
@@ -298,6 +348,18 @@ const NetworkScreen = () => (
 
     <SectionGroup title="GraphQL">
       {GRAPHQL_ITEMS.map(item => (
+        <NetworkItem
+          key={item.path}
+          method={item.method}
+          path={item.path}
+          color={item.color}
+          onPress={item.onPress}
+        />
+      ))}
+    </SectionGroup>
+
+    <SectionGroup title="Content Types">
+      {CONTENT_TYPE_ITEMS.map(item => (
         <NetworkItem
           key={item.path}
           method={item.method}

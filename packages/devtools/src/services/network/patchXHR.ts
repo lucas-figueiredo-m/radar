@@ -3,6 +3,9 @@ import { generateRequestId } from './requestId';
 import { parseRawHeaders } from './parseRawHeaders';
 import { parseRequestBody } from './parseRequestBody';
 import { detectGraphQL } from './detectGraphQL';
+import { fetchFlag } from './fetchFlag';
+import { classifyContentType } from './classifyContentType';
+import { formatBytes } from './formatBytes';
 
 type Send = (message: RadarMessage) => void;
 
@@ -15,48 +18,38 @@ type RequestMetadata = {
   requestBody: BodyInit | null | undefined;
 };
 
-const MAX_TEXT_LENGTH = 5000;
-
-type XHRListeners = {
-  handleResponse: () => void;
-  handleError: () => void;
-};
+const MAX_TEXT_LENGTH = 50_000;
 
 const xhrMetadata = new WeakMap<XMLHttpRequest, RequestMetadata>();
-const xhrListeners = new WeakMap<XMLHttpRequest, XHRListeners>();
 
-const readXHRText = (xhr: XMLHttpRequest): string => {
-  // In React Native, accessing responseText throws when responseType
-  // is not "" or "text". Try responseText first, then fall back to response.
+const parseXHRResponseBody = (
+  xhr: XMLHttpRequest,
+  contentType: string | undefined,
+): unknown => {
+  const category = classifyContentType(contentType);
+
+  if (category === 'image' || category === 'pdf' || category === 'binary') {
+    const size = xhr.response
+      ? formatBytes((xhr.response as ArrayBuffer).byteLength ?? 0)
+      : 'unknown size';
+    return `[Binary: ${contentType ?? category}, ${size}]`;
+  }
+
   try {
-    if (xhr.responseType === '' || xhr.responseType === 'text') {
-      return xhr.responseText;
+    const text =
+      typeof xhr.responseText === 'string'
+        ? xhr.responseText
+        : String(xhr.response ?? '');
+
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text.length > MAX_TEXT_LENGTH
+        ? text.slice(0, MAX_TEXT_LENGTH) + '...'
+        : text;
     }
   } catch {
-    // ignored — fall through to response
-  }
-
-  const raw = xhr.response;
-  if (typeof raw === 'string') return raw;
-  if (raw == null) return '';
-
-  try {
-    return JSON.stringify(raw);
-  } catch {
-    return String(raw);
-  }
-};
-
-const parseXHRResponseBody = (xhr: XMLHttpRequest): unknown => {
-  const text = readXHRText(xhr);
-  if (!text) return undefined;
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    return text.length > MAX_TEXT_LENGTH
-      ? text.slice(0, MAX_TEXT_LENGTH) + '...'
-      : text;
+    return '[Could not read body]';
   }
 };
 
@@ -73,6 +66,9 @@ export const patchXHR = (send: Send) => {
     url: string | URL,
     ...rest: [boolean?, (string | null)?, (string | null)?]
   ) {
+    // Mark XHR instances created inside fetch() so send() can skip them.
+    fetchFlag.markIfActive(this);
+
     const urlStr = typeof url === 'string' ? url : url.toString();
 
     xhrMetadata.set(this, {
@@ -100,7 +96,10 @@ export const patchXHR = (send: Send) => {
     body?: Document | XMLHttpRequestBodyInit | null,
   ) {
     const metadata = xhrMetadata.get(this);
-    if (!metadata) {
+
+    // Skip interception if no metadata or if this XHR was created by fetch().
+    // patchFetch handles fetch-originated requests with better body parsing.
+    if (!metadata || fetchFlag.isFromFetch(this)) {
       return originalSend.call(this, body);
     }
 
@@ -125,6 +124,8 @@ export const patchXHR = (send: Send) => {
 
     const handleResponse = () => {
       const duration = Date.now() - metadata.startTime;
+      const responseHeaders = parseRawHeaders(this.getAllResponseHeaders());
+      const contentType = responseHeaders['content-type'];
 
       send({
         type: 'network',
@@ -134,8 +135,8 @@ export const patchXHR = (send: Send) => {
         url: metadata.url,
         status: this.status,
         statusText: this.statusText,
-        responseHeaders: parseRawHeaders(this.getAllResponseHeaders()),
-        responseBody: parseXHRResponseBody(this),
+        responseHeaders,
+        responseBody: parseXHRResponseBody(this, contentType),
         duration,
         timestamp: Date.now(),
       });
@@ -157,16 +158,6 @@ export const patchXHR = (send: Send) => {
       });
     };
 
-    // Remove previous listeners to avoid duplicates if send() is called
-    // multiple times on the same XHR instance (e.g. React Native's fetch polyfill).
-    const prev = xhrListeners.get(this);
-    if (prev) {
-      this.removeEventListener('load', prev.handleResponse);
-      this.removeEventListener('error', prev.handleError);
-      this.removeEventListener('timeout', prev.handleError);
-    }
-
-    xhrListeners.set(this, { handleResponse, handleError });
     this.addEventListener('load', handleResponse);
     this.addEventListener('error', handleError);
     this.addEventListener('timeout', handleError);

@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { DetailRow } from '../DetailRow';
 import { DetailSection } from '../DetailSection';
 import { ValueRenderer } from '../ValueRenderer';
+import { ResponseBodyRenderer } from '../ResponseBodyRenderer';
 import { formatTime, formatDuration } from '../../utils';
 import { METHOD_COLORS } from '../../utils/methodColors';
 import { statusColor } from '../../utils/statusColor';
@@ -178,9 +179,20 @@ export const NetworkDetailPanel = ({
       {request.responseBody !== undefined && (
         <DetailSection
           title="Response Body"
-          copyText={stringifyBody(request.responseBody)}
+          copyText={
+            typeof request.responseBody === 'string' &&
+            !request.responseBody.startsWith('data:image/') &&
+            !request.responseBody.startsWith('[Binary:')
+              ? request.responseBody
+              : typeof request.responseBody === 'object'
+                ? stringifyBody(request.responseBody)
+                : undefined
+          }
         >
-          <ValueRenderer value={request.responseBody} inline={false} />
+          <ResponseBodyRenderer
+            body={request.responseBody}
+            contentType={request.responseHeaders?.['content-type']}
+          />
         </DetailSection>
       )}
     </div>

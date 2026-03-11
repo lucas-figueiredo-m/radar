@@ -15,6 +15,7 @@ export { NetworkPanel } from './NetworkPanel';
 export { PerformancePanel } from './PerformancePanel';
 export type { PerformancePanelProps } from './PerformancePanel';
 export { ProfilerPanel } from './ProfilerPanel';
+export { ResponseBodyRenderer } from './ResponseBodyRenderer';
 export type { ProfilerPanelProps } from './ProfilerPanel';
 export { Sidebar } from './Sidebar';
 export { StatusBar } from './StatusBar';
