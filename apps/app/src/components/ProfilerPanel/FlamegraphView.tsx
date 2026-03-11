@@ -129,18 +129,25 @@ export const FlamegraphView = ({ components }: FlamegraphViewProps) => {
     if (!canvas || containerSize.width === 0 || containerSize.height === 0)
       return;
 
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = containerSize.width * dpr;
-    canvas.height = containerSize.height * dpr;
-    canvas.style.width = `${containerSize.width}px`;
-    canvas.style.height = `${containerSize.height}px`;
-
     const targetBars = computeFlamegraphLayout(
       components,
       containerSize.width,
       containerSize.height,
       selectedComponentId,
     );
+
+    // Size canvas to fit all bars (may exceed container height for scrolling)
+    const maxBarBottom = targetBars.reduce(
+      (max, bar) => Math.max(max, bar.y + bar.height),
+      0,
+    );
+    const contentHeight = Math.max(containerSize.height, maxBarBottom + 8);
+
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = containerSize.width * dpr;
+    canvas.height = contentHeight * dpr;
+    canvas.style.width = `${containerSize.width}px`;
+    canvas.style.height = `${contentHeight}px`;
 
     const zoomChanged = prevSelectedRef.current !== selectedComponentId;
     prevSelectedRef.current = selectedComponentId;

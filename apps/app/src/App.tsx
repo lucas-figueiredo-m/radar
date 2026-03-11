@@ -234,7 +234,7 @@ const App = () => {
         onToggle={() => setSidebarExpanded(prev => !prev)}
       />
 
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="flex flex-col flex-1 min-w-0 min-h-0">
         <Header
           selectedDevice={selectedDevice}
           devices={devices}
