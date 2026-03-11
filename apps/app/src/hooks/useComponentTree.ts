@@ -1,74 +1,79 @@
-import { useCallback, useMemo, useState } from 'react';
-import type {
-  ComponentTreeMessage,
-  InspectedComponentData,
-  InspectComponentResponse,
-} from '@radar/types';
-import { sendCommand } from '../services';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { ComponentTreeNode, InspectedComponentData } from '@radar/types';
+import { databaseClient, ipcRenderer, sendCommand } from '../services';
 import type { ComponentTreeState } from '../types';
-
-type StampedMessage = Record<string, unknown> & {
-  type: string;
-  deviceId: string;
-};
+import { useDatabaseSubscription } from './useDatabaseSubscription';
 
 export const useComponentTree = (selectedDeviceId: string | null) => {
-  const [componentTrees, setComponentTrees] = useState<
-    Map<string, ComponentTreeState>
-  >(new Map());
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
     null,
   );
   const [inspectedComponent, setInspectedComponent] =
     useState<InspectedComponentData | null>(null);
+  const selectedComponentIdRef = useRef<string | null>(null);
 
-  const handleMessage = useCallback(
-    (_event: unknown, message: StampedMessage) => {
-      if (message.type === 'componentTree') {
-        const msg = message as ComponentTreeMessage & { deviceId: string };
-        setComponentTrees(prev => {
-          const next = new Map(prev);
-          next.set(msg.deviceId, {
-            rootNodes: msg.rootNodes,
-            timestamp: msg.timestamp,
-            deviceId: msg.deviceId,
-          });
-          return next;
-        });
-      } else if (message.type === 'inspectComponent') {
-        const msg = message as InspectComponentResponse & {
-          deviceId: string;
-        };
-        setSelectedComponentId(current => {
-          if (msg.componentId === current) {
-            setInspectedComponent(msg.data);
-          }
-          return current;
-        });
-      }
+  const queryFn = useCallback(
+    async (deviceId: string): Promise<ComponentTreeState | null> => {
+      const row = await databaseClient.componentTree.getLatest(deviceId);
+      if (!row) return null;
+      return {
+        rootNodes: JSON.parse(row.root_nodes) as ComponentTreeNode[],
+        timestamp: row.timestamp,
+        deviceId: row.device_id,
+      };
     },
     [],
   );
 
-  const deviceComponentTree = useMemo(
-    () =>
-      selectedDeviceId ? componentTrees.get(selectedDeviceId) ?? null : null,
-    [componentTrees, selectedDeviceId],
+  const { data: componentTree, refetch } = useDatabaseSubscription(
+    'radar:db:componentTree:changed',
+    selectedDeviceId,
+    queryFn,
+    null as ComponentTreeState | null,
   );
 
-  const clearComponentTree = useCallback(() => {
+  // Listen for inspected component updates
+  useEffect(() => {
     if (!selectedDeviceId) return;
-    setComponentTrees(prev => {
-      const next = new Map(prev);
-      next.delete(selectedDeviceId);
-      return next;
-    });
+
+    const handler = (
+      _event: unknown,
+      payload: { deviceId: string; componentId: string },
+    ) => {
+      if (payload.deviceId !== selectedDeviceId) return;
+      if (payload.componentId !== selectedComponentIdRef.current) return;
+
+      databaseClient.inspectedComponent
+        .getByComponentId(selectedDeviceId, payload.componentId)
+        .then(row => {
+          if (row) {
+            setInspectedComponent(
+              JSON.parse(row.data) as InspectedComponentData,
+            );
+          }
+        });
+    };
+
+    ipcRenderer.on('radar:db:inspectedComponent:changed', handler);
+    return () => {
+      ipcRenderer.removeListener(
+        'radar:db:inspectedComponent:changed',
+        handler,
+      );
+    };
   }, [selectedDeviceId]);
+
+  const clearComponentTree = useCallback(async () => {
+    if (!selectedDeviceId) return;
+    await databaseClient.componentTree.clear(selectedDeviceId);
+    refetch();
+  }, [selectedDeviceId, refetch]);
 
   const inspectComponentById = useCallback(
     (componentId: string) => {
       if (!selectedDeviceId) return;
       setSelectedComponentId(componentId);
+      selectedComponentIdRef.current = componentId;
       sendCommand(selectedDeviceId, {
         type: 'inspectComponent',
         direction: 'request',
@@ -80,16 +85,16 @@ export const useComponentTree = (selectedDeviceId: string | null) => {
 
   const clearInspection = useCallback(() => {
     setSelectedComponentId(null);
+    selectedComponentIdRef.current = null;
     setInspectedComponent(null);
   }, []);
 
   return {
-    componentTree: deviceComponentTree,
+    componentTree,
     selectedComponentId,
     inspectedComponent,
     clearComponentTree,
     inspectComponent: inspectComponentById,
     clearInspection,
-    handleMessage,
   };
 };

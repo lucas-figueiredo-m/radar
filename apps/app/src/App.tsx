@@ -43,22 +43,11 @@ const App = () => {
   const selectedDevice = devices.find(d => d.id === selectedDeviceId) ?? null;
   const connected = selectedDevice?.connectionStatus === 'connected';
 
-  const {
-    logs,
-    filteredLogs,
-    filter,
-    setFilter,
-    clearLogs,
-    handleMessage: handleConsoleMessage,
-  } = useConsoleLogs(selectedDeviceId);
+  const { logs, filteredLogs, filter, setFilter, clearLogs } =
+    useConsoleLogs(selectedDeviceId);
 
-  const {
-    requests,
-    selectedRequest,
-    setSelectedRequest,
-    clearRequests,
-    handleMessage: handleNetworkMessage,
-  } = useNetworkRequests(selectedDeviceId);
+  const { requests, selectedRequest, setSelectedRequest, clearRequests } =
+    useNetworkRequests(selectedDeviceId);
 
   const {
     componentTree,
@@ -67,7 +56,6 @@ const App = () => {
     clearComponentTree,
     inspectComponent,
     clearInspection,
-    handleMessage: handleTreeMessage,
   } = useComponentTree(selectedDeviceId);
 
   const {
@@ -83,7 +71,6 @@ const App = () => {
     stopProfiling,
     reloadAndProfile,
     clearProfilerData,
-    handleMessage: handleProfilerMessage,
     handleDeviceConnected,
   } = useProfiler(selectedDeviceId);
 
@@ -93,33 +80,7 @@ const App = () => {
     totalDroppedFrames,
     totalGcEvents,
     clearMetrics: clearPerformanceMetrics,
-    handleMessage: handlePerformanceMessage,
   } = usePerformanceMetrics(selectedDeviceId);
-
-  useEffect(() => {
-    const onMessage = (
-      event: unknown,
-      message: Record<string, unknown> & { type: string; deviceId: string },
-    ) => {
-      handleConsoleMessage(event, message);
-      handleNetworkMessage(event, message);
-      handleTreeMessage(event, message);
-      handleProfilerMessage(event, message);
-      handlePerformanceMessage(event, message);
-    };
-
-    ipcRenderer.on('radar:message', onMessage);
-
-    return () => {
-      ipcRenderer.removeListener('radar:message', onMessage);
-    };
-  }, [
-    handleConsoleMessage,
-    handleNetworkMessage,
-    handleTreeMessage,
-    handleProfilerMessage,
-    handlePerformanceMessage,
-  ]);
 
   useEffect(() => {
     const onDeviceRegistered = (

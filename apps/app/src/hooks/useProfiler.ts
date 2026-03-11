@@ -1,43 +1,51 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import type { ProfilerCommitData, ProfilerSessionMessage } from '@radar/types';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ProfilerCommitData } from '@radar/types';
+import type { ProfilerCommitRow } from '@radar/database';
+import { databaseClient, sendCommand } from '../services';
 import type { ComponentStatsEntry, ProfilerView } from '../types';
-import { sendCommand } from '../services';
+import { useDatabaseSubscription } from './useDatabaseSubscription';
 
-type StampedMessage = Record<string, unknown> & {
-  type: string;
-  deviceId: string;
-};
+const rowToCommit = (row: ProfilerCommitRow): ProfilerCommitData => ({
+  index: row.commit_index,
+  timestamp: row.timestamp,
+  duration: row.duration,
+  components: JSON.parse(row.components) as ProfilerCommitData['components'],
+});
 
 export const useProfiler = (selectedDeviceId: string | null) => {
   const [isProfiling, setIsProfiling] = useState(false);
   const isProfilingRef = useRef(false);
-  const [sessions, setSessions] = useState<Map<string, ProfilerCommitData[]>>(
-    new Map(),
-  );
   const [selectedCommitIndex, setSelectedCommitIndex] = useState(0);
   const [activeView, setActiveView] = useState<ProfilerView>('flamegraph');
 
-  const handleMessage = useCallback(
-    (_event: unknown, message: StampedMessage) => {
-      if (message.type !== 'profilerSession') return;
-
-      const msg = message as ProfilerSessionMessage & { deviceId: string };
-      setSessions(prev => {
-        const next = new Map(prev);
-        next.set(msg.deviceId, msg.commits);
-        return next;
-      });
-      setSelectedCommitIndex(0);
-      setIsProfiling(false);
-      isProfilingRef.current = false;
+  const queryFn = useCallback(
+    async (deviceId: string): Promise<ProfilerCommitRow[]> => {
+      const session = await databaseClient.profiler.getLatestSession(deviceId);
+      if (!session) return [];
+      return databaseClient.profiler.getCommitsBySession(session.id);
     },
     [],
   );
 
-  const commits = useMemo(
-    () => (selectedDeviceId ? sessions.get(selectedDeviceId) ?? [] : []),
-    [sessions, selectedDeviceId],
+  const { data: commitRows, refetch } = useDatabaseSubscription(
+    'radar:db:profiler:changed',
+    selectedDeviceId,
+    queryFn,
+    [] as ProfilerCommitRow[],
   );
+
+  // When new profiler data arrives from DB, stop profiling state
+  const prevRowCountRef = useRef(0);
+  useEffect(() => {
+    if (commitRows.length > 0 && prevRowCountRef.current === 0) {
+      setIsProfiling(false);
+      isProfilingRef.current = false;
+      setSelectedCommitIndex(0);
+    }
+    prevRowCountRef.current = commitRows.length;
+  }, [commitRows.length]);
+
+  const commits = useMemo(() => commitRows.map(rowToCommit), [commitRows]);
 
   const selectedCommit = useMemo(
     () => commits[selectedCommitIndex] ?? null,
@@ -88,36 +96,30 @@ export const useProfiler = (selectedDeviceId: string | null) => {
     );
   }, [commits]);
 
-  const startProfiling = useCallback(() => {
+  const startProfiling = useCallback(async () => {
     if (!selectedDeviceId) return;
-    setSessions(prev => {
-      const next = new Map(prev);
-      next.delete(selectedDeviceId);
-      return next;
-    });
+    await databaseClient.profiler.clear(selectedDeviceId);
+    refetch();
     setSelectedCommitIndex(0);
     setIsProfiling(true);
     isProfilingRef.current = true;
     sendCommand(selectedDeviceId, { type: 'startProfiling' });
-  }, [selectedDeviceId]);
+  }, [selectedDeviceId, refetch]);
 
   const stopProfiling = useCallback(() => {
     if (!selectedDeviceId) return;
     sendCommand(selectedDeviceId, { type: 'stopProfiling' });
   }, [selectedDeviceId]);
 
-  const reloadAndProfile = useCallback(() => {
+  const reloadAndProfile = useCallback(async () => {
     if (!selectedDeviceId) return;
-    setSessions(prev => {
-      const next = new Map(prev);
-      next.delete(selectedDeviceId);
-      return next;
-    });
+    await databaseClient.profiler.clear(selectedDeviceId);
+    refetch();
     setSelectedCommitIndex(0);
     setIsProfiling(true);
     isProfilingRef.current = true;
     sendCommand(selectedDeviceId, { type: 'reloadAndProfile' });
-  }, [selectedDeviceId]);
+  }, [selectedDeviceId, refetch]);
 
   const handleDeviceConnected = useCallback(
     (deviceId: string) => {
@@ -130,15 +132,12 @@ export const useProfiler = (selectedDeviceId: string | null) => {
     [selectedDeviceId],
   );
 
-  const clearProfilerData = useCallback(() => {
+  const clearProfilerData = useCallback(async () => {
     if (!selectedDeviceId) return;
-    setSessions(prev => {
-      const next = new Map(prev);
-      next.delete(selectedDeviceId);
-      return next;
-    });
+    await databaseClient.profiler.clear(selectedDeviceId);
     setSelectedCommitIndex(0);
-  }, [selectedDeviceId]);
+    refetch();
+  }, [selectedDeviceId, refetch]);
 
   return {
     isProfiling,
@@ -153,7 +152,6 @@ export const useProfiler = (selectedDeviceId: string | null) => {
     stopProfiling,
     reloadAndProfile,
     clearProfilerData,
-    handleMessage,
     handleDeviceConnected,
   };
 };

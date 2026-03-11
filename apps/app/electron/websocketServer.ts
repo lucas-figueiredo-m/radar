@@ -44,6 +44,31 @@ const isMetadataMessage = (
 
 const WS_PORT = 8347;
 
+const NOTIFICATION_CHANNELS: Record<string, string> = {
+  console: 'radar:db:console:changed',
+  network: 'radar:db:network:changed',
+  componentTree: 'radar:db:componentTree:changed',
+  inspectComponent: 'radar:db:inspectedComponent:changed',
+  profilerSession: 'radar:db:profiler:changed',
+  performanceMetric: 'radar:db:performance:changed',
+};
+
+const notifyRenderer = (
+  win: BrowserWindow,
+  deviceId: string,
+  message: ParsedMessage,
+): void => {
+  const channel = NOTIFICATION_CHANNELS[message.type as string];
+  if (!channel) return;
+
+  const payload =
+    message.type === 'inspectComponent'
+      ? { deviceId, componentId: String(message.componentId) }
+      : { deviceId };
+
+  win.webContents.send(channel, payload);
+};
+
 const persistMessage = (
   db: RadarDatabase,
   deviceId: string,
@@ -222,10 +247,7 @@ export const startWebSocketServer = (
 
         if (deviceId) {
           persistMessage(db, deviceId, message);
-          const stamped = { ...message, deviceId };
-          win.webContents.send('radar:message', stamped);
-        } else {
-          win.webContents.send('radar:message', message);
+          notifyRenderer(win, deviceId, message);
         }
       } catch (err) {
         console.error('[radar] Failed to parse message:', err);

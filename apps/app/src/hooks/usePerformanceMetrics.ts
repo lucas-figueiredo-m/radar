@@ -1,83 +1,58 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import type { PerformanceMetricMessage } from '@radar/types';
+import { useCallback, useMemo } from 'react';
+import type { PerformanceMetricRow } from '@radar/database';
+import { databaseClient } from '../services';
 import type { PerformanceDataPoint } from '../types';
-import { MAX_METRICS } from './constants';
+import { useDatabaseSubscription } from './useDatabaseSubscription';
 
-type StampedMessage = Record<string, unknown> & {
-  type: string;
-  deviceId: string;
-};
-
-type StampedPerformanceMessage = PerformanceMetricMessage & {
-  deviceId: string;
-};
+const rowToDataPoint = (row: PerformanceMetricRow): PerformanceDataPoint => ({
+  jsFps: row.js_fps,
+  uiFps: row.ui_fps,
+  ram: row.ram,
+  droppedFrames: row.dropped_frames,
+  gcEvents: row.gc_events,
+  timestamp: row.timestamp,
+  deviceId: row.device_id,
+});
 
 export const usePerformanceMetrics = (selectedDeviceId: string | null) => {
-  const [metrics, setMetrics] = useState<PerformanceDataPoint[]>([]);
-  const totalDroppedFramesRef = useRef(0);
-  const totalGcEventsRef = useRef(0);
-
-  const handleMessage = useCallback(
-    (_event: unknown, message: StampedMessage) => {
-      if (message.type !== 'performanceMetric') return;
-
-      const msg = message as StampedPerformanceMessage;
-
-      totalDroppedFramesRef.current += msg.droppedFrames;
-      totalGcEventsRef.current += msg.gcEvents;
-
-      setMetrics(prev => {
-        const next = [
-          ...prev,
-          {
-            jsFps: msg.jsFps,
-            uiFps: msg.uiFps,
-            ram: msg.ram,
-            droppedFrames: msg.droppedFrames,
-            gcEvents: msg.gcEvents,
-            timestamp: msg.timestamp,
-            deviceId: msg.deviceId,
-          },
-        ];
-        return next.length > MAX_METRICS ? next.slice(-MAX_METRICS) : next;
-      });
-    },
+  const queryFn = useCallback(
+    (deviceId: string) =>
+      databaseClient.performance.query({ device_id: deviceId }),
     [],
   );
 
-  const deviceMetrics = useMemo(
-    () =>
-      selectedDeviceId
-        ? metrics.filter(m => m.deviceId === selectedDeviceId)
-        : [],
-    [metrics, selectedDeviceId],
+  const { data: rows, refetch } = useDatabaseSubscription(
+    'radar:db:performance:changed',
+    selectedDeviceId,
+    queryFn,
+    [] as PerformanceMetricRow[],
   );
 
-  const latestMetric =
-    deviceMetrics.length > 0 ? deviceMetrics[deviceMetrics.length - 1] : null;
+  const metrics = useMemo(() => rows.map(rowToDataPoint), [rows]);
+
+  const latestMetric = metrics.length > 0 ? metrics[metrics.length - 1] : null;
 
   const totalDroppedFrames = useMemo(
-    () => deviceMetrics.reduce((sum, m) => sum + m.droppedFrames, 0),
-    [deviceMetrics],
+    () => metrics.reduce((sum, m) => sum + m.droppedFrames, 0),
+    [metrics],
   );
 
   const totalGcEvents = useMemo(
-    () => deviceMetrics.reduce((sum, m) => sum + m.gcEvents, 0),
-    [deviceMetrics],
+    () => metrics.reduce((sum, m) => sum + m.gcEvents, 0),
+    [metrics],
   );
 
-  const clearMetrics = useCallback(() => {
-    setMetrics([]);
-    totalDroppedFramesRef.current = 0;
-    totalGcEventsRef.current = 0;
-  }, []);
+  const clearMetrics = useCallback(async () => {
+    if (!selectedDeviceId) return;
+    await databaseClient.performance.clear(selectedDeviceId);
+    refetch();
+  }, [selectedDeviceId, refetch]);
 
   return {
-    metrics: deviceMetrics,
+    metrics,
     latestMetric,
     totalDroppedFrames,
     totalGcEvents,
     clearMetrics,
-    handleMessage,
   };
 };
