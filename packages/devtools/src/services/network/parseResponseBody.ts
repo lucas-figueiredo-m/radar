@@ -28,10 +28,12 @@ export const parseResponseBody = async (
       case 'image': {
         const buffer = await clone.arrayBuffer();
         if (buffer.byteLength > MAX_BINARY_SIZE) {
-          return `[Binary: ${contentType ?? 'image'}, ${formatBytes(buffer.byteLength)}]`;
+          const size = formatBytes(buffer.byteLength);
+          return `[Binary: ${contentType ?? 'image'}, ${size}]`;
         }
         const base64 = arrayBufferToBase64(buffer);
-        return `data:${contentType?.split(';')[0] ?? 'image/png'};base64,${base64}`;
+        const mime = contentType?.split(';')[0] ?? 'image/png';
+        return `data:${mime};base64,${base64}`;
       }
 
       case 'html':
@@ -45,7 +47,9 @@ export const parseResponseBody = async (
       case 'pdf':
       case 'binary': {
         const buffer = await clone.arrayBuffer();
-        return `[Binary: ${contentType ?? 'application/octet-stream'}, ${formatBytes(buffer.byteLength)}]`;
+        const type = contentType ?? 'application/octet-stream';
+        const size = formatBytes(buffer.byteLength);
+        return `[Binary: ${type}, ${size}]`;
       }
     }
   } catch {
