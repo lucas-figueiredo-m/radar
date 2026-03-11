@@ -9,8 +9,15 @@ import {
 import { startDeviceDetection } from './deviceDetection';
 import { startWebSocketServer } from './websocketServer';
 import { setupAutoUpdater } from './autoUpdater';
+import { getDatabase, closeDatabase } from './database';
 import type { WebSocketServerHandle } from './websocketServer';
 import type { RadarCommand } from '@radar/types';
+import type {
+  ConsoleQueryFilter,
+  NetworkQueryFilter,
+  PerformanceQueryFilter,
+  QueryFilter,
+} from '@radar/database';
 
 process.env.DIST = path.join(__dirname, '../dist');
 process.env.VITE_PUBLIC = app.isPackaged
@@ -60,6 +67,118 @@ ipcMain.handle('radar:get-initial-state', () => ({
   connectedDeviceIds: wsHandle?.getConnectedDeviceIds() ?? [],
 }));
 
+// Database query IPC handlers
+ipcMain.handle(
+  'radar:db:console:query',
+  (_event, filter: ConsoleQueryFilter) => {
+    return getDatabase().console.query(filter);
+  },
+);
+
+ipcMain.handle(
+  'radar:db:console:count',
+  (_event, filter: ConsoleQueryFilter) => {
+    return getDatabase().console.count(filter);
+  },
+);
+
+ipcMain.handle('radar:db:console:clear', (_event, deviceId: string) => {
+  return getDatabase().console.clear(deviceId);
+});
+
+ipcMain.handle(
+  'radar:db:network:query',
+  (_event, filter: NetworkQueryFilter) => {
+    return getDatabase().network.query(filter);
+  },
+);
+
+ipcMain.handle(
+  'radar:db:network:count',
+  (_event, filter: NetworkQueryFilter) => {
+    return getDatabase().network.count(filter);
+  },
+);
+
+ipcMain.handle('radar:db:network:getById', (_event, id: string) => {
+  return getDatabase().network.getById(id);
+});
+
+ipcMain.handle('radar:db:network:clear', (_event, deviceId: string) => {
+  return getDatabase().network.clear(deviceId);
+});
+
+ipcMain.handle(
+  'radar:db:componentTree:getLatest',
+  (_event, deviceId: string) => {
+    return getDatabase().componentTree.getLatest(deviceId);
+  },
+);
+
+ipcMain.handle('radar:db:componentTree:clear', (_event, deviceId: string) => {
+  return getDatabase().componentTree.clear(deviceId);
+});
+
+ipcMain.handle(
+  'radar:db:profiler:getSessions',
+  (_event, filter: QueryFilter) => {
+    return getDatabase().profiler.getSessions(filter);
+  },
+);
+
+ipcMain.handle(
+  'radar:db:profiler:getCommitsBySession',
+  (_event, profilerSessionId: number) => {
+    return getDatabase().profiler.getCommitsBySession(profilerSessionId);
+  },
+);
+
+ipcMain.handle(
+  'radar:db:profiler:getLatestSession',
+  (_event, deviceId: string) => {
+    return getDatabase().profiler.getLatestSession(deviceId);
+  },
+);
+
+ipcMain.handle('radar:db:profiler:clear', (_event, deviceId: string) => {
+  return getDatabase().profiler.clear(deviceId);
+});
+
+ipcMain.handle(
+  'radar:db:performance:query',
+  (_event, filter: PerformanceQueryFilter) => {
+    return getDatabase().performance.query(filter);
+  },
+);
+
+ipcMain.handle(
+  'radar:db:performance:count',
+  (_event, filter: PerformanceQueryFilter) => {
+    return getDatabase().performance.count(filter);
+  },
+);
+
+ipcMain.handle('radar:db:performance:clear', (_event, deviceId: string) => {
+  return getDatabase().performance.clear(deviceId);
+});
+
+ipcMain.handle(
+  'radar:db:inspectedComponent:getByComponentId',
+  (_event, deviceId: string, componentId: string) => {
+    return getDatabase().inspectedComponent.getByComponentId(
+      deviceId,
+      componentId,
+    );
+  },
+);
+
+ipcMain.handle(
+  'radar:db:inspectedComponent:clear',
+  (_event, deviceId: string) => {
+    return getDatabase().inspectedComponent.clear(deviceId);
+  },
+);
+
 ipcMain.handle('radar:get-editor-info', () => {
   const editors = detectEditors();
   const preferred = getPreferredEditor();
@@ -108,7 +227,8 @@ app.whenReady().then(() => {
     const detection = startDeviceDetection(win);
     cleanupDeviceDetection = detection.cleanup;
 
-    wsHandle = startWebSocketServer(win, detection.getDetectedDevices);
+    const db = getDatabase();
+    wsHandle = startWebSocketServer(win, detection.getDetectedDevices, db);
   }
 
   if (app.isPackaged) {
@@ -124,6 +244,7 @@ app.on('window-all-closed', () => {
   cleanupDeviceDetection?.();
   cleanupDeviceDetection = null;
   wsHandle?.close();
+  closeDatabase();
   if (process.platform !== 'darwin') {
     app.quit();
     win = null;
