@@ -17,6 +17,19 @@ type NetworkDetailPanelProps = {
 const stringifyBody = (body: unknown): string =>
   typeof body === 'string' ? body : JSON.stringify(body, null, 2);
 
+const getResponseCopyText = (body: unknown): string | undefined => {
+  if (typeof body === 'string') {
+    if (body.startsWith('data:image/') || body.startsWith('[Binary:')) {
+      return undefined;
+    }
+    return body;
+  }
+  if (typeof body === 'object' && body !== null) {
+    return stringifyBody(body);
+  }
+  return undefined;
+};
+
 const parseQueryParams = (url: string): Array<[string, string]> => {
   try {
     const searchParams = new URL(url).searchParams;
@@ -179,15 +192,7 @@ export const NetworkDetailPanel = ({
       {request.responseBody !== undefined && (
         <DetailSection
           title="Response Body"
-          copyText={
-            typeof request.responseBody === 'string' &&
-            !request.responseBody.startsWith('data:image/') &&
-            !request.responseBody.startsWith('[Binary:')
-              ? request.responseBody
-              : typeof request.responseBody === 'object'
-                ? stringifyBody(request.responseBody)
-                : undefined
-          }
+          copyText={getResponseCopyText(request.responseBody)}
         >
           <ResponseBodyRenderer
             body={request.responseBody}
