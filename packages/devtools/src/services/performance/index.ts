@@ -1,6 +1,7 @@
 import type { RadarMessage } from '@radar/types';
 import { createJsFpsSampler } from './measureJsFps';
-import { measureRam } from './measureRam';
+import { measureJsHeap } from './measureJsHeap';
+import { getNativeMetrics } from './getNativeMetrics';
 
 export const createPerformanceService = (
   send: (message: RadarMessage) => void,
@@ -12,7 +13,8 @@ export const createPerformanceService = (
   const tick = () => {
     const jsFps = sampler.sample();
     const droppedFrames = sampler.getDroppedFrames();
-    const { bytes: ram, totalGCs } = measureRam();
+    const { bytes: jsHeap, totalGCs } = measureJsHeap();
+    const { uiFps, nativeRam, cpuUsage } = getNativeMetrics();
 
     let gcEvents = 0;
     if (totalGCs !== null && lastTotalGCs !== null) {
@@ -23,8 +25,10 @@ export const createPerformanceService = (
     send({
       type: 'performanceMetric',
       jsFps,
-      uiFps: null,
-      ram,
+      uiFps,
+      jsHeap,
+      nativeRam,
+      cpuUsage,
       droppedFrames,
       gcEvents,
       timestamp: Date.now(),

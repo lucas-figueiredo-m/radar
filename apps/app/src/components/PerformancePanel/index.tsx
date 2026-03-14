@@ -3,7 +3,7 @@ import { MetricChart } from './MetricChart';
 import { DroppedFramesTimeline } from './DroppedFramesTimeline';
 import { MemoryTrend } from './MemoryTrend';
 import { StartupBreakdown } from './StartupBreakdown';
-import { RAM_THRESHOLDS_MB } from './constants';
+import { JS_HEAP_THRESHOLDS_MB, NATIVE_RAM_THRESHOLDS_MB } from './constants';
 
 export { MetricChart } from './MetricChart';
 export type { MetricChartProps } from './MetricChart';
@@ -16,7 +16,9 @@ export { renderMetricChart } from './MetricChartCanvas';
 export {
   MAX_DATA_POINTS,
   FPS_THRESHOLDS,
-  RAM_THRESHOLDS_MB,
+  JS_HEAP_THRESHOLDS_MB,
+  NATIVE_RAM_THRESHOLDS_MB,
+  CPU_THRESHOLDS,
   CHART_PADDING,
   CHART_COLORS,
 } from './constants';
@@ -36,7 +38,9 @@ export const PerformancePanel = ({
 }: PerformancePanelProps) => {
   const jsFpsValues = metrics.map(m => m.jsFps);
   const uiFpsValues = metrics.map(m => m.uiFps);
-  const ramValues = metrics.map(m => m.ram);
+  const jsHeapValues = metrics.map(m => m.jsHeap);
+  const nativeRamValues = metrics.map(m => m.nativeRam);
+  const cpuValues = metrics.map(m => m.cpuUsage);
   const droppedFramesCounts = metrics.map(m => m.droppedFrames);
   const gcEventCounts = metrics.map(m => m.gcEvents);
 
@@ -52,7 +56,7 @@ export const PerformancePanel = ({
 
   return (
     <div className="flex-1 overflow-auto p-4 space-y-4">
-      {/* Top row: 3 metric charts */}
+      {/* Top row: JS FPS, UI FPS, JS Heap */}
       <div className="grid grid-cols-3 gap-4">
         <MetricChart
           values={jsFpsValues}
@@ -69,11 +73,31 @@ export const PerformancePanel = ({
           unit="fps"
         />
         <MetricChart
-          values={ramValues}
-          maxValue={RAM_THRESHOLDS_MB.bad * 1024 * 1024}
+          values={jsHeapValues}
+          maxValue={JS_HEAP_THRESHOLDS_MB.bad * 1024 * 1024}
           minValue={0}
-          title="RAM"
+          title="JS Heap"
           unit="MB"
+          invertColors
+        />
+      </div>
+
+      {/* Second row: Native RAM, CPU */}
+      <div className="grid grid-cols-2 gap-4">
+        <MetricChart
+          values={nativeRamValues}
+          maxValue={NATIVE_RAM_THRESHOLDS_MB.bad * 1024 * 1024}
+          minValue={0}
+          title="Native RAM"
+          unit="MB"
+          invertColors
+        />
+        <MetricChart
+          values={cpuValues}
+          maxValue={100}
+          minValue={0}
+          title="CPU"
+          unit="%"
           invertColors
         />
       </div>
@@ -84,9 +108,9 @@ export const PerformancePanel = ({
         totalDroppedFrames={totalDroppedFrames}
       />
 
-      {/* Memory Trend with GC Markers */}
+      {/* JS Heap Trend with GC Markers */}
       <MemoryTrend
-        ramValues={ramValues}
+        jsHeapValues={jsHeapValues}
         gcEventCounts={gcEventCounts}
         totalGcEvents={totalGcEvents}
       />

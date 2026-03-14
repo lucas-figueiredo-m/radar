@@ -13,12 +13,12 @@ type PerformanceWithMemory = Performance & {
   memory?: { usedJSHeapSize: number };
 };
 
-export type RamSnapshot = {
+export type JsHeapSnapshot = {
   bytes: number | null;
   totalGCs: number | null;
 };
 
-export const measureRam = (): RamSnapshot => {
+export const measureJsHeap = (): JsHeapSnapshot => {
   const hermes = (globalThis as { HermesInternal?: HermesInternal })
     .HermesInternal;
   if (hermes?.getInstrumentedStats) {

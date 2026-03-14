@@ -32,7 +32,9 @@ export const usePerformanceMetrics = (selectedDeviceId: string | null) => {
           {
             jsFps: msg.jsFps,
             uiFps: msg.uiFps,
-            ram: msg.ram,
+            jsHeap: msg.jsHeap,
+            nativeRam: msg.nativeRam,
+            cpuUsage: msg.cpuUsage,
             droppedFrames: msg.droppedFrames,
             gcEvents: msg.gcEvents,
             timestamp: msg.timestamp,
