@@ -1,127 +1,125 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useConsoleLogs } from './useConsoleLogs';
+
+type IpcHandler = (...args: unknown[]) => void;
+
+const listeners = new Map<string, IpcHandler>();
 
 vi.mock('../services', () => ({
   ipcRenderer: {
-    on: vi.fn(),
-    removeListener: vi.fn(),
+    on: vi.fn((channel: string, handler: IpcHandler) => {
+      listeners.set(channel, handler);
+    }),
+    removeListener: vi.fn((channel: string) => {
+      listeners.delete(channel);
+    }),
+    invoke: vi.fn(),
   },
   sendCommand: vi.fn(),
+  databaseClient: {
+    console: {
+      query: vi.fn().mockResolvedValue([]),
+      count: vi.fn().mockResolvedValue(0),
+      clear: vi.fn().mockResolvedValue(0),
+    },
+  },
 }));
 
+const { databaseClient } = await import('../services');
+const mockQuery = databaseClient.console.query as ReturnType<typeof vi.fn>;
+const mockClear = databaseClient.console.clear as ReturnType<typeof vi.fn>;
+
 const DEVICE_ID = 'device-1';
+
+const mkRow = (overrides: Record<string, unknown> = {}) => ({
+  id: 1,
+  device_id: DEVICE_ID,
+  level: 'log',
+  args: JSON.stringify(['hello']),
+  timestamp: 1000,
+  db_created_at: 1000,
+  ...overrides,
+});
 
 describe('useConsoleLogs', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    listeners.clear();
+    mockQuery.mockResolvedValue([]);
   });
 
-  it('adds console messages to logs via handleMessage', () => {
+  it('queries DB on mount with deviceId', async () => {
+    mockQuery.mockResolvedValue([mkRow()]);
     const { result } = renderHook(() => useConsoleLogs(DEVICE_ID));
 
-    act(() => {
-      result.current.handleMessage(
-        {},
-        {
-          type: 'console',
-          level: 'log',
-          args: ['hello'],
-          timestamp: 1000,
-          deviceId: DEVICE_ID,
-        },
-      );
+    await waitFor(() => {
+      expect(result.current.logs).toHaveLength(1);
     });
 
-    expect(result.current.logs).toHaveLength(1);
     expect(result.current.logs[0].level).toBe('log');
     expect(result.current.logs[0].args).toEqual(['hello']);
     expect(result.current.logs[0].deviceId).toBe(DEVICE_ID);
   });
 
-  it('auto-increments log id', () => {
-    const { result } = renderHook(() => useConsoleLogs(DEVICE_ID));
+  it('returns empty logs when deviceId is null', async () => {
+    const { result } = renderHook(() => useConsoleLogs(null));
 
-    act(() => {
-      result.current.handleMessage(
-        {},
-        {
-          type: 'console',
-          level: 'log',
-          args: ['first'],
-          timestamp: 1000,
-          deviceId: DEVICE_ID,
-        },
-      );
-      result.current.handleMessage(
-        {},
-        {
-          type: 'console',
-          level: 'warn',
-          args: ['second'],
-          timestamp: 2000,
-          deviceId: DEVICE_ID,
-        },
-      );
+    await waitFor(() => {
+      expect(result.current.logs).toHaveLength(0);
     });
 
-    expect(result.current.logs[1].id).toBe(result.current.logs[0].id + 1);
+    expect(mockQuery).not.toHaveBeenCalled();
   });
 
-  it('filters logs by selectedDeviceId', () => {
+  it('re-queries when notification arrives', async () => {
+    mockQuery.mockResolvedValue([]);
     const { result } = renderHook(() => useConsoleLogs(DEVICE_ID));
 
-    act(() => {
-      result.current.handleMessage(
-        {},
-        {
-          type: 'console',
-          level: 'log',
-          args: ['mine'],
-          timestamp: 1000,
-          deviceId: DEVICE_ID,
-        },
-      );
-      result.current.handleMessage(
-        {},
-        {
-          type: 'console',
-          level: 'log',
-          args: ['other'],
-          timestamp: 2000,
-          deviceId: 'device-2',
-        },
-      );
+    await waitFor(() => {
+      expect(mockQuery).toHaveBeenCalledTimes(1);
     });
 
-    expect(result.current.logs).toHaveLength(1);
-    expect(result.current.logs[0].args).toEqual(['mine']);
+    mockQuery.mockResolvedValue([
+      mkRow(),
+      mkRow({ id: 2, args: JSON.stringify(['world']) }),
+    ]);
+    const handler = listeners.get('radar:db:console:changed');
+    act(() => {
+      handler?.({}, { deviceId: DEVICE_ID });
+    });
+
+    await waitFor(() => {
+      expect(result.current.logs).toHaveLength(2);
+    });
   });
 
-  it('filters logs by level with setFilter', () => {
+  it('ignores notifications for other devices', async () => {
+    mockQuery.mockResolvedValue([mkRow()]);
+    renderHook(() => useConsoleLogs(DEVICE_ID));
+
+    await waitFor(() => {
+      expect(mockQuery).toHaveBeenCalledTimes(1);
+    });
+
+    const handler = listeners.get('radar:db:console:changed');
+    act(() => {
+      handler?.({}, { deviceId: 'device-other' });
+    });
+
+    // Should not re-query
+    expect(mockQuery).toHaveBeenCalledTimes(1);
+  });
+
+  it('filters logs by level with setFilter', async () => {
+    mockQuery.mockResolvedValue([
+      mkRow({ id: 1, level: 'log', args: JSON.stringify(['info']) }),
+      mkRow({ id: 2, level: 'warn', args: JSON.stringify(['warning']) }),
+    ]);
     const { result } = renderHook(() => useConsoleLogs(DEVICE_ID));
 
-    act(() => {
-      result.current.handleMessage(
-        {},
-        {
-          type: 'console',
-          level: 'log',
-          args: ['info'],
-          timestamp: 1000,
-          deviceId: DEVICE_ID,
-        },
-      );
-      result.current.handleMessage(
-        {},
-        {
-          type: 'console',
-          level: 'warn',
-          args: ['warning'],
-          timestamp: 2000,
-          deviceId: DEVICE_ID,
-        },
-      );
+    await waitFor(() => {
+      expect(result.current.logs).toHaveLength(2);
     });
 
     act(() => {
@@ -132,52 +130,19 @@ describe('useConsoleLogs', () => {
     expect(result.current.filteredLogs[0].level).toBe('warn');
   });
 
-  it('ignores non-console messages', () => {
+  it('clearLogs calls databaseClient.console.clear', async () => {
+    mockQuery.mockResolvedValue([mkRow()]);
     const { result } = renderHook(() => useConsoleLogs(DEVICE_ID));
 
-    act(() => {
-      result.current.handleMessage(
-        {},
-        {
-          type: 'network',
-          deviceId: DEVICE_ID,
-        },
-      );
+    await waitFor(() => {
+      expect(result.current.logs).toHaveLength(1);
     });
 
-    expect(result.current.logs).toHaveLength(0);
-  });
-
-  it('clearLogs removes only logs for selected device', () => {
-    const { result } = renderHook(() => useConsoleLogs(DEVICE_ID));
-
-    act(() => {
-      result.current.handleMessage(
-        {},
-        {
-          type: 'console',
-          level: 'log',
-          args: ['mine'],
-          timestamp: 1000,
-          deviceId: DEVICE_ID,
-        },
-      );
-      result.current.handleMessage(
-        {},
-        {
-          type: 'console',
-          level: 'log',
-          args: ['other'],
-          timestamp: 2000,
-          deviceId: 'device-2',
-        },
-      );
+    mockQuery.mockResolvedValue([]);
+    await act(async () => {
+      await result.current.clearLogs();
     });
 
-    act(() => {
-      result.current.clearLogs();
-    });
-
-    expect(result.current.logs).toHaveLength(0);
+    expect(mockClear).toHaveBeenCalledWith(DEVICE_ID);
   });
 });

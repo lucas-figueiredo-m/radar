@@ -4,6 +4,21 @@ import type { LogEntry } from '../../types';
 
 Element.prototype.scrollIntoView = vi.fn();
 
+vi.mock('@tanstack/react-virtual', () => ({
+  useVirtualizer: ({ count }: { count: number }) => ({
+    getTotalSize: () => count * 32,
+    getVirtualItems: () =>
+      Array.from({ length: count }, (_, i) => ({
+        index: i,
+        key: i,
+        start: i * 32,
+        size: 32,
+      })),
+    measureElement: () => undefined,
+    scrollToIndex: () => undefined,
+  }),
+}));
+
 vi.mock('@radar/design-system', () => ({
   colorValues: new Proxy(
     {},
@@ -158,11 +173,10 @@ describe('ConsolePanel', () => {
       mkLog({ id: 2, args: ['dup'], timestamp: 2000 }),
     ];
     render(<ConsolePanel {...defaultProps} logs={logs} connected={true} />);
-    const badge = screen.getByText('x2');
-    fireEvent.click(badge);
+    fireEvent.click(screen.getByText('x2'));
     const expandedCount = screen.getAllByText('dup').length;
 
-    fireEvent.click(badge);
+    fireEvent.click(screen.getByText(/–2/));
     const collapsedCount = screen.getAllByText('dup').length;
     expect(collapsedCount).toBeLessThan(expandedCount);
   });

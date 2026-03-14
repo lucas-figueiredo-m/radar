@@ -1,82 +1,61 @@
 import { useCallback, useMemo, useState } from 'react';
-import type { NetworkMessage } from '@radar/types';
+import type { NetworkRequestRow } from '@radar/database';
+import { databaseClient } from '../services';
 import type { NetworkEntry } from '../types';
-import { MAX_REQUESTS } from './constants';
+import { useDatabaseSubscription } from './useDatabaseSubscription';
 
-type StampedMessage = Record<string, unknown> & {
-  type: string;
-  deviceId: string;
-};
-type StampedNetworkMessage = NetworkMessage & { deviceId: string };
+const rowToNetworkEntry = (row: NetworkRequestRow): NetworkEntry => ({
+  id: row.id,
+  method: row.method,
+  url: row.url,
+  graphql:
+    row.graphql_type && row.graphql_name
+      ? { operationType: row.graphql_type, operationName: row.graphql_name }
+      : undefined,
+  status: row.status ?? undefined,
+  statusText: row.status_text ?? undefined,
+  duration: row.duration ?? undefined,
+  requestHeaders: row.request_headers
+    ? (JSON.parse(row.request_headers) as Record<string, string>)
+    : undefined,
+  requestBody: row.request_body ? JSON.parse(row.request_body) : undefined,
+  responseHeaders: row.response_headers
+    ? (JSON.parse(row.response_headers) as Record<string, string>)
+    : undefined,
+  responseBody: row.response_body ? JSON.parse(row.response_body) : undefined,
+  timestamp: row.timestamp,
+  pending: row.pending === 1,
+  deviceId: row.device_id,
+});
 
 export const useNetworkRequests = (selectedDeviceId: string | null) => {
-  const [requests, setRequests] = useState<NetworkEntry[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
 
-  const handleMessage = useCallback(
-    (_event: unknown, message: StampedMessage) => {
-      if (message.type !== 'network') return;
-
-      const msg = message as StampedNetworkMessage;
-
-      if (msg.event === 'request') {
-        setRequests(prev => {
-          const next = [
-            ...prev,
-            {
-              id: msg.id,
-              method: msg.method,
-              url: msg.url,
-              graphql: msg.graphql,
-              requestHeaders: msg.requestHeaders,
-              requestBody: msg.requestBody,
-              timestamp: msg.timestamp,
-              pending: true,
-              deviceId: msg.deviceId,
-            },
-          ];
-          return next.length > MAX_REQUESTS ? next.slice(-MAX_REQUESTS) : next;
-        });
-      } else if (msg.event === 'response') {
-        setRequests(prev =>
-          prev.map(r =>
-            r.id === msg.id
-              ? {
-                  ...r,
-                  status: msg.status,
-                  statusText: msg.statusText,
-                  duration: msg.duration,
-                  responseHeaders: msg.responseHeaders,
-                  responseBody: msg.responseBody,
-                  pending: false,
-                }
-              : r,
-          ),
-        );
-      }
-    },
+  const queryFn = useCallback(
+    (deviceId: string) => databaseClient.network.query({ device_id: deviceId }),
     [],
   );
 
-  const deviceRequests = useMemo(
-    () =>
-      selectedDeviceId
-        ? requests.filter(r => r.deviceId === selectedDeviceId)
-        : [],
-    [requests, selectedDeviceId],
+  const { data: rows, refetch } = useDatabaseSubscription(
+    'radar:db:network:changed',
+    selectedDeviceId,
+    queryFn,
+    [] as NetworkRequestRow[],
   );
 
-  const clearRequests = useCallback(() => {
+  const requests = useMemo(() => rows.map(rowToNetworkEntry), [rows]);
+
+  const clearRequests = useCallback(async () => {
     if (!selectedDeviceId) return;
-    setRequests(prev => prev.filter(r => r.deviceId !== selectedDeviceId));
+    await databaseClient.network.clear(selectedDeviceId);
     setSelectedRequest(null);
-  }, [selectedDeviceId]);
+    refetch();
+  }, [selectedDeviceId, refetch]);
 
   return {
-    requests: deviceRequests,
+    requests,
     selectedRequest,
     setSelectedRequest,
     clearRequests,
-    handleMessage,
   };
 };
