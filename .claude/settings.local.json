@@ -52,7 +52,12 @@
       "mcp__plugin_linear_linear__list_issue_labels",
       "Bash(bundle install:*)",
       "Bash(bundle exec:*)",
-      "Bash(gh pr:*)"
+      "Bash(gh pr:*)",
+      "WebFetch(domain:fbidb.io)",
+      "Bash(find /Users/lucasfigueiredo/www/projects/radar/packages -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) 2>/dev/null | head -40)",
+      "Bash(cp:*)",
+      "Bash(pod install:*)",
+      "Bash(cd:*)"
     ]
   }
 }
