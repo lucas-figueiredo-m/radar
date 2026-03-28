@@ -5,6 +5,7 @@ import {
   installComponentTreeHook,
   createProfilerService,
   createPerformanceService,
+  createStartupService,
 } from './services';
 import { inspectComponent } from './services/componentTree/inspectComponent';
 import { createConnection } from './connection';
@@ -46,6 +47,11 @@ const getProjectRoot = (config: RadarConfig): string | undefined => {
 };
 
 let initialized = false;
+let startupRef: ReturnType<typeof createStartupService> | null = null;
+
+export const markInteractive = () => {
+  startupRef?.markInteractive();
+};
 
 export const init = (config: RadarConfig = {}) => {
   if (initialized) return;
@@ -71,6 +77,8 @@ export const init = (config: RadarConfig = {}) => {
 
   const profiler = createProfilerService(send);
   const performanceService = createPerformanceService(send);
+  const startup = createStartupService(send);
+  startupRef = startup;
   const originalConsole = patchConsole(send);
 
   // Always start profiling eagerly to capture early commits.
@@ -101,6 +109,8 @@ export const init = (config: RadarConfig = {}) => {
   addCommitListener(profiler.handleCommit);
 
   connect(host, port, originalConsole);
+
+  setTimeout(() => startup.sendWithoutTti(), 10000);
 
   originalConsole.log('[radar] devtools initialized');
 };

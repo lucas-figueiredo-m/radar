@@ -8,6 +8,7 @@ export interface Spec extends TurboModule {
     nativeRam: number;
     cpuUsage: number;
   };
+  getNativeLaunchTime(): number;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('RadarPerformance');

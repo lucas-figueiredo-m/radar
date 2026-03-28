@@ -4,6 +4,7 @@
 
 #import <QuartzCore/CADisplayLink.h>
 #import <mach/mach.h>
+#import <sys/sysctl.h>
 
 @implementation RadarPerformance {
   CADisplayLink *_displayLink;
@@ -83,6 +84,23 @@ RCT_EXPORT_MODULE(RadarPerformance)
     @"nativeRam": @([self nativeRam]),
     @"cpuUsage": @([self cpuUsage]),
   };
+}
+
+- (NSNumber *)getNativeLaunchTime {
+  // Get process start time via sysctl
+  struct kinfo_proc info;
+  size_t size = sizeof(info);
+  int mib[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid() };
+
+  if (sysctl(mib, 4, &info, &size, NULL, 0) != 0) {
+    return @(0);
+  }
+
+  struct timeval startTime = info.kp_proc.p_starttime;
+  double processStartMs = startTime.tv_sec * 1000.0 + startTime.tv_usec / 1000.0;
+  double nowMs = [[NSDate date] timeIntervalSince1970] * 1000.0;
+
+  return @(nowMs - processStartMs);
 }
 
 - (void)dealloc {

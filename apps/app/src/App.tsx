@@ -20,6 +20,7 @@ import {
   useComponentTree,
   useProfiler,
   usePerformanceMetrics,
+  useStartupMetrics,
   useEditorPreference,
 } from './hooks';
 import { ipcRenderer } from './services';
@@ -96,6 +97,12 @@ const App = () => {
     handleMessage: handlePerformanceMessage,
   } = usePerformanceMetrics(selectedDeviceId);
 
+  const {
+    startupData,
+    clearStartup,
+    handleMessage: handleStartupMessage,
+  } = useStartupMetrics(selectedDeviceId);
+
   useEffect(() => {
     const onMessage = (
       event: unknown,
@@ -106,6 +113,7 @@ const App = () => {
       handleTreeMessage(event, message);
       handleProfilerMessage(event, message);
       handlePerformanceMessage(event, message);
+      handleStartupMessage(event, message);
     };
 
     ipcRenderer.on('radar:message', onMessage);
@@ -119,6 +127,7 @@ const App = () => {
     handleTreeMessage,
     handleProfilerMessage,
     handlePerformanceMessage,
+    handleStartupMessage,
   ]);
 
   useEffect(() => {
@@ -145,6 +154,7 @@ const App = () => {
       clearProfilerData();
     } else if (tab === 'performance') {
       clearPerformanceMetrics();
+      clearStartup();
     } else {
       clearRequests();
     }
@@ -207,6 +217,7 @@ const App = () => {
         totalDroppedFrames={totalDroppedFrames}
         totalGcEvents={totalGcEvents}
         connected={connected}
+        startupData={startupData}
       />
     ),
     devtools: <DevToolsPanel />,

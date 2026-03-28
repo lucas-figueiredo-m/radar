@@ -1,4 +1,4 @@
-import type { PerformanceDataPoint } from '../../types';
+import type { PerformanceDataPoint, StartupData } from '../../types';
 import { MetricChart } from './MetricChart';
 import { DroppedFramesTimeline } from './DroppedFramesTimeline';
 import { MemoryTrend } from './MemoryTrend';
@@ -28,6 +28,7 @@ export type PerformancePanelProps = {
   totalDroppedFrames: number;
   totalGcEvents: number;
   connected: boolean;
+  startupData: StartupData | null;
 };
 
 export const PerformancePanel = ({
@@ -35,6 +36,7 @@ export const PerformancePanel = ({
   totalDroppedFrames,
   totalGcEvents,
   connected,
+  startupData,
 }: PerformancePanelProps) => {
   const jsFpsValues = metrics.map(m => m.jsFps);
   const uiFpsValues = metrics.map(m => m.uiFps);
@@ -119,7 +121,7 @@ export const PerformancePanel = ({
       />
 
       {/* Startup Breakdown */}
-      <StartupBreakdown />
+      <StartupBreakdown startupData={startupData} connected={connected} />
     </div>
   );
 };

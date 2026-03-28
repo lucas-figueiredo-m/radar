@@ -4,7 +4,8 @@ import type { ComponentTreeMessage, InspectComponentResponse, InspectComponentRe
 import type { MetadataMessage } from './metadata';
 import type { ProfilerSessionMessage, StartProfilingCommand, StopProfilingCommand, ReloadAndProfileCommand, ProfilingStatusCommand } from './profiler';
 import type { PerformanceMetricMessage } from './performance';
+import type { StartupMetricsMessage } from './startup';
 
-export type RadarMessage = ConsoleMessage | NetworkMessage | ComponentTreeMessage | InspectComponentResponse | MetadataMessage | ProfilerSessionMessage | PerformanceMetricMessage;
+export type RadarMessage = ConsoleMessage | NetworkMessage | ComponentTreeMessage | InspectComponentResponse | MetadataMessage | ProfilerSessionMessage | PerformanceMetricMessage | StartupMetricsMessage;
 
 export type RadarCommand = InspectComponentRequest | StartProfilingCommand | StopProfilingCommand | ReloadAndProfileCommand | ProfilingStatusCommand;

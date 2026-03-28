@@ -1,6 +1,7 @@
 package com.radardevtools.native
 
 import android.os.Debug
+import android.os.SystemClock
 import android.view.Choreographer
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
@@ -78,6 +79,25 @@ class RadarPerformanceModule(reactContext: ReactApplicationContext) :
             } else {
                 0.0
             }
+        } catch (e: Exception) {
+            return 0.0
+        }
+    }
+
+    override fun getNativeLaunchTime(): Double {
+        try {
+            val reader = RandomAccessFile("/proc/self/stat", "r")
+            val line = reader.readLine()
+            reader.close()
+
+            val parts = line.split(" ")
+            // Field 22 (index 21) is starttime in clock ticks since boot
+            val startTimeTicks = parts[21].toLong()
+            val ticksPerSecond = 100L // standard on Android
+            val processStartMs = (startTimeTicks * 1000) / ticksPerSecond
+            val uptimeMs = SystemClock.elapsedRealtime()
+
+            return (uptimeMs - processStartMs).toDouble()
         } catch (e: Exception) {
             return 0.0
         }
