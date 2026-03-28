@@ -9,6 +9,7 @@ export type MetricChartProps = {
   title: string;
   unit: string;
   invertColors?: boolean;
+  aspectRatio?: string;
 };
 
 type HoverState = {
@@ -35,6 +36,7 @@ export const MetricChart = ({
   title,
   unit,
   invertColors = false,
+  aspectRatio,
 }: MetricChartProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -126,8 +128,8 @@ export const MetricChart = ({
   return (
     <div
       ref={containerRef}
-      className="relative aspect-square rounded-lg overflow-hidden"
-      style={{ backgroundColor: '#111827' }}
+      className="relative rounded-lg overflow-hidden"
+      style={{ backgroundColor: '#111827', aspectRatio: aspectRatio ?? '1' }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >

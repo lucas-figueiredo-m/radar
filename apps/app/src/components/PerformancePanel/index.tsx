@@ -101,6 +101,7 @@ export const PerformancePanel = ({
           title="Native RAM"
           unit="MB"
           invertColors
+          aspectRatio="2 / 1"
         />
         <MetricChart
           values={cpuValues}
@@ -110,6 +111,7 @@ export const PerformancePanel = ({
           title="CPU"
           unit="%"
           invertColors
+          aspectRatio="2 / 1"
         />
       </div>
 
