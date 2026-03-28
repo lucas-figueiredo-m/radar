@@ -6,10 +6,12 @@ export type HoverInfo = {
   y: number;
   value: number;
   formattedValue: string;
+  timestamp: number | null;
 } | null;
 
 type RenderOptions = {
   values: (number | null)[];
+  timestamps?: number[];
   maxValue: number;
   minValue: number;
   title: string;
@@ -86,7 +88,13 @@ export const renderMetricChart = (
   }
 
   // Filter out null values and build drawable points
-  const drawablePoints: { x: number; y: number; value: number }[] = [];
+  const timestamps = options.timestamps;
+  const drawablePoints: {
+    x: number;
+    y: number;
+    value: number;
+    index: number;
+  }[] = [];
   for (let i = 0; i < values.length; i++) {
     const v = values[i];
     if (v !== null) {
@@ -95,6 +103,7 @@ export const renderMetricChart = (
         x: mapX(i + offset),
         y: mapY(v),
         value: v,
+        index: i,
       });
     }
   }
@@ -225,6 +234,7 @@ export const renderMetricChart = (
       y: closest.y,
       value: closest.value,
       formattedValue: formatValue(closest.value, unit),
+      timestamp: timestamps?.[closest.index] ?? null,
     };
   }
 

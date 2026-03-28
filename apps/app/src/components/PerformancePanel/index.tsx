@@ -43,6 +43,7 @@ export const PerformancePanel = ({
   const jsHeapValues = metrics.map(m => m.jsHeap);
   const nativeRamValues = metrics.map(m => m.nativeRam);
   const cpuValues = metrics.map(m => m.cpuUsage);
+  const timestamps = metrics.map(m => m.timestamp);
   const droppedFramesCounts = metrics.map(m => m.droppedFrames);
   const gcEventCounts = metrics.map(m => m.gcEvents);
 
@@ -62,6 +63,7 @@ export const PerformancePanel = ({
       <div className="grid grid-cols-3 gap-4">
         <MetricChart
           values={jsFpsValues}
+          timestamps={timestamps}
           maxValue={65}
           minValue={0}
           title="JS FPS"
@@ -69,6 +71,7 @@ export const PerformancePanel = ({
         />
         <MetricChart
           values={uiFpsValues}
+          timestamps={timestamps}
           maxValue={65}
           minValue={0}
           title="UI FPS"
@@ -76,6 +79,7 @@ export const PerformancePanel = ({
         />
         <MetricChart
           values={jsHeapValues}
+          timestamps={timestamps}
           maxValue={JS_HEAP_THRESHOLDS_MB.bad * 1024 * 1024}
           minValue={0}
           title="JS Heap"
@@ -88,6 +92,7 @@ export const PerformancePanel = ({
       <div className="grid grid-cols-2 gap-4">
         <MetricChart
           values={nativeRamValues}
+          timestamps={timestamps}
           maxValue={Math.max(
             NATIVE_RAM_THRESHOLDS_MB.good * 1024 * 1024,
             ...nativeRamValues.map(v => (v ?? 0) * 1.3),
@@ -99,6 +104,7 @@ export const PerformancePanel = ({
         />
         <MetricChart
           values={cpuValues}
+          timestamps={timestamps}
           maxValue={Math.max(100, ...cpuValues.map(v => (v ?? 0) * 1.2))}
           minValue={0}
           title="CPU"
