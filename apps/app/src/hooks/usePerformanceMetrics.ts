@@ -16,10 +16,20 @@ export const usePerformanceMetrics = (selectedDeviceId: string | null) => {
   const [metrics, setMetrics] = useState<PerformanceDataPoint[]>([]);
   const totalDroppedFramesRef = useRef(0);
   const totalGcEventsRef = useRef(0);
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(false);
+
+  const togglePause = useCallback(() => {
+    setPaused(prev => {
+      pausedRef.current = !prev;
+      return !prev;
+    });
+  }, []);
 
   const handleMessage = useCallback(
     (_event: unknown, message: StampedMessage) => {
       if (message.type !== 'performanceMetric') return;
+      if (pausedRef.current) return;
 
       const msg = message as StampedPerformanceMessage;
 
@@ -79,6 +89,8 @@ export const usePerformanceMetrics = (selectedDeviceId: string | null) => {
     latestMetric,
     totalDroppedFrames,
     totalGcEvents,
+    paused,
+    togglePause,
     clearMetrics,
     handleMessage,
   };

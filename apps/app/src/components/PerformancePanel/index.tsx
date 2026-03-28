@@ -29,6 +29,8 @@ export type PerformancePanelProps = {
   totalGcEvents: number;
   connected: boolean;
   startupData: StartupData | null;
+  paused: boolean;
+  onTogglePause: () => void;
 };
 
 export const PerformancePanel = ({
@@ -37,6 +39,8 @@ export const PerformancePanel = ({
   totalGcEvents,
   connected,
   startupData,
+  paused,
+  onTogglePause,
 }: PerformancePanelProps) => {
   const jsFpsValues = metrics.map(m => m.jsFps);
   const uiFpsValues = metrics.map(m => m.uiFps);
@@ -59,6 +63,20 @@ export const PerformancePanel = ({
 
   return (
     <div className="flex-1 overflow-auto p-4 space-y-4">
+      {/* Pause/Resume toggle */}
+      <div className="flex items-center justify-end">
+        <button
+          onClick={onTogglePause}
+          className={`text-xs font-mono px-3 py-1 rounded border transition-colors ${
+            paused
+              ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20'
+              : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/20'
+          }`}
+        >
+          {paused ? 'Paused — Resume' : 'Pause'}
+        </button>
+      </div>
+
       {/* Top row: JS FPS, UI FPS, JS Heap */}
       <div className="grid grid-cols-3 gap-4">
         <MetricChart

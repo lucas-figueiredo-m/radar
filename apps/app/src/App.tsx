@@ -93,6 +93,8 @@ const App = () => {
     latestMetric,
     totalDroppedFrames,
     totalGcEvents,
+    paused: performancePaused,
+    togglePause: togglePerformancePause,
     clearMetrics: clearPerformanceMetrics,
     handleMessage: handlePerformanceMessage,
   } = usePerformanceMetrics(selectedDeviceId);
@@ -218,6 +220,8 @@ const App = () => {
         totalGcEvents={totalGcEvents}
         connected={connected}
         startupData={startupData}
+        paused={performancePaused}
+        onTogglePause={togglePerformancePause}
       />
     ),
     devtools: <DevToolsPanel />,
