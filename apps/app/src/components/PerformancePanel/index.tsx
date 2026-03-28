@@ -86,7 +86,10 @@ export const PerformancePanel = ({
       <div className="grid grid-cols-2 gap-4">
         <MetricChart
           values={nativeRamValues}
-          maxValue={NATIVE_RAM_THRESHOLDS_MB.bad * 1024 * 1024}
+          maxValue={Math.max(
+            NATIVE_RAM_THRESHOLDS_MB.good * 1024 * 1024,
+            ...nativeRamValues.map(v => (v ?? 0) * 1.3),
+          )}
           minValue={0}
           title="Native RAM"
           unit="MB"
@@ -94,7 +97,7 @@ export const PerformancePanel = ({
         />
         <MetricChart
           values={cpuValues}
-          maxValue={100}
+          maxValue={Math.max(100, ...cpuValues.map(v => (v ?? 0) * 1.2))}
           minValue={0}
           title="CPU"
           unit="%"

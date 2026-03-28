@@ -19,6 +19,7 @@ const clamp = (value: number, min: number, max: number): number =>
 
 const formatValue = (value: number, unit: string): string => {
   if (unit === 'MB') return `${(value / (1024 * 1024)).toFixed(0)} ${unit}`;
+  if (unit === '%') return `${value.toFixed(1)} ${unit}`;
   return `${Math.round(value)} ${unit}`;
 };
 
