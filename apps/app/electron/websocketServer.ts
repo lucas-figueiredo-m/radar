@@ -5,7 +5,14 @@ import type {
   DevicePlatform,
   DetectedDevice,
   MetadataMessage,
+  ConsoleMessage,
+  NetworkMessage,
+  ComponentTreeMessage,
+  InspectComponentResponse,
+  ProfilerSessionMessage,
+  PerformanceMetricMessage,
 } from '@radar/types';
+import type { RadarDatabase } from '@radar/database';
 
 type ConnectedDevice = {
   socket: WsWebSocket;
@@ -37,9 +44,147 @@ const isMetadataMessage = (
 
 const WS_PORT = 8347;
 
+const NOTIFICATION_CHANNELS: Record<string, string> = {
+  console: 'radar:db:console:changed',
+  network: 'radar:db:network:changed',
+  componentTree: 'radar:db:componentTree:changed',
+  inspectComponent: 'radar:db:inspectedComponent:changed',
+  profilerSession: 'radar:db:profiler:changed',
+  performanceMetric: 'radar:db:performance:changed',
+};
+
+const notifyRenderer = (
+  win: BrowserWindow,
+  deviceId: string,
+  message: ParsedMessage,
+): void => {
+  const channel = NOTIFICATION_CHANNELS[message.type as string];
+  if (!channel) return;
+
+  const payload =
+    message.type === 'inspectComponent'
+      ? { deviceId, componentId: String(message.componentId) }
+      : { deviceId };
+
+  win.webContents.send(channel, payload);
+};
+
+const persistMessage = (
+  db: RadarDatabase,
+  deviceId: string,
+  message: ParsedMessage,
+): void => {
+  try {
+    switch (message.type) {
+      case 'console': {
+        const msg = message as unknown as ConsoleMessage;
+        db.console.insert({
+          device_id: deviceId,
+          level: msg.level,
+          args: JSON.stringify(msg.args),
+          timestamp: msg.timestamp,
+        });
+        break;
+      }
+      case 'network': {
+        const msg = message as unknown as NetworkMessage;
+        if (msg.event === 'request') {
+          db.network.insertRequest({
+            id: msg.id,
+            device_id: deviceId,
+            method: msg.method,
+            url: msg.url,
+            request_headers: msg.requestHeaders
+              ? JSON.stringify(msg.requestHeaders)
+              : null,
+            request_body:
+              msg.requestBody !== undefined
+                ? JSON.stringify(msg.requestBody)
+                : null,
+            graphql_type: msg.graphql?.operationType ?? null,
+            graphql_name: msg.graphql?.operationName ?? null,
+            timestamp: msg.timestamp,
+          });
+        } else {
+          db.network.updateResponse({
+            id: msg.id,
+            status: msg.status ?? null,
+            status_text: msg.statusText ?? null,
+            response_headers: msg.responseHeaders
+              ? JSON.stringify(msg.responseHeaders)
+              : null,
+            response_body:
+              msg.responseBody !== undefined
+                ? JSON.stringify(msg.responseBody)
+                : null,
+            duration: msg.duration ?? null,
+            response_timestamp: msg.timestamp ?? null,
+          });
+        }
+        break;
+      }
+      case 'componentTree': {
+        const msg = message as unknown as ComponentTreeMessage;
+        db.componentTree.insert({
+          device_id: deviceId,
+          root_nodes: JSON.stringify(msg.rootNodes),
+          timestamp: msg.timestamp,
+        });
+        break;
+      }
+      case 'inspectComponent': {
+        const msg = message as unknown as InspectComponentResponse;
+        if (msg.direction === 'response' && msg.data) {
+          db.inspectedComponent.upsert({
+            device_id: deviceId,
+            component_id: msg.componentId,
+            data: JSON.stringify(msg.data),
+            timestamp: msg.timestamp,
+          });
+        }
+        break;
+      }
+      case 'profilerSession': {
+        const msg = message as unknown as ProfilerSessionMessage;
+        const session = db.profiler.insertSession({
+          device_id: deviceId,
+          timestamp: msg.timestamp,
+        });
+        for (const commit of msg.commits) {
+          db.profiler.insertCommit({
+            profiler_session_id: session.id,
+            device_id: deviceId,
+            commit_index: commit.index,
+            timestamp: commit.timestamp,
+            duration: commit.duration,
+            components: JSON.stringify(commit.components),
+          });
+        }
+        break;
+      }
+      case 'performanceMetric': {
+        const msg = message as unknown as PerformanceMetricMessage;
+        db.performance.insert({
+          device_id: deviceId,
+          js_fps: msg.jsFps,
+          ui_fps: msg.uiFps ?? null,
+          ram: msg.jsHeap ?? null,
+          dropped_frames: msg.droppedFrames,
+          gc_events: msg.gcEvents,
+          timestamp: msg.timestamp,
+        });
+        break;
+      }
+    }
+  } catch (err) {
+    console.error('[radar] Failed to persist message:', err);
+  }
+};
+
 export const startWebSocketServer = (
   win: BrowserWindow,
   getDetectedDevices: () => DetectedDevice[],
+  db: RadarDatabase,
 ): WebSocketServerHandle => {
   const connectedDevices = new Map<string, ConnectedDevice>();
   const socketToDeviceId = new Map<WsWebSocket, string>();
@@ -101,10 +246,8 @@ export const startWebSocketServer = (
         const deviceId = socketToDeviceId.get(socket);
 
         if (deviceId) {
-          const stamped = { ...message, deviceId };
-          win.webContents.send('radar:message', stamped);
-        } else {
-          win.webContents.send('radar:message', message);
+          persistMessage(db, deviceId, message);
+          notifyRenderer(win, deviceId, message);
         }
       } catch (err) {
         console.error('[radar] Failed to parse message:', err);

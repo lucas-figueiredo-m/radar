@@ -7,6 +7,21 @@ beforeEach(() => {
   Element.prototype.scrollIntoView = vi.fn();
 });
 
+vi.mock('@tanstack/react-virtual', () => ({
+  useVirtualizer: ({ count }: { count: number }) => ({
+    getTotalSize: () => count * 35,
+    getVirtualItems: () =>
+      Array.from({ length: count }, (_, i) => ({
+        index: i,
+        key: i,
+        start: i * 35,
+        size: 35,
+      })),
+    measureElement: () => undefined,
+    scrollToIndex: () => undefined,
+  }),
+}));
+
 vi.mock('@radar/design-system', () => ({
   colorValues: new Proxy(
     {},

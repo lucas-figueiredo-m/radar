@@ -1,0 +1,22 @@
+{
+  "name": "@radar/database",
+  "version": "0.1.0",
+  "description": "In-memory database layer for Radar DevTools",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "dependencies": {
+    "@radar/types": "workspace:*",
+    "better-sqlite3": "^11.9.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.18"
+  }
+}

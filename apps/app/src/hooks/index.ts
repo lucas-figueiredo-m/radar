@@ -1,6 +1,7 @@
 export { useClickOutside } from './useClickOutside';
 export { useComponentTree } from './useComponentTree';
 export { useConsoleLogs } from './useConsoleLogs';
+export { useDatabaseSubscription } from './useDatabaseSubscription';
 export { useDebouncedValue } from './useDebouncedValue';
 export { useDeviceManager } from './useDeviceManager';
 export { useEditorPreference } from './useEditorPreference';
