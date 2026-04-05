@@ -15,8 +15,8 @@ export type PerformanceRepository = {
 
 export const createPerformanceRepository = (db: Database.Database): PerformanceRepository => {
   const insertStmt = db.prepare<InsertPerformanceMetric>(
-    `INSERT INTO performance_metrics (device_id, js_fps, ui_fps, ram, dropped_frames, gc_events, timestamp)
-     VALUES (@device_id, @js_fps, @ui_fps, @ram, @dropped_frames, @gc_events, @timestamp)`,
+    `INSERT INTO performance_metrics (device_id, js_fps, ui_fps, js_heap, native_ram, cpu_usage, dropped_frames, gc_events, timestamp)
+     VALUES (@device_id, @js_fps, @ui_fps, @js_heap, @native_ram, @cpu_usage, @dropped_frames, @gc_events, @timestamp)`,
   );
 
   const insert = (metric: InsertPerformanceMetric): PerformanceMetricRow => {

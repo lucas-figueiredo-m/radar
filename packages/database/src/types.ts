@@ -131,7 +131,9 @@ export type PerformanceMetricRow = {
   session_id: number;
   js_fps: number;
   ui_fps: number | null;
-  ram: number | null;
+  js_heap: number | null;
+  native_ram: number | null;
+  cpu_usage: number | null;
   dropped_frames: number;
   gc_events: number;
   timestamp: number;
@@ -142,7 +144,9 @@ export type InsertPerformanceMetric = {
   device_id: string;
   js_fps: number;
   ui_fps: number | null;
-  ram: number | null;
+  js_heap: number | null;
+  native_ram: number | null;
+  cpu_usage: number | null;
   dropped_frames: number;
   gc_events: number;
   timestamp: number;

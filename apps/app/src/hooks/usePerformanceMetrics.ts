@@ -7,9 +7,9 @@ import { useDatabaseSubscription } from './useDatabaseSubscription';
 const rowToDataPoint = (row: PerformanceMetricRow): PerformanceDataPoint => ({
   jsFps: row.js_fps,
   uiFps: row.ui_fps,
-  jsHeap: row.ram,
-  nativeRam: null,
-  cpuUsage: null,
+  jsHeap: row.js_heap,
+  nativeRam: row.native_ram,
+  cpuUsage: row.cpu_usage,
   droppedFrames: row.dropped_frames,
   gcEvents: row.gc_events,
   timestamp: row.timestamp,
