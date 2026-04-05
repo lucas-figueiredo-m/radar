@@ -1,5 +1,5 @@
 import { NavigationContainer } from '@react-navigation/native';
-import { init } from 'radar-devtools';
+import { init, markInteractive } from 'radar-devtools';
 import { useEffect } from 'react';
 import { Platform, StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -19,6 +19,7 @@ const App = () => {
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <NavigationContainer
+        onReady={markInteractive}
         theme={{
           dark: true,
           colors: {

@@ -1,9 +1,9 @@
-import type { PerformanceDataPoint } from '../../types';
+import type { PerformanceDataPoint, StartupData } from '../../types';
 import { MetricChart } from './MetricChart';
 import { DroppedFramesTimeline } from './DroppedFramesTimeline';
 import { MemoryTrend } from './MemoryTrend';
 import { StartupBreakdown } from './StartupBreakdown';
-import { RAM_THRESHOLDS_MB } from './constants';
+import { JS_HEAP_THRESHOLDS_MB, NATIVE_RAM_THRESHOLDS_MB } from './constants';
 
 export { MetricChart } from './MetricChart';
 export type { MetricChartProps } from './MetricChart';
@@ -16,7 +16,9 @@ export { renderMetricChart } from './MetricChartCanvas';
 export {
   MAX_DATA_POINTS,
   FPS_THRESHOLDS,
-  RAM_THRESHOLDS_MB,
+  JS_HEAP_THRESHOLDS_MB,
+  NATIVE_RAM_THRESHOLDS_MB,
+  CPU_THRESHOLDS,
   CHART_PADDING,
   CHART_COLORS,
 } from './constants';
@@ -26,6 +28,9 @@ export type PerformancePanelProps = {
   totalDroppedFrames: number;
   totalGcEvents: number;
   connected: boolean;
+  startupData: StartupData | null;
+  paused: boolean;
+  onTogglePause: () => void;
 };
 
 export const PerformancePanel = ({
@@ -33,10 +38,16 @@ export const PerformancePanel = ({
   totalDroppedFrames,
   totalGcEvents,
   connected,
+  startupData,
+  paused,
+  onTogglePause,
 }: PerformancePanelProps) => {
   const jsFpsValues = metrics.map(m => m.jsFps);
   const uiFpsValues = metrics.map(m => m.uiFps);
-  const ramValues = metrics.map(m => m.ram);
+  const jsHeapValues = metrics.map(m => m.jsHeap);
+  const nativeRamValues = metrics.map(m => m.nativeRam);
+  const cpuValues = metrics.map(m => m.cpuUsage);
+  const timestamps = metrics.map(m => m.timestamp);
   const droppedFramesCounts = metrics.map(m => m.droppedFrames);
   const gcEventCounts = metrics.map(m => m.gcEvents);
 
@@ -52,10 +63,25 @@ export const PerformancePanel = ({
 
   return (
     <div className="flex-1 overflow-auto p-4 space-y-4">
-      {/* Top row: 3 metric charts */}
+      {/* Pause/Resume toggle */}
+      <div className="flex items-center justify-end">
+        <button
+          onClick={onTogglePause}
+          className={`text-xs font-mono px-3 py-1 rounded border transition-colors ${
+            paused
+              ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20'
+              : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/20'
+          }`}
+        >
+          {paused ? 'Paused — Resume' : 'Pause'}
+        </button>
+      </div>
+
+      {/* Top row: JS FPS, UI FPS, JS Heap */}
       <div className="grid grid-cols-3 gap-4">
         <MetricChart
           values={jsFpsValues}
+          timestamps={timestamps}
           maxValue={65}
           minValue={0}
           title="JS FPS"
@@ -63,18 +89,47 @@ export const PerformancePanel = ({
         />
         <MetricChart
           values={uiFpsValues}
+          timestamps={timestamps}
           maxValue={65}
           minValue={0}
           title="UI FPS"
           unit="fps"
         />
         <MetricChart
-          values={ramValues}
-          maxValue={RAM_THRESHOLDS_MB.bad * 1024 * 1024}
+          values={jsHeapValues}
+          timestamps={timestamps}
+          maxValue={JS_HEAP_THRESHOLDS_MB.bad * 1024 * 1024}
           minValue={0}
-          title="RAM"
+          title="JS Heap"
           unit="MB"
           invertColors
+        />
+      </div>
+
+      {/* Second row: Native RAM, CPU */}
+      <div className="grid grid-cols-2 gap-4">
+        <MetricChart
+          values={nativeRamValues}
+          timestamps={timestamps}
+          maxValue={Math.max(
+            NATIVE_RAM_THRESHOLDS_MB.good * 1024 * 1024,
+            ...nativeRamValues.map(v => (v ?? 0) * 1.3),
+          )}
+          minValue={0}
+          title="Native RAM"
+          unit="MB"
+          invertColors
+          aspectRatio="2 / 1"
+        />
+        <MetricChart
+          values={cpuValues}
+          timestamps={timestamps}
+          maxValue={Math.max(100, ...cpuValues.map(v => (v ?? 0) * 1.2))}
+          minValue={0}
+          title="CPU"
+          unit="%"
+          invertColors
+          aspectRatio="2 / 1"
         />
       </div>
 
@@ -84,15 +139,15 @@ export const PerformancePanel = ({
         totalDroppedFrames={totalDroppedFrames}
       />
 
-      {/* Memory Trend with GC Markers */}
+      {/* JS Heap Trend with GC Markers */}
       <MemoryTrend
-        ramValues={ramValues}
+        jsHeapValues={jsHeapValues}
         gcEventCounts={gcEventCounts}
         totalGcEvents={totalGcEvents}
       />
 
       {/* Startup Breakdown */}
-      <StartupBreakdown />
+      <StartupBreakdown startupData={startupData} connected={connected} />
     </div>
   );
 };

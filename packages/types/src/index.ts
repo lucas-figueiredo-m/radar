@@ -22,6 +22,7 @@ export type {
 } from './device';
 export type { RadarMessage, RadarCommand } from './radarMessage';
 export type { PerformanceMetricMessage } from './performance';
+export type { StartupMetricsMessage } from './startup';
 export type {
   ProfilerPhase,
   RenderTrigger,

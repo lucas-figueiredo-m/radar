@@ -15,9 +15,9 @@ export const PerformanceIndicator = ({
     latestMetric.uiFps !== null
       ? getMetricColor(latestMetric.uiFps / 60)
       : undefined;
-  const ramColor =
-    latestMetric.ram !== null
-      ? getMetricColor(1 - latestMetric.ram / (500 * 1024 * 1024))
+  const jsHeapColor =
+    latestMetric.jsHeap !== null
+      ? getMetricColor(1 - latestMetric.jsHeap / (500 * 1024 * 1024))
       : undefined;
 
   return (
@@ -36,10 +36,10 @@ export const PerformanceIndicator = ({
       </span>
       <span className="text-zinc-600">&middot;</span>
       <span>
-        RAM:{' '}
-        {latestMetric.ram !== null ? (
-          <span style={{ color: ramColor }}>
-            {formatMemory(latestMetric.ram)}
+        JS Heap:{' '}
+        {latestMetric.jsHeap !== null ? (
+          <span style={{ color: jsHeapColor }}>
+            {formatMemory(latestMetric.jsHeap)}
           </span>
         ) : (
           <span className="text-zinc-500">N/A</span>

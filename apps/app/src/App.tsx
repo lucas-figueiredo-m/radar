@@ -20,6 +20,7 @@ import {
   useComponentTree,
   useProfiler,
   usePerformanceMetrics,
+  useStartupMetrics,
   useEditorPreference,
 } from './hooks';
 import { ipcRenderer } from './services';
@@ -79,8 +80,12 @@ const App = () => {
     latestMetric,
     totalDroppedFrames,
     totalGcEvents,
+    paused: performancePaused,
+    togglePause: togglePerformancePause,
     clearMetrics: clearPerformanceMetrics,
   } = usePerformanceMetrics(selectedDeviceId);
+
+  const { startupData, clearStartup } = useStartupMetrics(selectedDeviceId);
 
   useEffect(() => {
     const onDeviceRegistered = (
@@ -106,6 +111,7 @@ const App = () => {
       clearProfilerData();
     } else if (tab === 'performance') {
       clearPerformanceMetrics();
+      clearStartup();
     } else {
       clearRequests();
     }
@@ -168,6 +174,9 @@ const App = () => {
         totalDroppedFrames={totalDroppedFrames}
         totalGcEvents={totalGcEvents}
         connected={connected}
+        startupData={startupData}
+        paused={performancePaused}
+        onTogglePause={togglePerformancePause}
       />
     ),
     devtools: <DevToolsPanel />,

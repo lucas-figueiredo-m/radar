@@ -1,8 +1,17 @@
 import { getMetricColor } from '../../utils';
 import { MAX_DATA_POINTS, CHART_PADDING, CHART_COLORS } from './constants';
 
+export type HoverInfo = {
+  x: number;
+  y: number;
+  value: number;
+  formattedValue: string;
+  timestamp: number | null;
+} | null;
+
 type RenderOptions = {
   values: (number | null)[];
+  timestamps?: number[];
   maxValue: number;
   minValue: number;
   title: string;
@@ -12,6 +21,7 @@ type RenderOptions = {
   dpr: number;
   width: number;
   height: number;
+  hoverX?: number | null;
 };
 
 const clamp = (value: number, min: number, max: number): number =>
@@ -19,13 +29,14 @@ const clamp = (value: number, min: number, max: number): number =>
 
 const formatValue = (value: number, unit: string): string => {
   if (unit === 'MB') return `${(value / (1024 * 1024)).toFixed(0)} ${unit}`;
+  if (unit === '%') return `${value.toFixed(1)} ${unit}`;
   return `${Math.round(value)} ${unit}`;
 };
 
 export const renderMetricChart = (
   ctx: CanvasRenderingContext2D,
   options: RenderOptions,
-): void => {
+): HoverInfo => {
   const {
     values,
     maxValue,
@@ -77,7 +88,13 @@ export const renderMetricChart = (
   }
 
   // Filter out null values and build drawable points
-  const drawablePoints: { x: number; y: number; value: number }[] = [];
+  const timestamps = options.timestamps;
+  const drawablePoints: {
+    x: number;
+    y: number;
+    value: number;
+    index: number;
+  }[] = [];
   for (let i = 0; i < values.length; i++) {
     const v = values[i];
     if (v !== null) {
@@ -86,6 +103,7 @@ export const renderMetricChart = (
         x: mapX(i + offset),
         y: mapY(v),
         value: v,
+        index: i,
       });
     }
   }
@@ -164,6 +182,62 @@ export const renderMetricChart = (
     ctx.fillText(label, chartRight, 6);
   }
 
+  // Draw hover indicator
+  let hoverResult: HoverInfo = null;
+  const hoverX = options.hoverX;
+  if (
+    hoverX !== null &&
+    hoverX !== undefined &&
+    drawablePoints.length > 0 &&
+    hoverX >= chartLeft &&
+    hoverX <= chartRight
+  ) {
+    // Find closest data point to hover X
+    let closest = drawablePoints[0];
+    let closestDist = Math.abs(closest.x - hoverX);
+    for (let i = 1; i < drawablePoints.length; i++) {
+      const dist = Math.abs(drawablePoints[i].x - hoverX);
+      if (dist < closestDist) {
+        closest = drawablePoints[i];
+        closestDist = dist;
+      }
+    }
+
+    // Vertical line
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(closest.x, chartTop);
+    ctx.lineTo(closest.x, chartBottom);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Dot on the data point
+    const ratio = clamp(closest.value / maxValue, 0, 1);
+    const colorRatio = invertColors ? 1 - ratio : ratio;
+    const dotColor = getMetricColor(colorRatio);
+
+    ctx.fillStyle = dotColor;
+    ctx.beginPath();
+    ctx.arc(closest.x, closest.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#111827';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(closest.x, closest.y, 4, 0, Math.PI * 2);
+    ctx.stroke();
+
+    hoverResult = {
+      x: closest.x,
+      y: closest.y,
+      value: closest.value,
+      formattedValue: formatValue(closest.value, unit),
+      timestamp: timestamps?.[closest.index] ?? null,
+    };
+  }
+
   // Draw title top-left
   ctx.fillStyle = CHART_COLORS.titleText;
   ctx.font = '11px ui-monospace, monospace';
@@ -172,4 +246,6 @@ export const renderMetricChart = (
   ctx.fillText(title, chartLeft, 6);
 
   ctx.restore();
+
+  return hoverResult;
 };

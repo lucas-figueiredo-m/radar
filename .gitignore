@@ -8,3 +8,5 @@ release/
 
 .claude/worktrees
 .vercel
+**/.gradle/
+**/android/build/

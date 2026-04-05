@@ -8,6 +8,7 @@ export type {
   ComponentStatsEntry,
 } from './profiler';
 export type { PerformanceDataPoint, MetricThresholds } from './performance';
+export type { StartupData } from './startup';
 export type {
   DevicePlatform,
   DeviceConnectionStatus,

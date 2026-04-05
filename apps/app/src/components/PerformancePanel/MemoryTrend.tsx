@@ -3,7 +3,7 @@ import { getMetricColor } from '../../utils';
 import { MAX_DATA_POINTS, CHART_COLORS } from './constants';
 
 export type MemoryTrendProps = {
-  ramValues: (number | null)[];
+  jsHeapValues: (number | null)[];
   gcEventCounts: number[];
   totalGcEvents: number;
 };
@@ -15,7 +15,7 @@ const clamp = (value: number, min: number, max: number): number =>
 
 const renderMemoryTrend = (
   ctx: CanvasRenderingContext2D,
-  ramValues: (number | null)[],
+  jsHeapValues: (number | null)[],
   gcEventCounts: number[],
   dpr: number,
   width: number,
@@ -37,23 +37,23 @@ const renderMemoryTrend = (
   const chartHeight = chartBottom - chartTop;
 
   // Filter non-null RAM values for range calculation
-  const validValues = ramValues.filter((v): v is number => v !== null);
-  const maxRam = validValues.length > 0 ? Math.max(...validValues) * 1.2 : 1;
-  const minRam = 0;
-  const range = maxRam - minRam || 1;
+  const validValues = jsHeapValues.filter((v): v is number => v !== null);
+  const maxHeap = validValues.length > 0 ? Math.max(...validValues) * 1.2 : 1;
+  const minHeap = 0;
+  const range = maxHeap - minHeap || 1;
 
   const mapX = (index: number): number =>
     chartLeft + (index / (MAX_DATA_POINTS - 1)) * chartWidth;
 
   const mapY = (value: number): number =>
-    chartBottom - ((value - minRam) / range) * chartHeight;
+    chartBottom - ((value - minHeap) / range) * chartHeight;
 
   // Draw title
   ctx.fillStyle = CHART_COLORS.titleText;
   ctx.font = '11px ui-monospace, monospace';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  ctx.fillText('MEMORY TREND', chartLeft, 6);
+  ctx.fillText('JS HEAP TREND', chartLeft, 6);
 
   // Draw grid lines
   ctx.strokeStyle = CHART_COLORS.gridLine;
@@ -67,10 +67,10 @@ const renderMemoryTrend = (
   }
 
   // Build drawable points
-  const offset = MAX_DATA_POINTS - ramValues.length;
+  const offset = MAX_DATA_POINTS - jsHeapValues.length;
   const drawablePoints: { x: number; y: number; value: number }[] = [];
-  for (let i = 0; i < ramValues.length; i++) {
-    const v = ramValues[i];
+  for (let i = 0; i < jsHeapValues.length; i++) {
+    const v = jsHeapValues[i];
     if (v !== null) {
       drawablePoints.push({
         x: mapX(i + offset),
@@ -93,7 +93,7 @@ const renderMemoryTrend = (
     const avgValue =
       drawablePoints.reduce((sum, p) => sum + p.value, 0) /
       drawablePoints.length;
-    const avgRatio = 1 - clamp(avgValue / maxRam, 0, 1);
+    const avgRatio = 1 - clamp(avgValue / maxHeap, 0, 1);
     const fillColor = getMetricColor(avgRatio);
     ctx.fillStyle = fillColor;
     ctx.globalAlpha = 0.08;
@@ -108,7 +108,7 @@ const renderMemoryTrend = (
     for (let i = 1; i < drawablePoints.length; i++) {
       const prev = drawablePoints[i - 1];
       const curr = drawablePoints[i];
-      const ratio = 1 - clamp(curr.value / maxRam, 0, 1);
+      const ratio = 1 - clamp(curr.value / maxHeap, 0, 1);
       ctx.strokeStyle = getMetricColor(ratio);
       ctx.beginPath();
       ctx.moveTo(prev.x, prev.y);
@@ -148,7 +148,7 @@ const renderMemoryTrend = (
   if (validValues.length > 0) {
     const currentValue = validValues[validValues.length - 1];
     const mbValue = (currentValue / (1024 * 1024)).toFixed(0);
-    const ratio = 1 - clamp(currentValue / maxRam, 0, 1);
+    const ratio = 1 - clamp(currentValue / maxHeap, 0, 1);
     ctx.fillStyle = getMetricColor(ratio);
     ctx.font = 'bold 14px ui-monospace, monospace';
     ctx.textAlign = 'right';
@@ -160,7 +160,7 @@ const renderMemoryTrend = (
 };
 
 export const MemoryTrend = ({
-  ramValues,
+  jsHeapValues,
   gcEventCounts,
   totalGcEvents,
 }: MemoryTrendProps) => {
@@ -197,8 +197,15 @@ export const MemoryTrend = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    renderMemoryTrend(ctx, ramValues, gcEventCounts, dpr, width, CHART_HEIGHT);
-  }, [ramValues, gcEventCounts, width]);
+    renderMemoryTrend(
+      ctx,
+      jsHeapValues,
+      gcEventCounts,
+      dpr,
+      width,
+      CHART_HEIGHT,
+    );
+  }, [jsHeapValues, gcEventCounts, width]);
 
   return (
     <div

@@ -1,8 +1,109 @@
-import { useCallback, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 import ActionButton from '../components/ActionButton';
 import ScreenContainer from '../components/ScreenContainer';
 import SectionGroup from '../components/SectionGroup';
+
+const BALL_COUNT_OPTIONS = [50, 200, 500];
+
+const BouncingBall = ({ index }: { index: number }) => {
+  const x = useRef(new Animated.Value(Math.random() * 300)).current;
+  const y = useRef(new Animated.Value(Math.random() * 200)).current;
+
+  useEffect(() => {
+    const duration = 800 + Math.random() * 400;
+    const animX = Animated.loop(
+      Animated.sequence([
+        Animated.timing(x, {
+          toValue: Math.random() * 300,
+          duration,
+          useNativeDriver: true,
+        }),
+        Animated.timing(x, {
+          toValue: Math.random() * 300,
+          duration,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    const animY = Animated.loop(
+      Animated.sequence([
+        Animated.timing(y, {
+          toValue: Math.random() * 200,
+          duration: duration * 0.7,
+          useNativeDriver: true,
+        }),
+        Animated.timing(y, {
+          toValue: Math.random() * 200,
+          duration: duration * 0.7,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    animX.start();
+    animY.start();
+    return () => {
+      animX.stop();
+      animY.stop();
+    };
+  }, [x, y]);
+
+  const hue = (index * 37) % 360;
+
+  return (
+    <Animated.View
+      style={[
+        styles.ball,
+        {
+          backgroundColor: `hsl(${hue}, 80%, 60%)`,
+          transform: [{ translateX: x }, { translateY: y }],
+        },
+      ]}
+    />
+  );
+};
+
+const UIStressSection = () => {
+  const [ballCount, setBallCount] = useState(0);
+
+  return (
+    <SectionGroup title="UI Thread Stress">
+      <Text style={styles.uiHint}>
+        Animated balls run on the native UI thread. Watch UI FPS drop as count
+        increases.
+      </Text>
+      <View style={styles.ballButtons}>
+        {BALL_COUNT_OPTIONS.map(count => (
+          <ActionButton
+            key={count}
+            title={`${count} balls`}
+            subtitle={
+              ballCount === count ? 'Running' : 'Tap to start animations'
+            }
+            color={ballCount === count ? '#22c55e' : '#6366f1'}
+            onPress={() => setBallCount(prev => (prev === count ? 0 : count))}
+          />
+        ))}
+        {ballCount > 0 && (
+          <ActionButton
+            title="Stop"
+            subtitle={`${ballCount} animations running`}
+            color="#ef4444"
+            onPress={() => setBallCount(0)}
+          />
+        )}
+      </View>
+      {ballCount > 0 && (
+        <View style={styles.ballContainer}>
+          {Array.from({ length: ballCount }, (_, i) => (
+            <BouncingBall key={i} index={i} />
+          ))}
+          <Text style={styles.ballCountLabel}>{ballCount} animated views</Text>
+        </View>
+      )}
+    </SectionGroup>
+  );
+};
 
 const fibonacci = (n: number): number => {
   if (n <= 1) return n;
@@ -215,6 +316,8 @@ const PerformanceScreen = () => {
         </View>
       )}
 
+      <UIStressSection />
+
       <SectionGroup title="CPU Intensive">
         {CPU_OPTIONS.map(option => (
           <ActionButton
@@ -289,6 +392,39 @@ const styles = StyleSheet.create({
     color: '#f59e0b',
     fontSize: 13,
     fontWeight: '600',
+  },
+  uiHint: {
+    color: '#64748b',
+    fontSize: 12,
+    paddingHorizontal: 24,
+    marginBottom: 8,
+  },
+  ballButtons: {
+    paddingHorizontal: 24,
+    gap: 8,
+  },
+  ballContainer: {
+    marginHorizontal: 24,
+    marginTop: 12,
+    height: 220,
+    backgroundColor: '#0f172a',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#334155',
+    overflow: 'hidden',
+  },
+  ball: {
+    position: 'absolute',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  ballCountLabel: {
+    position: 'absolute',
+    bottom: 8,
+    right: 12,
+    color: '#475569',
+    fontSize: 11,
   },
 });
 
