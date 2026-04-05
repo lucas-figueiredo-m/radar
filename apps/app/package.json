@@ -1,6 +1,6 @@
 {
   "name": "radar-app",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "Radar — Unified React Native developer tools",
   "main": "dist-electron/main.js",
   "private": true,
