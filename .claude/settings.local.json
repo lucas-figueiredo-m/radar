@@ -57,7 +57,11 @@
       "Bash(find /Users/lucasfigueiredo/www/projects/radar/packages -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) 2>/dev/null | head -40)",
       "Bash(cp:*)",
       "Bash(pod install:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "WebFetch(domain:docs.infinite.red)",
+      "Bash(./gradlew projects:*)",
+      "Bash(./gradlew :radar-devtools:tasks --all)",
+      "Bash(./gradlew :radar-devtools:generateCodegenSchemaFromJavaScript :radar-devtools:generateCodegenArtifactsFromSchema)"
     ]
   }
 }
