@@ -30,7 +30,7 @@ export const Hero = () => {
 
           <p className="text-lg md:text-xl text-text-secondary max-w-2xl mx-auto mb-10 leading-relaxed">
             One tool to replace React DevTools, Flipper, and Reactotron. Console,
-            network, components, and profiler — unified.
+            network, components, profiler, and performance — unified.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

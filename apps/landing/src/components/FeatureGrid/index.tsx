@@ -1,6 +1,6 @@
 "use client";
 
-import { Terminal, Globe, TreePine, Activity } from "lucide-react";
+import { Terminal, Globe, TreePine, Activity, Gauge } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AnimatedSection } from "../AnimatedSection";
 import { FEATURES } from "@/utils/constants";
@@ -10,6 +10,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Globe,
   TreePine,
   Activity,
+  Gauge,
 };
 
 export const FeatureGrid = () => {
@@ -22,7 +23,7 @@ export const FeatureGrid = () => {
               Everything you need
             </h2>
             <p className="text-text-secondary text-lg max-w-xl mx-auto">
-              Four powerful panels, one unified interface. No more switching between tools.
+              Five powerful panels, one unified interface. No more switching between tools.
             </p>
           </div>
         </AnimatedSection>

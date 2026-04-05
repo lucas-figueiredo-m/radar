@@ -44,6 +44,13 @@ export const FEATURES: Feature[] = [
       "Flamegraph visualization, ranked view, render trigger analysis showing exactly which props, state, or hooks caused re-renders.",
     color: "#F87171",
   },
+  {
+    icon: "Gauge",
+    title: "Performance",
+    description:
+      "Real-time native metrics — UI FPS, CPU usage, memory, and JS heap. Startup breakdown with bundle eval, native launch, and TTI.",
+    color: "#A78BFA",
+  },
 ];
 
 export const FEATURE_DEEP_DIVES: FeatureDeepDive[] = [
@@ -85,6 +92,19 @@ export const FEATURE_DEEP_DIVES: FeatureDeepDive[] = [
       "Commit timeline navigation",
     ],
     imagePosition: "right",
+  },
+  {
+    title: "Performance",
+    headline: "Native metrics, real-time charts",
+    description:
+      "Monitor your app's health with native-level precision. Real UI frame rate, memory usage, CPU load, and a full startup breakdown — all streamed live to interactive charts with hover inspection.",
+    highlights: [
+      "UI FPS, Native RAM, and CPU usage in real time",
+      "JS FPS and heap size tracking",
+      "Startup breakdown: bundle eval, native launch, TTI",
+      "Pause, hover, and inspect any moment in time",
+    ],
+    imagePosition: "left",
   },
 ];
 
@@ -147,6 +167,20 @@ export const COMPARISON_DATA: ComparisonRow[] = [
   },
   {
     feature: "Style Inspection",
+    radar: true,
+    reactDevTools: false,
+    flipper: false,
+    reactotron: false,
+  },
+  {
+    feature: "Native Performance Metrics",
+    radar: true,
+    reactDevTools: false,
+    flipper: false,
+    reactotron: false,
+  },
+  {
+    feature: "Startup Analysis",
     radar: true,
     reactDevTools: false,
     flipper: false,

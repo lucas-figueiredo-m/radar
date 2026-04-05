@@ -39,6 +39,9 @@ export const MultiDevice = () => {
             <span className="px-4 py-1.5 rounded-full border border-border-default bg-bg-surface text-sm font-medium">
               Android
             </span>
+            <span className="px-4 py-1.5 rounded-full border border-border-default bg-bg-surface text-sm font-medium">
+              Expo
+            </span>
           </div>
         </AnimatedSection>
 
