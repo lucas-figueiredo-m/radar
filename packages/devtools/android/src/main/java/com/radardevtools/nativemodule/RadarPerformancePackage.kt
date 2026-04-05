@@ -1,4 +1,4 @@
-package com.radardevtools.native
+package com.radardevtools.nativemodule
 
 import com.facebook.react.TurboReactPackage
 import com.facebook.react.bridge.NativeModule

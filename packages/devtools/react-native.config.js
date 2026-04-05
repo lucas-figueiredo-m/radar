@@ -3,7 +3,10 @@ module.exports = {
     platforms: {
       ios: {},
       android: {
-        sourceDir: __dirname + '/android',
+        sourceDir: './android',
+        packageImportPath:
+          'import com.radardevtools.nativemodule.RadarPerformancePackage;',
+        packageInstance: 'new RadarPerformancePackage()',
       },
     },
   },

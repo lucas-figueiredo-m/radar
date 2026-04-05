@@ -1,4 +1,4 @@
-package com.radardevtools.native
+package com.radardevtools.nativemodule
 
 import android.os.Debug
 import android.os.SystemClock
@@ -7,7 +7,7 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.module.annotations.ReactModule
-import com.radardevtools.native.NativeRadarPerformanceSpec
+import com.facebook.fbreact.specs.NativeRadarPerformanceSpec
 import java.io.RandomAccessFile
 
 @ReactModule(name = RadarPerformanceModule.NAME)

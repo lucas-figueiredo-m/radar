@@ -6,10 +6,11 @@ buildscript {
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'com.facebook.react'
 
 android {
-  namespace "com.radardevtools.native"
-  compileSdkVersion safeExtGet('compileSdkVersion', 34)
+  namespace "com.radardevtools.nativemodule"
+  compileSdk safeExtGet('compileSdkVersion', 34)
 
   defaultConfig {
     minSdkVersion safeExtGet('minSdkVersion', 21)
