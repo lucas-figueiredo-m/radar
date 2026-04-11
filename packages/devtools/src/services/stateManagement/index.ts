@@ -52,9 +52,7 @@ export const createStateService = (
       }
 
       stores.set(name, store);
-      const storeType = detectStoreType(
-        rawStore as Record<string, unknown>,
-      );
+      const storeType = detectStoreType(rawStore as Record<string, unknown>);
       storeInfos.push({ name, storeType });
 
       if (storeType === 'redux') {
