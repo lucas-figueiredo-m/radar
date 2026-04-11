@@ -15,3 +15,9 @@ export type { ProfilerRepository } from './profilerRepository';
 
 export { createPerformanceRepository } from './performanceRepository';
 export type { PerformanceRepository } from './performanceRepository';
+
+export { createStorageRepository } from './storageRepository';
+export type { StorageRepository } from './storageRepository';
+
+export { createStateRepository } from './stateRepository';
+export type { StateRepository } from './stateRepository';

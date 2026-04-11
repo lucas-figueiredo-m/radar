@@ -101,4 +101,57 @@ export const CREATE_TABLES_SQL = `
   );
 
   CREATE INDEX IF NOT EXISTS idx_perf_device_ts ON performance_metrics(device_id, timestamp);
+
+  CREATE TABLE IF NOT EXISTS storage_capabilities (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    device_id       TEXT NOT NULL,
+    backend         TEXT NOT NULL CHECK (backend IN ('asyncStorage', 'mmkv')),
+    available       INTEGER NOT NULL,
+    instance_id     TEXT,
+    db_created_at   INTEGER NOT NULL DEFAULT (unixepoch('now','subsec') * 1000)
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_storage_cap_device_backend
+    ON storage_capabilities(device_id, backend, COALESCE(instance_id, ''));
+
+  CREATE TABLE IF NOT EXISTS storage_entries (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    device_id       TEXT NOT NULL,
+    backend         TEXT NOT NULL CHECK (backend IN ('asyncStorage', 'mmkv')),
+    instance_id     TEXT,
+    key             TEXT NOT NULL,
+    value           TEXT NOT NULL,
+    value_type      TEXT NOT NULL CHECK (value_type IN ('string', 'number', 'boolean')),
+    timestamp       INTEGER NOT NULL,
+    db_created_at   INTEGER NOT NULL DEFAULT (unixepoch('now','subsec') * 1000)
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_storage_entry_unique
+    ON storage_entries(device_id, backend, COALESCE(instance_id, ''), key);
+
+  CREATE INDEX IF NOT EXISTS idx_storage_device_backend
+    ON storage_entries(device_id, backend);
+
+  CREATE TABLE IF NOT EXISTS state_capabilities (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    device_id       TEXT NOT NULL,
+    store_name      TEXT NOT NULL,
+    store_type      TEXT NOT NULL CHECK (store_type IN ('zustand', 'redux', 'other')),
+    db_created_at   INTEGER NOT NULL DEFAULT (unixepoch('now','subsec') * 1000)
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_state_cap_device_store
+    ON state_capabilities(device_id, store_name);
+
+  CREATE TABLE IF NOT EXISTS state_snapshots (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    device_id       TEXT NOT NULL,
+    store_name      TEXT NOT NULL,
+    state           TEXT NOT NULL,
+    timestamp       INTEGER NOT NULL,
+    db_created_at   INTEGER NOT NULL DEFAULT (unixepoch('now','subsec') * 1000)
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_state_snapshot_device_store
+    ON state_snapshots(device_id, store_name);
 `;

@@ -4,8 +4,11 @@ import { useEffect } from 'react';
 import { Platform, StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import TabNavigator from './src/navigation/TabNavigator';
+import { counterStore } from './src/stores/counterStore';
 
-init();
+init({
+  stores: { counter: counterStore },
+});
 
 const App = () => {
   const isDarkMode = useColorScheme() === 'dark';

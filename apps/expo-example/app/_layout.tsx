@@ -2,8 +2,19 @@ import { Tabs } from 'expo-router';
 import { init, markInteractive } from 'radar-devtools';
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { MMKV } from 'react-native-mmkv';
+import { useTodoStore } from '../stores/todoStore';
 
-init();
+const defaultStorage = new MMKV();
+const settingsStorage = new MMKV({ id: 'settings' });
+
+init({
+  mmkvInstances: {
+    default: defaultStorage,
+    settings: settingsStorage,
+  },
+  stores: { todos: useTodoStore },
+});
 
 const TabLayout = () => {
   const [ready, setReady] = useState(false);
@@ -52,6 +63,10 @@ const TabLayout = () => {
         <Tabs.Screen
           name="performance"
           options={{ title: 'Perf', tabBarIcon: () => null }}
+        />
+        <Tabs.Screen
+          name="storage"
+          options={{ title: 'Storage', tabBarIcon: () => null }}
         />
       </Tabs>
     </>

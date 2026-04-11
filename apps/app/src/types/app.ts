@@ -4,4 +4,6 @@ export type Tab =
   | 'tree'
   | 'profiler'
   | 'performance'
+  | 'storage'
+  | 'state'
   | 'devtools';

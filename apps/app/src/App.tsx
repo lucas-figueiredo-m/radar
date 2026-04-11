@@ -9,6 +9,8 @@ import {
   NetworkPanel,
   ProfilerPanel,
   PerformancePanel,
+  StoragePanel,
+  StatePanel,
   StatusBar,
   DevToolsPanel,
 } from './components';
@@ -22,6 +24,8 @@ import {
   usePerformanceMetrics,
   useStartupMetrics,
   useEditorPreference,
+  useStorage,
+  useStateManagement,
 } from './hooks';
 import { ipcRenderer } from './services';
 import type { Tab } from './types';
@@ -87,6 +91,9 @@ const App = () => {
 
   const { startupData, clearStartup } = useStartupMetrics(selectedDeviceId);
 
+  const storage = useStorage(selectedDeviceId);
+  const stateManagement = useStateManagement(selectedDeviceId);
+
   useEffect(() => {
     const onDeviceRegistered = (
       _event: unknown,
@@ -112,6 +119,10 @@ const App = () => {
     } else if (tab === 'performance') {
       clearPerformanceMetrics();
       clearStartup();
+    } else if (tab === 'storage') {
+      storage.clearAll();
+    } else if (tab === 'state') {
+      stateManagement.clearState();
     } else {
       clearRequests();
     }
@@ -179,6 +190,40 @@ const App = () => {
         onTogglePause={togglePerformancePause}
       />
     ),
+    storage: (
+      <StoragePanel
+        capabilities={storage.capabilities}
+        availableBackends={storage.availableBackends}
+        entries={storage.entries}
+        allEntries={storage.allEntries}
+        selectedBackend={storage.selectedBackend}
+        selectedInstance={storage.selectedInstance}
+        searchQuery={storage.searchQuery}
+        editingEntry={storage.editingEntry}
+        connected={connected}
+        onSelectBackend={storage.setSelectedBackend}
+        onSelectInstance={storage.setSelectedInstance}
+        onSearch={storage.setSearchQuery}
+        onEditEntry={storage.setEditingEntry}
+        onSaveEntry={storage.editEntry}
+        onRemoveEntry={storage.removeEntry}
+        onRefresh={storage.refresh}
+        onClear={storage.clearStorage}
+      />
+    ),
+    state: (
+      <StatePanel
+        capabilities={stateManagement.capabilities}
+        snapshots={stateManagement.snapshots}
+        selectedStore={stateManagement.selectedStore}
+        parsedState={stateManagement.parsedState}
+        searchQuery={stateManagement.searchQuery}
+        connected={connected}
+        onSelectStore={stateManagement.setSelectedStore}
+        onSearch={stateManagement.setSearchQuery}
+        onRefresh={stateManagement.refresh}
+      />
+    ),
     devtools: <DevToolsPanel />,
   };
 
@@ -192,6 +237,8 @@ const App = () => {
       ? 'Recording...'
       : `${profilerCommits.length} commits`,
     performance: `${performanceMetrics.length} samples`,
+    storage: `${storage.allEntries.length} entries`,
+    state: `${stateManagement.capabilities.length} stores`,
     devtools: 'Dev Tools',
   };
 

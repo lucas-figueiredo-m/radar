@@ -34,3 +34,23 @@ export type {
   ReloadAndProfileCommand,
   ProfilingStatusCommand,
 } from './profiler';
+export type {
+  StorageBackend,
+  StorageValueType,
+  StorageEntry,
+  StorageBackendInfo,
+  StorageCapabilitiesMessage,
+  StorageDataMessage,
+  StorageGetAllCommand,
+  StorageSetCommand,
+  StorageRemoveCommand,
+  StorageClearCommand,
+  StorageCommand,
+} from './storage';
+export type {
+  StateStoreType,
+  StateStoreInfo,
+  StateCapabilitiesMessage,
+  StateSnapshotMessage,
+  StateGetCommand,
+} from './stateManagement';

@@ -4,4 +4,6 @@ export type RadarConfig = {
   projectRoot?: string;
   deviceId?: string;
   deviceName?: string;
+  mmkvInstances?: Record<string, unknown>;
+  stores?: Record<string, unknown>;
 };

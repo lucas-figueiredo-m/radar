@@ -173,3 +173,77 @@ export type PerformanceQueryFilter = QueryFilter & {
   from_timestamp?: number;
   to_timestamp?: number;
 };
+
+export type StorageCapabilityRow = {
+  id: number;
+  device_id: string;
+  backend: 'asyncStorage' | 'mmkv';
+  available: number;
+  instance_id: string | null;
+  db_created_at: number;
+};
+
+export type InsertStorageCapability = {
+  device_id: string;
+  backend: 'asyncStorage' | 'mmkv';
+  available: number;
+  instance_id: string | null;
+};
+
+export type StorageEntryRow = {
+  id: number;
+  device_id: string;
+  backend: 'asyncStorage' | 'mmkv';
+  instance_id: string | null;
+  key: string;
+  value: string;
+  value_type: 'string' | 'number' | 'boolean';
+  timestamp: number;
+  db_created_at: number;
+};
+
+export type InsertStorageEntry = {
+  device_id: string;
+  backend: 'asyncStorage' | 'mmkv';
+  instance_id: string | null;
+  key: string;
+  value: string;
+  value_type: 'string' | 'number' | 'boolean';
+  timestamp: number;
+};
+
+export type StorageEntryFilter = {
+  device_id: string;
+  backend: 'asyncStorage' | 'mmkv';
+  instance_id?: string;
+};
+
+export type StateCapabilityRow = {
+  id: number;
+  device_id: string;
+  store_name: string;
+  store_type: 'zustand' | 'redux' | 'other';
+  db_created_at: number;
+};
+
+export type InsertStateCapability = {
+  device_id: string;
+  store_name: string;
+  store_type: 'zustand' | 'redux' | 'other';
+};
+
+export type StateSnapshotRow = {
+  id: number;
+  device_id: string;
+  store_name: string;
+  state: string;
+  timestamp: number;
+  db_created_at: number;
+};
+
+export type InsertStateSnapshot = {
+  device_id: string;
+  store_name: string;
+  state: string;
+  timestamp: number;
+};
