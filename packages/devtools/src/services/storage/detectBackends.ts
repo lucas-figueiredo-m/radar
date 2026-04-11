@@ -20,7 +20,8 @@ type MMKVInstance = {
   getNumber: (key: string) => number | undefined;
   getBoolean: (key: string) => boolean | undefined;
   set: (key: string, value: string | number | boolean) => void;
-  delete: (key: string) => boolean;
+  delete?: (key: string) => boolean;
+  remove?: (key: string) => boolean;
   clearAll: () => void;
   contains: (key: string) => boolean;
 };
@@ -48,11 +49,22 @@ export const detectMMKVDefault = (): MMKVAPI | null => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require('react-native-mmkv') as Record<string, unknown>;
-    const MMKVClass = mod.MMKV as (new () => MMKVInstance) | undefined;
-    if (typeof MMKVClass !== 'function') return null;
-    const instance = new MMKVClass();
-    if (typeof instance.getAllKeys !== 'function') return null;
-    return instance;
+    // v4: createMMKV(), v3: new MMKV()
+    const createFn = mod.createMMKV as
+      | (() => MMKVInstance)
+      | undefined;
+    if (typeof createFn === 'function') {
+      const instance = createFn();
+      if (typeof instance.getAllKeys === 'function') return instance;
+    }
+    const MMKVClass = mod.MMKV as
+      | (new () => MMKVInstance)
+      | undefined;
+    if (typeof MMKVClass === 'function') {
+      const instance = new MMKVClass();
+      if (typeof instance.getAllKeys === 'function') return instance;
+    }
+    return null;
   } catch {
     return null;
   }

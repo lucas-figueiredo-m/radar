@@ -2,11 +2,11 @@ import { Tabs } from 'expo-router';
 import { init, markInteractive } from 'radar-devtools';
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { MMKV } from 'react-native-mmkv';
+import { createMMKV } from 'react-native-mmkv';
 import { useTodoStore } from '../stores/todoStore';
 
-const defaultStorage = new MMKV();
-const settingsStorage = new MMKV({ id: 'settings' });
+const defaultStorage = createMMKV();
+const settingsStorage = createMMKV({ id: 'settings' });
 
 init({
   mmkvInstances: {

@@ -7,10 +7,11 @@ import {
   ScrollView,
   StyleSheet,
 } from 'react-native';
-import { MMKV } from 'react-native-mmkv';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { createMMKV } from 'react-native-mmkv';
 import { useTodoStore } from '../stores/todoStore';
 
-const storage = new MMKV();
+const storage = createMMKV();
 
 const StorageScreen = () => {
   const [key, setKey] = useState('');
@@ -52,7 +53,7 @@ const StorageScreen = () => {
   };
 
   const handleRemove = (k: string) => {
-    storage.delete(k);
+    storage.remove(k);
     loadKeys();
   };
 
@@ -75,6 +76,7 @@ const StorageScreen = () => {
         : todos.filter(t => t.done);
 
   return (
+    <SafeAreaView style={styles.safeArea}>
     <ScrollView style={styles.container}>
       <Text style={styles.sectionTitle}>MMKV Storage</Text>
       <Text style={styles.subtitle}>
@@ -178,11 +180,13 @@ const StorageScreen = () => {
 
       <View style={{ height: 40 }} />
     </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f172a', padding: 16 },
+  safeArea: { flex: 1, backgroundColor: '#0f172a' },
+  container: { flex: 1, padding: 16 },
   sectionTitle: { color: '#f8fafc', fontSize: 18, fontWeight: '700' },
   subtitle: { color: '#94a3b8', fontSize: 13, marginTop: 4, marginBottom: 16 },
   inputRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },

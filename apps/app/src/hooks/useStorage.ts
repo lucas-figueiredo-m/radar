@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { StorageCapabilityRow, StorageEntryRow } from '@radar/database';
 import type { StorageBackend, StorageValueType } from '@radar/types';
 import { useDatabaseSubscription } from './useDatabaseSubscription';
@@ -45,22 +45,16 @@ export const useStorage = (selectedDeviceId: string | null) => {
     [] as StorageEntryRow[],
   );
 
-  // Auto-select the first available backend when capabilities arrive
+  // Auto-select the first available backend when capabilities first arrive
+  const hasAutoSelected = useRef(false);
   useEffect(() => {
-    if (capabilities.length === 0) return;
+    if (capabilities.length === 0 || hasAutoSelected.current) return;
     const available = capabilities.filter(c => c.available);
     if (available.length === 0) return;
-
-    const currentAvailable = available.find(
-      c =>
-        c.backend === selectedBackend &&
-        (c.instance_id ?? undefined) === selectedInstance,
-    );
-    if (!currentAvailable) {
-      setSelectedBackend(available[0].backend);
-      setSelectedInstance(available[0].instance_id ?? undefined);
-    }
-  }, [capabilities, selectedBackend, selectedInstance]);
+    hasAutoSelected.current = true;
+    setSelectedBackend(available[0].backend);
+    setSelectedInstance(available[0].instance_id ?? undefined);
+  }, [capabilities]);
 
   const refresh = useCallback(() => {
     if (!selectedDeviceId) return;
@@ -147,7 +141,17 @@ export const useStorage = (selectedDeviceId: string | null) => {
     selectedInstance,
     searchQuery,
     editingEntry,
-    setSelectedBackend,
+    setSelectedBackend: useCallback(
+      (backend: StorageBackend) => {
+        setSelectedBackend(backend);
+        // Auto-select first instance for the new backend
+        const firstInstance = capabilities.find(
+          c => c.backend === backend && c.available,
+        );
+        setSelectedInstance(firstInstance?.instance_id ?? undefined);
+      },
+      [capabilities],
+    ),
     setSelectedInstance,
     setSearchQuery,
     setEditingEntry,

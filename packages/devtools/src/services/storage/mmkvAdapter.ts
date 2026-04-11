@@ -52,7 +52,12 @@ export const createMMKVAdapter = (instance: MMKVAPI) => {
   };
 
   const removeEntry = (key: string): void => {
-    instance.delete(key);
+    // v4 uses remove(), v3 uses delete()
+    if (typeof instance.remove === 'function') {
+      instance.remove(key);
+    } else if (typeof instance.delete === 'function') {
+      instance.delete(key);
+    }
   };
 
   const clearAll = (): void => {
