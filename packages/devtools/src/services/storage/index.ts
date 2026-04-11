@@ -14,7 +14,7 @@ export const createStorageService = (
   config: RadarConfig,
 ) => {
   const asyncStorage = detectAsyncStorage();
-  console.log('[radar:storage] AsyncStorage detected:', asyncStorage !== null);
+
   const asyncStorageAdapter = asyncStorage
     ? createAsyncStorageAdapter(asyncStorage)
     : null;
@@ -38,10 +38,7 @@ export const createStorageService = (
 
   const backends = buildStorageBackendInfos(asyncStorage, mmkvInstances);
 
-  console.log('[radar:storage] Backends:', JSON.stringify(backends));
-
   const sendCapabilities = () => {
-    console.log('[radar:storage] Sending capabilities');
     send({
       type: 'storageCapabilities',
       backends,
@@ -50,11 +47,6 @@ export const createStorageService = (
   };
 
   const handleCommand = async (command: StorageCommand) => {
-    console.log(
-      '[radar:storage] Received command:',
-      command.type,
-      command.backend,
-    );
     try {
       const requestId = command.requestId;
 
