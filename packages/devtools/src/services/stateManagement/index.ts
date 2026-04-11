@@ -1,4 +1,8 @@
-import type { RadarMessage, StateGetCommand, StateStoreInfo } from '@radar/types';
+import type {
+  RadarMessage,
+  StateGetCommand,
+  StateStoreInfo,
+} from '@radar/types';
 import type { RadarConfig } from '../../config';
 import { detectStoreType } from '../storage/detectBackends';
 import type { StoreRegistration } from '../storage/detectBackends';
@@ -82,5 +86,10 @@ export const createStateService = (
     }
   };
 
-  return { sendCapabilities, sendAllSnapshots, handleCommand, destroy: () => unsubscribers.forEach(u => u()) };
+  return {
+    sendCapabilities,
+    sendAllSnapshots,
+    handleCommand,
+    destroy: () => unsubscribers.forEach(u => u()),
+  };
 };

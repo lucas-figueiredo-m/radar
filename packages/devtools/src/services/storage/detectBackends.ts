@@ -31,7 +31,10 @@ export type MMKVAPI = MMKVInstance;
 export const detectAsyncStorage = (): AsyncStorageAPI | null => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require('@react-native-async-storage/async-storage') as Record<string, unknown>;
+    const mod = require('@react-native-async-storage/async-storage') as Record<
+      string,
+      unknown
+    >;
     // v2: mod.default is the API; v3: mod itself or mod.default may be the API
     const api = (mod.default ?? mod) as AsyncStorageAPI;
     if (typeof api.getAllKeys !== 'function') return null;

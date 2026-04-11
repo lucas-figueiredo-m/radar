@@ -50,124 +50,128 @@ export const createStorageService = (
   };
 
   const handleCommand = async (command: StorageCommand) => {
-    console.log('[radar:storage] Received command:', command.type, command.backend);
+    console.log(
+      '[radar:storage] Received command:',
+      command.type,
+      command.backend,
+    );
     try {
-    const requestId = command.requestId;
+      const requestId = command.requestId;
 
-    switch (command.type) {
-      case 'storageGetAll': {
-        if (command.backend === 'asyncStorage' && asyncStorageAdapter) {
-          const entries = await asyncStorageAdapter.getAllEntries();
-          send({
-            type: 'storageData',
-            requestId,
-            backend: 'asyncStorage',
-            entries,
-            timestamp: Date.now(),
-          });
-        } else if (command.backend === 'mmkv') {
-          const instanceId = command.instanceId ?? 'default';
-          const adapter = mmkvAdapters[instanceId];
-          if (adapter) {
-            const entries = adapter.getAllEntries();
+      switch (command.type) {
+        case 'storageGetAll': {
+          if (command.backend === 'asyncStorage' && asyncStorageAdapter) {
+            const entries = await asyncStorageAdapter.getAllEntries();
             send({
               type: 'storageData',
               requestId,
-              backend: 'mmkv',
-              instanceId,
+              backend: 'asyncStorage',
               entries,
               timestamp: Date.now(),
             });
+          } else if (command.backend === 'mmkv') {
+            const instanceId = command.instanceId ?? 'default';
+            const adapter = mmkvAdapters[instanceId];
+            if (adapter) {
+              const entries = adapter.getAllEntries();
+              send({
+                type: 'storageData',
+                requestId,
+                backend: 'mmkv',
+                instanceId,
+                entries,
+                timestamp: Date.now(),
+              });
+            }
           }
+          break;
         }
-        break;
-      }
-      case 'storageSet': {
-        if (command.backend === 'asyncStorage' && asyncStorageAdapter) {
-          await asyncStorageAdapter.setEntry(command.key, command.value);
-          const entries = await asyncStorageAdapter.getAllEntries();
-          send({
-            type: 'storageData',
-            requestId,
-            backend: 'asyncStorage',
-            entries,
-            timestamp: Date.now(),
-          });
-        } else if (command.backend === 'mmkv') {
-          const instanceId = command.instanceId ?? 'default';
-          const adapter = mmkvAdapters[instanceId];
-          if (adapter) {
-            adapter.setEntry(command.key, command.value, command.valueType);
-            const entries = adapter.getAllEntries();
+        case 'storageSet': {
+          if (command.backend === 'asyncStorage' && asyncStorageAdapter) {
+            await asyncStorageAdapter.setEntry(command.key, command.value);
+            const entries = await asyncStorageAdapter.getAllEntries();
             send({
               type: 'storageData',
               requestId,
-              backend: 'mmkv',
-              instanceId,
+              backend: 'asyncStorage',
               entries,
               timestamp: Date.now(),
             });
+          } else if (command.backend === 'mmkv') {
+            const instanceId = command.instanceId ?? 'default';
+            const adapter = mmkvAdapters[instanceId];
+            if (adapter) {
+              adapter.setEntry(command.key, command.value, command.valueType);
+              const entries = adapter.getAllEntries();
+              send({
+                type: 'storageData',
+                requestId,
+                backend: 'mmkv',
+                instanceId,
+                entries,
+                timestamp: Date.now(),
+              });
+            }
           }
+          break;
         }
-        break;
-      }
-      case 'storageRemove': {
-        if (command.backend === 'asyncStorage' && asyncStorageAdapter) {
-          await asyncStorageAdapter.removeEntry(command.key);
-          const entries = await asyncStorageAdapter.getAllEntries();
-          send({
-            type: 'storageData',
-            requestId,
-            backend: 'asyncStorage',
-            entries,
-            timestamp: Date.now(),
-          });
-        } else if (command.backend === 'mmkv') {
-          const instanceId = command.instanceId ?? 'default';
-          const adapter = mmkvAdapters[instanceId];
-          if (adapter) {
-            adapter.removeEntry(command.key);
-            const entries = adapter.getAllEntries();
+        case 'storageRemove': {
+          if (command.backend === 'asyncStorage' && asyncStorageAdapter) {
+            await asyncStorageAdapter.removeEntry(command.key);
+            const entries = await asyncStorageAdapter.getAllEntries();
             send({
               type: 'storageData',
               requestId,
-              backend: 'mmkv',
-              instanceId,
+              backend: 'asyncStorage',
               entries,
               timestamp: Date.now(),
             });
+          } else if (command.backend === 'mmkv') {
+            const instanceId = command.instanceId ?? 'default';
+            const adapter = mmkvAdapters[instanceId];
+            if (adapter) {
+              adapter.removeEntry(command.key);
+              const entries = adapter.getAllEntries();
+              send({
+                type: 'storageData',
+                requestId,
+                backend: 'mmkv',
+                instanceId,
+                entries,
+                timestamp: Date.now(),
+              });
+            }
           }
+          break;
         }
-        break;
-      }
-      case 'storageClear': {
-        if (command.backend === 'asyncStorage' && asyncStorageAdapter) {
-          await asyncStorageAdapter.clearAll();
-          send({
-            type: 'storageData',
-            requestId,
-            backend: 'asyncStorage',
-            entries: [],
-            timestamp: Date.now(),
-          });
-        } else if (command.backend === 'mmkv') {
-          const instanceId = command.instanceId ?? 'default';
-          const adapter = mmkvAdapters[instanceId];
-          if (adapter) {
-            adapter.clearAll();
+        case 'storageClear': {
+          if (command.backend === 'asyncStorage' && asyncStorageAdapter) {
+            await asyncStorageAdapter.clearAll();
             send({
               type: 'storageData',
               requestId,
-              backend: 'mmkv',
-              instanceId,
+              backend: 'asyncStorage',
               entries: [],
               timestamp: Date.now(),
             });
+          } else if (command.backend === 'mmkv') {
+            const instanceId = command.instanceId ?? 'default';
+            const adapter = mmkvAdapters[instanceId];
+            if (adapter) {
+              adapter.clearAll();
+              send({
+                type: 'storageData',
+                requestId,
+                backend: 'mmkv',
+                instanceId,
+                entries: [],
+                timestamp: Date.now(),
+              });
+            }
           }
+          break;
         }
-        break;
       }
-    }
     } catch {
       // Silently ignore storage command errors to avoid crashing the app
     }

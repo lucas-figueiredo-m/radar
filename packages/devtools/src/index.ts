@@ -13,7 +13,11 @@ import { inspectComponent } from './services/componentTree/inspectComponent';
 import { createConnection } from './connection';
 import { DEFAULT_HOST, DEFAULT_PORT } from './constants';
 import { getDeviceInfo } from './deviceInfo';
-import type { RadarCommand, StorageCommand, StateGetCommand } from '@radar/types';
+import type {
+  RadarCommand,
+  StorageCommand,
+  StateGetCommand,
+} from '@radar/types';
 import type { RadarConfig } from './config';
 
 export type { RadarConfig } from './config';
