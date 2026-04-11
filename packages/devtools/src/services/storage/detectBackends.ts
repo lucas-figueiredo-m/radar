@@ -50,16 +50,12 @@ export const detectMMKVDefault = (): MMKVAPI | null => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require('react-native-mmkv') as Record<string, unknown>;
     // v4: createMMKV(), v3: new MMKV()
-    const createFn = mod.createMMKV as
-      | (() => MMKVInstance)
-      | undefined;
+    const createFn = mod.createMMKV as (() => MMKVInstance) | undefined;
     if (typeof createFn === 'function') {
       const instance = createFn();
       if (typeof instance.getAllKeys === 'function') return instance;
     }
-    const MMKVClass = mod.MMKV as
-      | (new () => MMKVInstance)
-      | undefined;
+    const MMKVClass = mod.MMKV as (new () => MMKVInstance) | undefined;
     if (typeof MMKVClass === 'function') {
       const instance = new MMKVClass();
       if (typeof instance.getAllKeys === 'function') return instance;
