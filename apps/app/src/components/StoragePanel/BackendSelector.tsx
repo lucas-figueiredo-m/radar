@@ -40,16 +40,18 @@ export const BackendSelector = ({
               selectedBackend === backend
                 ? 'bg-bg-active text-text-primary'
                 : available
-                  ? 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
-                  : 'text-text-disabled cursor-default opacity-40'
+                ? 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+                : 'text-text-disabled cursor-default opacity-40'
             }`}
-            title={available ? BACKEND_LABELS[backend] : `${BACKEND_LABELS[backend]} — not installed`}
+            title={
+              available
+                ? BACKEND_LABELS[backend]
+                : `${BACKEND_LABELS[backend]} — not installed`
+            }
           >
             {BACKEND_LABELS[backend]}
             {!available && (
-              <span className="ml-1 text-text-disabled text-[10px]">
-                (n/a)
-              </span>
+              <span className="ml-1 text-text-disabled text-[10px]">(n/a)</span>
             )}
           </button>
         ))}
@@ -68,7 +70,10 @@ export const BackendSelector = ({
             className="bg-bg-surface text-text-primary text-detail px-2 py-1 rounded border border-border-subtle outline-none"
           >
             {mmkvInstances.map(c => (
-              <option key={c.instance_id ?? 'default'} value={c.instance_id ?? 'default'}>
+              <option
+                key={c.instance_id ?? 'default'}
+                value={c.instance_id ?? 'default'}
+              >
                 {c.instance_id ?? 'default'}
               </option>
             ))}

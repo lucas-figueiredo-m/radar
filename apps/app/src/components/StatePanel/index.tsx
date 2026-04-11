@@ -36,9 +36,7 @@ export const StatePanel = ({
   const hasStores = capabilities.length > 0;
 
   if (!connected || !hasStores) {
-    return (
-      <StateEmptyState connected={connected} hasStores={hasStores} />
-    );
+    return <StateEmptyState connected={connected} hasStores={hasStores} />;
   }
 
   return (

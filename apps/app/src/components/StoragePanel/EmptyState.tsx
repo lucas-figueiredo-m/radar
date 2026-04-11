@@ -31,8 +31,12 @@ export const EmptyState = ({
         <Database size={32} className="text-text-disabled" />
         <p className="text-body">No storage library detected</p>
         <p className="text-detail text-text-disabled text-center max-w-sm">
-          Install <code className="text-text-secondary">@react-native-async-storage/async-storage</code> or{' '}
-          <code className="text-text-secondary">react-native-mmkv</code> in your app
+          Install{' '}
+          <code className="text-text-secondary">
+            @react-native-async-storage/async-storage
+          </code>{' '}
+          or <code className="text-text-secondary">react-native-mmkv</code> in
+          your app
         </p>
       </div>
     );

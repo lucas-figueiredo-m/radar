@@ -28,7 +28,9 @@ export const StoreSelector = ({
           >
             {cap.store_name}
             <span
-              className={`text-[10px] px-1.5 py-0.5 rounded ${STORE_TYPE_COLORS[cap.store_type as StateStoreType]}`}
+              className={`text-[10px] px-1.5 py-0.5 rounded ${
+                STORE_TYPE_COLORS[cap.store_type as StateStoreType]
+              }`}
             >
               {STORE_TYPE_LABELS[cap.store_type as StateStoreType]}
             </span>

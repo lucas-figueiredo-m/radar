@@ -104,7 +104,9 @@ export const EditEntryModal = ({
               onChange={e => setKey(e.target.value)}
               readOnly={!isNew}
               className={`w-full bg-bg-base text-text-primary text-detail px-3 py-2 rounded border border-border-subtle outline-none font-mono ${
-                !isNew ? 'opacity-60 cursor-default' : 'focus:border-border-focus'
+                !isNew
+                  ? 'opacity-60 cursor-default'
+                  : 'focus:border-border-focus'
               }`}
               placeholder="key.name"
               autoFocus={isNew}
@@ -132,9 +134,7 @@ export const EditEntryModal = ({
               </label>
               <select
                 value={valueType}
-                onChange={e =>
-                  setValueType(e.target.value as StorageValueType)
-                }
+                onChange={e => setValueType(e.target.value as StorageValueType)}
                 className="bg-bg-base text-text-primary text-detail px-3 py-2 rounded border border-border-subtle outline-none"
               >
                 <option value="string">String</option>
@@ -144,9 +144,7 @@ export const EditEntryModal = ({
             </div>
           )}
 
-          {error && (
-            <p className="text-detail text-red-400">{error}</p>
-          )}
+          {error && <p className="text-detail text-red-400">{error}</p>}
         </div>
 
         <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-border-subtle">

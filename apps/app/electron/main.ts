@@ -200,12 +200,9 @@ ipcMain.handle('radar:db:storage:clear', (_event, deviceId: string) => {
 });
 
 // State management IPC handlers
-ipcMain.handle(
-  'radar:db:state:getCapabilities',
-  (_event, deviceId: string) => {
-    return getDatabase().state.getCapabilities(deviceId);
-  },
-);
+ipcMain.handle('radar:db:state:getCapabilities', (_event, deviceId: string) => {
+  return getDatabase().state.getCapabilities(deviceId);
+});
 
 ipcMain.handle(
   'radar:db:state:getSnapshot',
@@ -214,12 +211,9 @@ ipcMain.handle(
   },
 );
 
-ipcMain.handle(
-  'radar:db:state:getSnapshots',
-  (_event, deviceId: string) => {
-    return getDatabase().state.getSnapshots(deviceId);
-  },
-);
+ipcMain.handle('radar:db:state:getSnapshots', (_event, deviceId: string) => {
+  return getDatabase().state.getSnapshots(deviceId);
+});
 
 ipcMain.handle('radar:db:state:clear', (_event, deviceId: string) => {
   return getDatabase().state.clear(deviceId);

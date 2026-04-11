@@ -45,13 +45,18 @@ export const StorageRow = ({
 
         {backend === 'mmkv' && (
           <span
-            className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${VALUE_TYPE_BG_COLORS[entry.value_type]}`}
+            className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${
+              VALUE_TYPE_BG_COLORS[entry.value_type]
+            }`}
           >
             {entry.value_type}
           </span>
         )}
 
-        <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+        <div
+          className="flex items-center gap-1 shrink-0"
+          onClick={e => e.stopPropagation()}
+        >
           <CopyButton text={entry.value} ariaLabel="Copy value" />
           <button
             onClick={e => {

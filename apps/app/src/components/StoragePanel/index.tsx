@@ -34,7 +34,11 @@ export type StoragePanelProps = {
   onSelectInstance: (instanceId: string | undefined) => void;
   onSearch: (query: string) => void;
   onEditEntry: (entry: StorageEntryRow | null) => void;
-  onSaveEntry: (key: string, value: string, valueType: StorageValueType) => void;
+  onSaveEntry: (
+    key: string,
+    value: string,
+    valueType: StorageValueType,
+  ) => void;
   onRemoveEntry: (key: string) => void;
   onRefresh: () => void;
   onClear: () => void;

@@ -40,9 +40,7 @@ const renderPrimitive = (value: unknown): React.ReactNode => {
   }
   if (typeof value === 'string') {
     return (
-      <span style={{ color: SYNTAX_COLORS.string }}>
-        &quot;{value}&quot;
-      </span>
+      <span style={{ color: SYNTAX_COLORS.string }}>&quot;{value}&quot;</span>
     );
   }
   if (typeof value === 'number') {
@@ -50,9 +48,7 @@ const renderPrimitive = (value: unknown): React.ReactNode => {
   }
   if (typeof value === 'boolean') {
     return (
-      <span style={{ color: SYNTAX_COLORS.boolean }}>
-        {String(value)}
-      </span>
+      <span style={{ color: SYNTAX_COLORS.boolean }}>{String(value)}</span>
     );
   }
   return <span className="text-text-secondary">{String(value)}</span>;
@@ -79,13 +75,15 @@ const StateNode = ({ keyName, value, depth, searchQuery }: StateNodeProps) => {
   const preview = isArray
     ? `Array(${(value as unknown[]).length})`
     : isObject
-      ? `{${Object.keys(value as Record<string, unknown>).length}}`
-      : null;
+    ? `{${Object.keys(value as Record<string, unknown>).length}}`
+    : null;
 
   return (
     <div style={{ paddingLeft: depth > 0 ? 16 : 0 }}>
       <div
-        className={`flex items-center gap-1 py-0.5 px-1 rounded ${isExpandable ? 'cursor-pointer hover:bg-bg-hover' : ''}`}
+        className={`flex items-center gap-1 py-0.5 px-1 rounded ${
+          isExpandable ? 'cursor-pointer hover:bg-bg-hover' : ''
+        }`}
         onClick={isExpandable ? toggle : undefined}
       >
         {isExpandable ? (
@@ -104,9 +102,7 @@ const StateNode = ({ keyName, value, depth, searchQuery }: StateNodeProps) => {
         <span className="text-text-disabled text-detail">:</span>
 
         {isExpandable && !expanded && (
-          <span className="text-detail text-text-disabled ml-1">
-            {preview}
-          </span>
+          <span className="text-detail text-text-disabled ml-1">{preview}</span>
         )}
 
         {!isExpandable && (
