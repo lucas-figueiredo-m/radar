@@ -14,6 +14,10 @@ import {
   increment,
   decrement,
   reset,
+  incrementBy,
+  addTodo,
+  toggleTodo,
+  removeTodo,
 } from '../stores/counterStore';
 
 const StorageScreen = () => {
@@ -31,6 +35,8 @@ const StorageScreen = () => {
   }, []);
 
   const { count, lastAction } = reduxState.counter;
+  const { items: todos } = reduxState.todos;
+  const [todoText, setTodoText] = useState('');
 
   const loadKeys = async () => {
     const keys = await AsyncStorage.getAllKeys();
@@ -148,10 +154,64 @@ const StorageScreen = () => {
         <TouchableOpacity style={styles.btn} onPress={() => counterStore.dispatch(increment())}>
           <Text style={styles.btnText}>+</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.btn} onPress={() => counterStore.dispatch(incrementBy(5))}>
+          <Text style={styles.btnText}>+5</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.clearBtn} onPress={() => counterStore.dispatch(reset())}>
           <Text style={styles.btnText}>Reset</Text>
         </TouchableOpacity>
       </View>
+
+      <Text style={[styles.sectionTitle, { marginTop: 32 }]}>
+        Redux Todos Slice
+      </Text>
+      <Text style={styles.subtitle}>{todos.length} items</Text>
+
+      <View style={styles.inputRow}>
+        <TextInput
+          style={[styles.input, { flex: 1 }]}
+          value={todoText}
+          onChangeText={setTodoText}
+          placeholder="Add a todo..."
+          placeholderTextColor="#64748b"
+          onSubmitEditing={() => {
+            if (todoText.trim()) {
+              counterStore.dispatch(addTodo({ id: Date.now().toString(), text: todoText }));
+              setTodoText('');
+            }
+          }}
+        />
+        <TouchableOpacity
+          style={styles.btn}
+          onPress={() => {
+            if (todoText.trim()) {
+              counterStore.dispatch(addTodo({ id: Date.now().toString(), text: todoText }));
+              setTodoText('');
+            }
+          }}
+        >
+          <Text style={styles.btnText}>Add</Text>
+        </TouchableOpacity>
+      </View>
+
+      {todos.map(todo => (
+        <View key={todo.id} style={styles.keyRow}>
+          <TouchableOpacity onPress={() => counterStore.dispatch(toggleTodo(todo.id))}>
+            <Text style={{ fontSize: 16, marginRight: 8 }}>{todo.done ? '✓' : '○'}</Text>
+          </TouchableOpacity>
+          <Text
+            style={[styles.valueText, todo.done && { textDecorationLine: 'line-through', color: '#64748b' }]}
+            numberOfLines={1}
+          >
+            {todo.text}
+          </Text>
+          <TouchableOpacity onPress={() => counterStore.dispatch(removeTodo(todo.id))}>
+            <Text style={styles.deleteText}>×</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+
+      <View style={{ height: 40 }} />
     </ScrollView>
     </SafeAreaView>
   );

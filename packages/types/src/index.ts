@@ -52,5 +52,6 @@ export type {
   StateStoreInfo,
   StateCapabilitiesMessage,
   StateSnapshotMessage,
+  StateActionMessage,
   StateGetCommand,
 } from './stateManagement';

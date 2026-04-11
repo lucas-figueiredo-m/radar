@@ -214,14 +214,17 @@ const App = () => {
     state: (
       <StatePanel
         capabilities={stateManagement.capabilities}
-        snapshots={stateManagement.snapshots}
+        actions={stateManagement.actions}
         selectedStore={stateManagement.selectedStore}
-        parsedState={stateManagement.parsedState}
+        selectedActionId={stateManagement.selectedActionId}
+        displayState={stateManagement.displayState}
         searchQuery={stateManagement.searchQuery}
         connected={connected}
         onSelectStore={stateManagement.setSelectedStore}
+        onSelectAction={stateManagement.setSelectedActionId}
         onSearch={stateManagement.setSearchQuery}
         onRefresh={stateManagement.refresh}
+        onClear={stateManagement.clearState}
       />
     ),
     devtools: <DevToolsPanel />,
@@ -238,7 +241,7 @@ const App = () => {
       : `${profilerCommits.length} commits`,
     performance: `${performanceMetrics.length} samples`,
     storage: `${storage.allEntries.length} entries`,
-    state: `${stateManagement.capabilities.length} stores`,
+    state: `${stateManagement.actions.length} actions`,
     devtools: 'Dev Tools',
   };
 

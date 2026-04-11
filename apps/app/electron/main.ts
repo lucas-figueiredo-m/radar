@@ -215,6 +215,13 @@ ipcMain.handle('radar:db:state:getSnapshots', (_event, deviceId: string) => {
   return getDatabase().state.getSnapshots(deviceId);
 });
 
+ipcMain.handle(
+  'radar:db:state:getActions',
+  (_event, deviceId: string, storeName: string) => {
+    return getDatabase().state.getActions(deviceId, storeName);
+  },
+);
+
 ipcMain.handle('radar:db:state:clear', (_event, deviceId: string) => {
   return getDatabase().state.clear(deviceId);
 });

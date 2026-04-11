@@ -15,6 +15,7 @@ import type {
   StorageDataMessage,
   StateCapabilitiesMessage,
   StateSnapshotMessage,
+  StateActionMessage,
 } from '@radar/types';
 import type { RadarDatabase } from '@radar/database';
 
@@ -59,6 +60,7 @@ const NOTIFICATION_CHANNELS: Record<string, string> = {
   storageData: 'radar:db:storage:changed',
   stateCapabilities: 'radar:db:state:capabilities:changed',
   stateSnapshot: 'radar:db:state:changed',
+  stateAction: 'radar:db:state:action:changed',
 };
 
 const notifyRenderer = (
@@ -231,6 +233,18 @@ const persistMessage = (
         db.state.upsertSnapshot({
           device_id: deviceId,
           store_name: msg.storeName,
+          state: msg.state,
+          timestamp: msg.timestamp,
+        });
+        break;
+      }
+      case 'stateAction': {
+        const msg = message as unknown as StateActionMessage;
+        db.state.insertAction({
+          device_id: deviceId,
+          store_name: msg.storeName,
+          action_type: msg.actionType,
+          payload: msg.payload,
           state: msg.state,
           timestamp: msg.timestamp,
         });

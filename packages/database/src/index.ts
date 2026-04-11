@@ -30,6 +30,8 @@ export type {
   InsertStateCapability,
   StateSnapshotRow,
   InsertStateSnapshot,
+  StateActionRow,
+  InsertStateAction,
 } from './types';
 
 export type { ConsoleRepository } from './repositories/consoleRepository';

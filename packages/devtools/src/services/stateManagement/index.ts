@@ -7,14 +7,30 @@ import type { RadarConfig } from '../../config';
 import { detectStoreType } from '../storage/detectBackends';
 import type { StoreRegistration } from '../storage/detectBackends';
 
-type Serialize = (value: unknown) => string;
-
-const safeSerialize: Serialize = (value: unknown): string => {
+const safeSerialize = (value: unknown): string => {
   try {
     return JSON.stringify(value) ?? '{}';
   } catch {
     return '{}';
   }
+};
+
+const computeChangedKeys = (
+  prev: Record<string, unknown>,
+  next: Record<string, unknown>,
+): string[] => {
+  const changed: string[] = [];
+  const allKeys = new Set([...Object.keys(prev), ...Object.keys(next)]);
+  for (const key of allKeys) {
+    if (prev[key] !== next[key]) {
+      changed.push(key);
+    }
+  }
+  return changed;
+};
+
+type ReduxStore = StoreRegistration & {
+  dispatch: (action: Record<string, unknown>) => Record<string, unknown>;
 };
 
 export const createStateService = (
@@ -36,20 +52,74 @@ export const createStateService = (
       }
 
       stores.set(name, store);
-      const storeType = detectStoreType(rawStore as Record<string, unknown>);
+      const storeType = detectStoreType(
+        rawStore as Record<string, unknown>,
+      );
       storeInfos.push({ name, storeType });
 
-      // Redux subscribe passes no args; Zustand passes the new state.
-      // Use getState() in both cases for consistency.
-      const unsub = store.subscribe(() => {
-        send({
-          type: 'stateSnapshot',
-          storeName: name,
-          state: safeSerialize(store.getState()),
-          timestamp: Date.now(),
+      if (storeType === 'redux') {
+        // Redux: intercept dispatch to capture action type + payload
+        const reduxStore = store as ReduxStore;
+        const originalDispatch = reduxStore.dispatch.bind(reduxStore);
+        reduxStore.dispatch = (
+          action: Record<string, unknown>,
+        ): Record<string, unknown> => {
+          const result = originalDispatch(action);
+          const newState = reduxStore.getState();
+          send({
+            type: 'stateAction',
+            storeName: name,
+            actionType: String(action.type ?? 'unknown'),
+            payload: safeSerialize(action.payload ?? action),
+            state: safeSerialize(newState),
+            timestamp: Date.now(),
+          });
+          send({
+            type: 'stateSnapshot',
+            storeName: name,
+            state: safeSerialize(newState),
+            timestamp: Date.now(),
+          });
+          return result;
+        };
+      } else {
+        // Zustand / other: subscribe and compute diff
+        let prevState = store.getState();
+        const unsub = store.subscribe(() => {
+          const nextState = store.getState();
+          const changed = computeChangedKeys(
+            prevState as Record<string, unknown>,
+            nextState as Record<string, unknown>,
+          );
+          const actionType =
+            changed.length > 0
+              ? `update: ${changed.join(', ')}`
+              : 'state update';
+          send({
+            type: 'stateAction',
+            storeName: name,
+            actionType,
+            payload: safeSerialize(
+              Object.fromEntries(
+                changed.map(k => [
+                  k,
+                  (nextState as Record<string, unknown>)[k],
+                ]),
+              ),
+            ),
+            state: safeSerialize(nextState),
+            timestamp: Date.now(),
+          });
+          send({
+            type: 'stateSnapshot',
+            storeName: name,
+            state: safeSerialize(nextState),
+            timestamp: Date.now(),
+          });
+          prevState = nextState;
         });
-      });
-      unsubscribers.push(unsub);
+        unsubscribers.push(unsub);
+      }
     }
   }
 

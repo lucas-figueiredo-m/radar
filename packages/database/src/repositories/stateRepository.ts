@@ -4,6 +4,8 @@ import type {
   InsertStateCapability,
   StateSnapshotRow,
   InsertStateSnapshot,
+  StateActionRow,
+  InsertStateAction,
 } from '../types';
 
 export type StateRepository = {
@@ -12,6 +14,8 @@ export type StateRepository = {
   upsertSnapshot: (snapshot: InsertStateSnapshot) => StateSnapshotRow;
   getSnapshot: (deviceId: string, storeName: string) => StateSnapshotRow | null;
   getSnapshots: (deviceId: string) => StateSnapshotRow[];
+  insertAction: (action: InsertStateAction) => StateActionRow;
+  getActions: (deviceId: string, storeName: string) => StateActionRow[];
   clear: (deviceId: string) => number;
   clearAll: () => number;
 };
@@ -85,6 +89,31 @@ export const createStateRepository = (
       .all(deviceId);
   };
 
+  const insertActionStmt = db.prepare<InsertStateAction>(
+    `INSERT INTO state_actions (device_id, store_name, action_type, payload, state, timestamp)
+     VALUES (@device_id, @store_name, @action_type, @payload, @state, @timestamp)`,
+  );
+
+  const insertAction = (action: InsertStateAction): StateActionRow => {
+    const result = insertActionStmt.run(action);
+    return db
+      .prepare<number, StateActionRow>(
+        'SELECT * FROM state_actions WHERE id = ?',
+      )
+      .get(result.lastInsertRowid as number)!;
+  };
+
+  const getActions = (
+    deviceId: string,
+    storeName: string,
+  ): StateActionRow[] => {
+    return db
+      .prepare<[string, string], StateActionRow>(
+        'SELECT * FROM state_actions WHERE device_id = ? AND store_name = ? ORDER BY timestamp ASC, id ASC',
+      )
+      .all(deviceId, storeName);
+  };
+
   const clear = (deviceId: string): number => {
     const r1 = db
       .prepare<string>('DELETE FROM state_snapshots WHERE device_id = ?')
@@ -92,13 +121,17 @@ export const createStateRepository = (
     const r2 = db
       .prepare<string>('DELETE FROM state_capabilities WHERE device_id = ?')
       .run(deviceId);
-    return r1.changes + r2.changes;
+    const r3 = db
+      .prepare<string>('DELETE FROM state_actions WHERE device_id = ?')
+      .run(deviceId);
+    return r1.changes + r2.changes + r3.changes;
   };
 
   const clearAll = (): number => {
     const r1 = db.prepare('DELETE FROM state_snapshots').run();
     const r2 = db.prepare('DELETE FROM state_capabilities').run();
-    return r1.changes + r2.changes;
+    const r3 = db.prepare('DELETE FROM state_actions').run();
+    return r1.changes + r2.changes + r3.changes;
   };
 
   return {
@@ -107,6 +140,8 @@ export const createStateRepository = (
     upsertSnapshot,
     getSnapshot,
     getSnapshots,
+    insertAction,
+    getActions,
     clear,
     clearAll,
   };

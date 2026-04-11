@@ -18,6 +18,15 @@ export type StateSnapshotMessage = {
   timestamp: number;
 };
 
+export type StateActionMessage = {
+  type: 'stateAction';
+  storeName: string;
+  actionType: string;
+  payload: string;
+  state: string;
+  timestamp: number;
+};
+
 export type StateGetCommand = {
   type: 'stateGet';
   storeName: string;

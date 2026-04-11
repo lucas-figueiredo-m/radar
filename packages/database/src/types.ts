@@ -247,3 +247,23 @@ export type InsertStateSnapshot = {
   state: string;
   timestamp: number;
 };
+
+export type StateActionRow = {
+  id: number;
+  device_id: string;
+  store_name: string;
+  action_type: string;
+  payload: string;
+  state: string;
+  timestamp: number;
+  db_created_at: number;
+};
+
+export type InsertStateAction = {
+  device_id: string;
+  store_name: string;
+  action_type: string;
+  payload: string;
+  state: string;
+  timestamp: number;
+};

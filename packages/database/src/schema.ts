@@ -154,4 +154,18 @@ export const CREATE_TABLES_SQL = `
 
   CREATE UNIQUE INDEX IF NOT EXISTS idx_state_snapshot_device_store
     ON state_snapshots(device_id, store_name);
+
+  CREATE TABLE IF NOT EXISTS state_actions (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    device_id       TEXT NOT NULL,
+    store_name      TEXT NOT NULL,
+    action_type     TEXT NOT NULL,
+    payload         TEXT NOT NULL,
+    state           TEXT NOT NULL,
+    timestamp       INTEGER NOT NULL,
+    db_created_at   INTEGER NOT NULL DEFAULT (unixepoch('now','subsec') * 1000)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_state_actions_device_store
+    ON state_actions(device_id, store_name, timestamp);
 `;
