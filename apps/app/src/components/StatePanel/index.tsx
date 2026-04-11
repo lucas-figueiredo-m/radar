@@ -57,7 +57,10 @@ export const StatePanel = ({
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging.current || !containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const newWidth = Math.max(160, Math.min(e.clientX - rect.left, rect.width - 200));
+      const newWidth = Math.max(
+        160,
+        Math.min(e.clientX - rect.left, rect.width - 200),
+      );
       setActionPanelWidth(newWidth);
     };
 

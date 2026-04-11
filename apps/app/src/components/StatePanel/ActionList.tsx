@@ -53,13 +53,9 @@ export const ActionList = ({
         return (
           <div
             key={action.id}
-            onClick={() =>
-              onSelectAction(isSelected ? null : action.id)
-            }
+            onClick={() => onSelectAction(isSelected ? null : action.id)}
             className={`flex flex-col gap-0.5 px-3 py-1.5 cursor-pointer border-b border-border-subtle transition-colors ${
-              isSelected
-                ? 'bg-bg-active'
-                : 'hover:bg-bg-hover'
+              isSelected ? 'bg-bg-active' : 'hover:bg-bg-hover'
             }`}
           >
             <div className="flex items-center gap-2">
