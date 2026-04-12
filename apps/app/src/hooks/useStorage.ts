@@ -54,6 +54,8 @@ export const useStorage = (selectedDeviceId: string | null) => {
     hasAutoSelected.current = true;
     setSelectedBackend(available[0].backend);
     setSelectedInstance(available[0].instance_id ?? undefined);
+    // For AsyncStorage, instance_id is null so we keep undefined
+    // For MMKV, instance_id is always a string like 'default'
   }, [capabilities]);
 
   const refresh = useCallback(() => {

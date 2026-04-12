@@ -12,6 +12,7 @@ import { createMMKV } from 'react-native-mmkv';
 import { useTodoStore } from '../stores/todoStore';
 
 const storage = createMMKV();
+const settingsStorage = createMMKV({ id: 'settings' });
 
 const StorageScreen = () => {
   const [key, setKey] = useState('');
@@ -32,14 +33,20 @@ const StorageScreen = () => {
       storage.set('user.name', 'Jane Smith');
       storage.set('user.age', 28);
       storage.set('user.premium', true);
-      storage.set('settings.volume', 75);
-      storage.set('settings.darkMode', true);
       storage.set(
         'cache.userData',
         JSON.stringify({ avatar: 'https://example.com/avatar.jpg', role: 'admin' }),
       );
       storage.set('app.rating', 4.5);
       storage.set('app.hasOnboarded', false);
+    }
+    if (settingsStorage.getAllKeys().length === 0) {
+      settingsStorage.set('theme', 'dark');
+      settingsStorage.set('language', 'en');
+      settingsStorage.set('notifications', true);
+      settingsStorage.set('fontSize', 16);
+      settingsStorage.set('autoSave', true);
+      settingsStorage.set('syncInterval', 300);
     }
     loadKeys();
   }, []);
@@ -115,6 +122,44 @@ const StorageScreen = () => {
       <TouchableOpacity style={styles.clearBtn} onPress={handleClear}>
         <Text style={styles.btnText}>Clear All</Text>
       </TouchableOpacity>
+
+      <Text style={[styles.sectionTitle, { marginTop: 32 }]}>
+        MMKV Settings Instance
+      </Text>
+      <Text style={styles.subtitle}>
+        {settingsStorage.getAllKeys().length} keys
+      </Text>
+
+      {settingsStorage.getAllKeys().map(k => {
+        const val = settingsStorage.getString(k) ?? String(settingsStorage.getNumber(k) ?? settingsStorage.getBoolean(k) ?? '');
+        return (
+          <View key={k} style={styles.keyRow}>
+            <Text style={styles.keyText}>{k}</Text>
+            <Text style={styles.valueText} numberOfLines={1}>{val}</Text>
+          </View>
+        );
+      })}
+
+      <View style={styles.inputRow}>
+        <TouchableOpacity
+          style={styles.btn}
+          onPress={() => {
+            settingsStorage.set('theme', settingsStorage.getString('theme') === 'dark' ? 'light' : 'dark');
+            loadKeys();
+          }}
+        >
+          <Text style={styles.btnText}>Toggle Theme</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.btn}
+          onPress={() => {
+            settingsStorage.set('notifications', !settingsStorage.getBoolean('notifications'));
+            loadKeys();
+          }}
+        >
+          <Text style={styles.btnText}>Toggle Notifs</Text>
+        </TouchableOpacity>
+      </View>
 
       <Text style={[styles.sectionTitle, { marginTop: 32 }]}>
         Zustand Todo Store

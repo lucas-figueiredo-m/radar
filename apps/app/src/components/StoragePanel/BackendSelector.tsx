@@ -62,11 +62,7 @@ export const BackendSelector = ({
           <div className="w-px h-4 bg-border-subtle" />
           <select
             value={selectedInstance ?? 'default'}
-            onChange={e =>
-              onSelectInstance(
-                e.target.value === 'default' ? undefined : e.target.value,
-              )
-            }
+            onChange={e => onSelectInstance(e.target.value)}
             className="bg-bg-surface text-text-primary text-detail px-2 py-1 rounded border border-border-subtle outline-none"
           >
             {mmkvInstances.map(c => (
