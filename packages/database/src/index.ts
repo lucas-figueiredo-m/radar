@@ -21,6 +21,17 @@ export type {
   ConsoleQueryFilter,
   NetworkQueryFilter,
   PerformanceQueryFilter,
+  StorageCapabilityRow,
+  InsertStorageCapability,
+  StorageEntryRow,
+  InsertStorageEntry,
+  StorageEntryFilter,
+  StateCapabilityRow,
+  InsertStateCapability,
+  StateSnapshotRow,
+  InsertStateSnapshot,
+  StateActionRow,
+  InsertStateAction,
 } from './types';
 
 export type { ConsoleRepository } from './repositories/consoleRepository';
@@ -29,3 +40,5 @@ export type { ComponentTreeRepository } from './repositories/componentTreeReposi
 export type { InspectedComponentRepository } from './repositories/inspectedComponentRepository';
 export type { ProfilerRepository } from './repositories/profilerRepository';
 export type { PerformanceRepository } from './repositories/performanceRepository';
+export type { StorageRepository } from './repositories/storageRepository';
+export type { StateRepository } from './repositories/stateRepository';

@@ -21,3 +21,7 @@ export { Sidebar } from './Sidebar';
 export { StatusBar } from './StatusBar';
 export { StatusDot } from './StatusDot';
 export { ValueRenderer } from './ValueRenderer';
+export { StoragePanel } from './StoragePanel';
+export type { StoragePanelProps } from './StoragePanel';
+export { StatePanel } from './StatePanel';
+export type { StatePanelProps } from './StatePanel';

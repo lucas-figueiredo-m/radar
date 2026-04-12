@@ -7,6 +7,8 @@ import {
   createInspectedComponentRepository,
   createProfilerRepository,
   createPerformanceRepository,
+  createStorageRepository,
+  createStateRepository,
 } from './repositories';
 import type {
   ConsoleRepository,
@@ -15,6 +17,8 @@ import type {
   InspectedComponentRepository,
   ProfilerRepository,
   PerformanceRepository,
+  StorageRepository,
+  StateRepository,
 } from './repositories';
 
 export type RadarDatabase = {
@@ -24,6 +28,8 @@ export type RadarDatabase = {
   inspectedComponent: InspectedComponentRepository;
   profiler: ProfilerRepository;
   performance: PerformanceRepository;
+  storage: StorageRepository;
+  state: StateRepository;
   close: () => void;
   raw: Database.Database;
 };
@@ -43,6 +49,8 @@ export const createDatabase = (): RadarDatabase => {
     inspectedComponent: createInspectedComponentRepository(db),
     profiler: createProfilerRepository(db),
     performance: createPerformanceRepository(db),
+    storage: createStorageRepository(db),
+    state: createStateRepository(db),
     close: () => db.close(),
     raw: db,
   };

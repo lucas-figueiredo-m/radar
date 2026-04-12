@@ -17,6 +17,7 @@ import type {
   NetworkQueryFilter,
   PerformanceQueryFilter,
   QueryFilter,
+  StorageEntryFilter,
 } from '@radar/database';
 
 process.env.DIST = path.join(__dirname, '../dist');
@@ -178,6 +179,52 @@ ipcMain.handle(
     return getDatabase().inspectedComponent.clear(deviceId);
   },
 );
+
+// Storage IPC handlers
+ipcMain.handle(
+  'radar:db:storage:getCapabilities',
+  (_event, deviceId: string) => {
+    return getDatabase().storage.getCapabilities(deviceId);
+  },
+);
+
+ipcMain.handle(
+  'radar:db:storage:getEntries',
+  (_event, filter: StorageEntryFilter) => {
+    return getDatabase().storage.getEntries(filter);
+  },
+);
+
+ipcMain.handle('radar:db:storage:clear', (_event, deviceId: string) => {
+  return getDatabase().storage.clear(deviceId);
+});
+
+// State management IPC handlers
+ipcMain.handle('radar:db:state:getCapabilities', (_event, deviceId: string) => {
+  return getDatabase().state.getCapabilities(deviceId);
+});
+
+ipcMain.handle(
+  'radar:db:state:getSnapshot',
+  (_event, deviceId: string, storeName: string) => {
+    return getDatabase().state.getSnapshot(deviceId, storeName);
+  },
+);
+
+ipcMain.handle('radar:db:state:getSnapshots', (_event, deviceId: string) => {
+  return getDatabase().state.getSnapshots(deviceId);
+});
+
+ipcMain.handle(
+  'radar:db:state:getActions',
+  (_event, deviceId: string, storeName: string) => {
+    return getDatabase().state.getActions(deviceId, storeName);
+  },
+);
+
+ipcMain.handle('radar:db:state:clear', (_event, deviceId: string) => {
+  return getDatabase().state.clear(deviceId);
+});
 
 ipcMain.handle('radar:get-editor-info', () => {
   const editors = detectEditors();

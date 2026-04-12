@@ -10,6 +10,12 @@ import type {
   ProfilerCommitRow,
   InspectedComponentRow,
   QueryFilter,
+  StorageCapabilityRow,
+  StorageEntryRow,
+  StorageEntryFilter,
+  StateCapabilityRow,
+  StateSnapshotRow,
+  StateActionRow,
 } from '@radar/database';
 import { ipcRenderer } from './ipc';
 
@@ -78,5 +84,33 @@ export const databaseClient = {
       ),
     clear: (deviceId: string): Promise<number> =>
       ipcRenderer.invoke('radar:db:inspectedComponent:clear', deviceId),
+  },
+
+  storage: {
+    getCapabilities: (deviceId: string): Promise<StorageCapabilityRow[]> =>
+      ipcRenderer.invoke('radar:db:storage:getCapabilities', deviceId),
+    getEntries: (filter: StorageEntryFilter): Promise<StorageEntryRow[]> =>
+      ipcRenderer.invoke('radar:db:storage:getEntries', filter),
+    clear: (deviceId: string): Promise<number> =>
+      ipcRenderer.invoke('radar:db:storage:clear', deviceId),
+  },
+
+  state: {
+    getCapabilities: (deviceId: string): Promise<StateCapabilityRow[]> =>
+      ipcRenderer.invoke('radar:db:state:getCapabilities', deviceId),
+    getSnapshot: (
+      deviceId: string,
+      storeName: string,
+    ): Promise<StateSnapshotRow | null> =>
+      ipcRenderer.invoke('radar:db:state:getSnapshot', deviceId, storeName),
+    getSnapshots: (deviceId: string): Promise<StateSnapshotRow[]> =>
+      ipcRenderer.invoke('radar:db:state:getSnapshots', deviceId),
+    getActions: (
+      deviceId: string,
+      storeName: string,
+    ): Promise<StateActionRow[]> =>
+      ipcRenderer.invoke('radar:db:state:getActions', deviceId, storeName),
+    clear: (deviceId: string): Promise<number> =>
+      ipcRenderer.invoke('radar:db:state:clear', deviceId),
   },
 };

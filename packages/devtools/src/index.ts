@@ -6,12 +6,18 @@ import {
   createProfilerService,
   createPerformanceService,
   createStartupService,
+  createStorageService,
+  createStateService,
 } from './services';
 import { inspectComponent } from './services/componentTree/inspectComponent';
 import { createConnection } from './connection';
 import { DEFAULT_HOST, DEFAULT_PORT } from './constants';
 import { getDeviceInfo } from './deviceInfo';
-import type { RadarCommand } from '@radar/types';
+import type {
+  RadarCommand,
+  StorageCommand,
+  StateGetCommand,
+} from '@radar/types';
 import type { RadarConfig } from './config';
 
 export type { RadarConfig } from './config';
@@ -79,6 +85,8 @@ export const init = (config: RadarConfig = {}) => {
   const performanceService = createPerformanceService(send);
   const startup = createStartupService(send);
   startupRef = startup;
+  const storageService = createStorageService(send, config);
+  const stateService = createStateService(send, config);
   const originalConsole = patchConsole(send);
 
   // Always start profiling eagerly to capture early commits.
@@ -86,6 +94,15 @@ export const init = (config: RadarConfig = {}) => {
   // command — if profiling is not active, we discard the buffer.
   profiler.startProfiling();
   performanceService.start();
+
+  const isStorageCommand = (cmd: RadarCommand): cmd is StorageCommand =>
+    cmd.type === 'storageGetAll' ||
+    cmd.type === 'storageSet' ||
+    cmd.type === 'storageRemove' ||
+    cmd.type === 'storageClear';
+
+  const isStateCommand = (cmd: RadarCommand): cmd is StateGetCommand =>
+    cmd.type === 'stateGet';
 
   const handleCommand = (command: RadarCommand) => {
     if (command.type === 'inspectComponent') {
@@ -100,6 +117,10 @@ export const init = (config: RadarConfig = {}) => {
       if (!command.isProfiling) {
         profiler.discardProfiling();
       }
+    } else if (isStorageCommand(command)) {
+      storageService.handleCommand(command);
+    } else if (isStateCommand(command)) {
+      stateService.handleCommand(command);
     }
   };
 
@@ -109,6 +130,13 @@ export const init = (config: RadarConfig = {}) => {
   addCommitListener(profiler.handleCommit);
 
   connect(host, port, originalConsole);
+
+  // Send capabilities after a short delay to ensure connection is established
+  setTimeout(() => {
+    storageService.sendCapabilities();
+    stateService.sendCapabilities();
+    stateService.sendAllSnapshots();
+  }, 500);
 
   setTimeout(() => startup.sendWithoutTti(), 10000);
 

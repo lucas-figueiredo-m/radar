@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import ConsoleScreen from '../screens/ConsoleScreen';
 import NetworkScreen from '../screens/NetworkScreen';
 import PerformanceScreen from '../screens/PerformanceScreen';
+import StorageScreen from '../screens/StorageScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -53,6 +54,15 @@ const TabNavigator = () => (
       options={{
         tabBarIcon: ({ focused }) => (
           <TabIcon label="Perf" emoji="#" focused={focused} />
+        ),
+      }}
+    />
+    <Tab.Screen
+      name="Storage"
+      component={StorageScreen}
+      options={{
+        tabBarIcon: ({ focused }) => (
+          <TabIcon label="Storage" emoji="$" focused={focused} />
         ),
       }}
     />

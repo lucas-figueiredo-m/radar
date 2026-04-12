@@ -10,16 +10,19 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^3.0.2",
     "@react-native/new-app-screen": "0.84.0",
     "@react-navigation/bottom-tabs": "^7.15.5",
     "@react-navigation/native": "^7.1.33",
+    "@reduxjs/toolkit": "^2.11.2",
     "axios": "^1.13.6",
     "invariant": "^2.2.4",
     "radar-devtools": "workspace:*",
     "react": "19.2.3",
     "react-native": "0.84.0",
     "react-native-safe-area-context": "^5.5.2",
-    "react-native-screens": "^4.24.0"
+    "react-native-screens": "^4.24.0",
+    "react-redux": "^9.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

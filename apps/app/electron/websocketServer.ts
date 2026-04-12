@@ -11,6 +11,11 @@ import type {
   InspectComponentResponse,
   ProfilerSessionMessage,
   PerformanceMetricMessage,
+  StorageCapabilitiesMessage,
+  StorageDataMessage,
+  StateCapabilitiesMessage,
+  StateSnapshotMessage,
+  StateActionMessage,
 } from '@radar/types';
 import type { RadarDatabase } from '@radar/database';
 
@@ -51,6 +56,11 @@ const NOTIFICATION_CHANNELS: Record<string, string> = {
   inspectComponent: 'radar:db:inspectedComponent:changed',
   profilerSession: 'radar:db:profiler:changed',
   performanceMetric: 'radar:db:performance:changed',
+  storageCapabilities: 'radar:db:storage:capabilities:changed',
+  storageData: 'radar:db:storage:changed',
+  stateCapabilities: 'radar:db:state:capabilities:changed',
+  stateSnapshot: 'radar:db:state:changed',
+  stateAction: 'radar:db:state:action:changed',
 };
 
 const notifyRenderer = (
@@ -173,6 +183,69 @@ const persistMessage = (
           cpu_usage: msg.cpuUsage ?? null,
           dropped_frames: msg.droppedFrames,
           gc_events: msg.gcEvents,
+          timestamp: msg.timestamp,
+        });
+        break;
+      }
+      case 'storageCapabilities': {
+        const msg = message as unknown as StorageCapabilitiesMessage;
+        for (const backend of msg.backends) {
+          db.storage.upsertCapability({
+            device_id: deviceId,
+            backend: backend.backend,
+            available: backend.available ? 1 : 0,
+            instance_id: backend.instanceId ?? null,
+          });
+        }
+        break;
+      }
+      case 'storageData': {
+        const msg = message as unknown as StorageDataMessage;
+        db.storage.replaceEntries(
+          deviceId,
+          msg.backend,
+          msg.instanceId ?? null,
+          msg.entries.map(e => ({
+            device_id: deviceId,
+            backend: msg.backend,
+            instance_id: msg.instanceId ?? null,
+            key: e.key,
+            value: e.value,
+            value_type: e.valueType,
+            timestamp: msg.timestamp,
+          })),
+        );
+        break;
+      }
+      case 'stateCapabilities': {
+        const msg = message as unknown as StateCapabilitiesMessage;
+        for (const store of msg.stores) {
+          db.state.upsertCapability({
+            device_id: deviceId,
+            store_name: store.name,
+            store_type: store.storeType,
+          });
+        }
+        break;
+      }
+      case 'stateSnapshot': {
+        const msg = message as unknown as StateSnapshotMessage;
+        db.state.upsertSnapshot({
+          device_id: deviceId,
+          store_name: msg.storeName,
+          state: msg.state,
+          timestamp: msg.timestamp,
+        });
+        break;
+      }
+      case 'stateAction': {
+        const msg = message as unknown as StateActionMessage;
+        db.state.insertAction({
+          device_id: deviceId,
+          store_name: msg.storeName,
+          action_type: msg.actionType,
+          payload: msg.payload,
+          state: msg.state,
           timestamp: msg.timestamp,
         });
         break;

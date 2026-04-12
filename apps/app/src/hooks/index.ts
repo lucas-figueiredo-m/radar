@@ -10,3 +10,5 @@ export { usePerformanceMetrics } from './usePerformanceMetrics';
 export { useProfiler } from './useProfiler';
 export { useResizeObserver } from './useResizeObserver';
 export { useStartupMetrics } from './useStartupMetrics';
+export { useStorage } from './useStorage';
+export { useStateManagement } from './useStateManagement';
