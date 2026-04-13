@@ -1,5 +1,4 @@
 import {
-  Smartphone,
   GitBranch,
   Activity,
   Wifi,
@@ -19,7 +18,7 @@ export type NavItem = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
-  { id: 'device', icon: Smartphone, label: 'Device View', enabled: false },
+  // { id: 'device', icon: Smartphone, label: 'Device View', enabled: false },
   { id: 'tree', icon: GitBranch, label: 'Components Tree', enabled: true },
   { id: 'profiler', icon: Activity, label: 'Profiler', enabled: true },
   { id: 'network', icon: Wifi, label: 'Network', enabled: true },

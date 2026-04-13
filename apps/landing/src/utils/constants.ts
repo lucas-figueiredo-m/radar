@@ -11,6 +11,7 @@ import type {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: "Features", href: "/#features" },
+  { label: "AI", href: "/#ai" },
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Docs", href: "/docs" },
 ];
@@ -50,6 +51,27 @@ export const FEATURES: Feature[] = [
     description:
       "Real-time native metrics — UI FPS, CPU usage, memory, and JS heap. Startup breakdown with bundle eval, native launch, and TTI.",
     color: "#A78BFA",
+  },
+  {
+    icon: "Database",
+    title: "State Management",
+    description:
+      "Inspect Redux, Zustand, and other stores in real time. View state snapshots, track dispatched actions, and filter by slice.",
+    color: "#E879F9",
+  },
+  {
+    icon: "HardDrive",
+    title: "Storage",
+    description:
+      "Browse, edit, and clear AsyncStorage and MMKV entries directly. Multi-instance MMKV support with typed values.",
+    color: "#FB923C",
+  },
+  {
+    icon: "Bot",
+    title: "AI-Powered",
+    description:
+      "Built-in MCP server exposes 18 tools to AI coding assistants. Let Claude, Cursor, or any MCP client debug your app for you.",
+    color: "#34D399",
   },
 ];
 
@@ -106,6 +128,32 @@ export const FEATURE_DEEP_DIVES: FeatureDeepDive[] = [
     ],
     imagePosition: "left",
   },
+  {
+    title: "State Management",
+    headline: "Your stores, fully transparent",
+    description:
+      "Connect to Redux, Zustand, or any state management library and see the full picture. Browse state snapshots, filter by slice, and replay dispatched actions to understand exactly how your app's data flows.",
+    highlights: [
+      "Redux, Zustand, and custom store support",
+      "Live state snapshots with slice filtering",
+      "Action history with payload inspection",
+      "Diff view between state changes",
+    ],
+    imagePosition: "right",
+  },
+  {
+    title: "Storage",
+    headline: "Read and write device storage",
+    description:
+      "Inspect AsyncStorage and MMKV entries without leaving Radar. Browse keys, edit values in place, or clear entire backends. Multi-instance MMKV is fully supported with typed values.",
+    highlights: [
+      "AsyncStorage and MMKV support",
+      "Edit values and delete keys in real time",
+      "Multi-instance MMKV with typed values",
+      "Clear entire storage backends instantly",
+    ],
+    imagePosition: "left",
+  },
 ];
 
 export const HOW_IT_WORKS_STEPS: HowItWorksStep[] = [
@@ -113,13 +161,13 @@ export const HOW_IT_WORKS_STEPS: HowItWorksStep[] = [
     step: 1,
     title: "Install",
     description: "Add the devtools package to your React Native project.",
-    code: "bun add radar-devtools",
+    code: "npm install --save-dev radar-devtools",
   },
   {
     step: 2,
     title: "Initialize",
     description: "Import and call init in your app's entry point.",
-    code: `import { init } from 'radar-devtools';\n\ninit();`,
+    code: `if (__DEV__) {\n  const { init } = require('radar-devtools');\n  init();\n}`,
   },
   {
     step: 3,
@@ -159,6 +207,20 @@ export const COMPARISON_DATA: ComparisonRow[] = [
     reactotron: false,
   },
   {
+    feature: "State Management",
+    radar: true,
+    reactDevTools: false,
+    flipper: false,
+    reactotron: true,
+  },
+  {
+    feature: "Storage Inspector",
+    radar: true,
+    reactDevTools: false,
+    flipper: true,
+    reactotron: false,
+  },
+  {
     feature: "Source Tracing",
     radar: true,
     reactDevTools: false,
@@ -181,6 +243,13 @@ export const COMPARISON_DATA: ComparisonRow[] = [
   },
   {
     feature: "Startup Analysis",
+    radar: true,
+    reactDevTools: false,
+    flipper: false,
+    reactotron: false,
+  },
+  {
+    feature: "AI Integration (MCP)",
     radar: true,
     reactDevTools: false,
     flipper: false,

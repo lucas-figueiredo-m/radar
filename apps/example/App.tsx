@@ -1,14 +1,23 @@
 import { NavigationContainer } from '@react-navigation/native';
-import { init, markInteractive } from 'radar-devtools';
 import { useEffect } from 'react';
 import { Platform, StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import TabNavigator from './src/navigation/TabNavigator';
 import { counterStore } from './src/stores/counterStore';
 
-init({
-  stores: { counter: counterStore },
-});
+if (__DEV__) {
+  const { init } = require('radar-devtools');
+  init({
+    stores: { counter: counterStore },
+  });
+}
+
+const onReady = () => {
+  if (__DEV__) {
+    const { markInteractive } = require('radar-devtools');
+    markInteractive();
+  }
+};
 
 const App = () => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -22,7 +31,7 @@ const App = () => {
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <NavigationContainer
-        onReady={markInteractive}
+        onReady={onReady}
         theme={{
           dark: true,
           colors: {

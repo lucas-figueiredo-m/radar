@@ -17,7 +17,6 @@
     "@reduxjs/toolkit": "^2.11.2",
     "axios": "^1.13.6",
     "invariant": "^2.2.4",
-    "radar-devtools": "workspace:*",
     "react": "19.2.3",
     "react-native": "0.84.0",
     "react-native-safe-area-context": "^5.5.2",
@@ -25,6 +24,7 @@
     "react-redux": "^9.2.0"
   },
   "devDependencies": {
+    "radar-devtools": "workspace:*",
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.3",
     "@babel/runtime": "^7.25.0",

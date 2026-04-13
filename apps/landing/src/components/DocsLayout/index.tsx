@@ -13,7 +13,8 @@ const SIDEBAR_ITEMS = [
   { label: "Quick Start", href: "#quick-start" },
   { label: "Configuration", href: "#configuration" },
   { label: "Features", href: "#features-overview" },
-];
+  { label: "AI Integration", href: "#mcp" },
+] as const;
 
 export const DocsLayout = ({ children }: DocsLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);

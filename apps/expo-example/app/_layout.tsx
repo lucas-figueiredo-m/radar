@@ -1,5 +1,4 @@
 import { Tabs } from 'expo-router';
-import { init, markInteractive } from 'radar-devtools';
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { createMMKV } from 'react-native-mmkv';
@@ -8,20 +7,26 @@ import { useTodoStore } from '../stores/todoStore';
 const defaultStorage = createMMKV();
 const settingsStorage = createMMKV({ id: 'settings' });
 
-init({
-  mmkvInstances: {
-    default: defaultStorage,
-    settings: settingsStorage,
-  },
-  stores: { todos: useTodoStore },
-});
+if (__DEV__) {
+  const { init } = require('radar-devtools');
+  init({
+    mmkvInstances: {
+      default: defaultStorage,
+      settings: settingsStorage,
+    },
+    stores: { todos: useTodoStore },
+  });
+}
 
 const TabLayout = () => {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!ready) return;
-    markInteractive();
+    if (__DEV__) {
+      const { markInteractive } = require('radar-devtools');
+      markInteractive();
+    }
   }, [ready]);
 
   return (
