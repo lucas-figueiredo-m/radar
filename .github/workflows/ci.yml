@@ -59,4 +59,4 @@ jobs:
         with:
           bun-version: "1.3.3"
       - run: bun install --frozen-lockfile
-      - run: bunx audit-ci --moderate
+      - run: bun audit --audit-level=moderate
