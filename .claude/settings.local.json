@@ -63,7 +63,21 @@
       "Bash(./gradlew :radar-devtools:tasks --all)",
       "Bash(./gradlew :radar-devtools:generateCodegenSchemaFromJavaScript :radar-devtools:generateCodegenArtifactsFromSchema)",
       "mcp__plugin_context7_context7__resolve-library-id",
-      "mcp__plugin_context7_context7__query-docs"
+      "mcp__plugin_context7_context7__query-docs",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "WebFetch(domain:docs.pencil.dev)",
+      "mcp__radar__get_app_overview",
+      "mcp__radar__get_startup_metrics",
+      "mcp__radar__get_network_request_detail",
+      "mcp__radar__get_storage_entries",
+      "mcp__radar__get_state_snapshot",
+      "mcp__radar__get_state_actions",
+      "mcp__radar__get_profiler_data",
+      "mcp__radar__start_profiling",
+      "mcp__radar__stop_profiling",
+      "mcp__radar__refresh_state",
+      "mcp__radar__modify_storage",
+      "mcp__radar__reset_data"
     ]
   }
 }
