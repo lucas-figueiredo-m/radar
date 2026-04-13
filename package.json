@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "examples/*"
   ],
   "scripts": {
     "dev:app": "bun run --filter=radar-app dev",
