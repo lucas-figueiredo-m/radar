@@ -16,7 +16,9 @@ export type NetworkRepository = {
   clearAll: () => number;
 };
 
-export const createNetworkRepository = (db: Database.Database): NetworkRepository => {
+export const createNetworkRepository = (
+  db: Database.Database,
+): NetworkRepository => {
   const insertStmt = db.prepare<InsertNetworkRequest>(
     `INSERT INTO network_requests (id, device_id, method, url, request_headers, request_body, graphql_type, graphql_name, timestamp)
      VALUES (@id, @device_id, @method, @url, @request_headers, @request_body, @graphql_type, @graphql_name, @timestamp)`,
@@ -44,7 +46,9 @@ export const createNetworkRepository = (db: Database.Database): NetworkRepositor
     return getByIdStmt.get(request.id)!;
   };
 
-  const updateResponse = (response: UpdateNetworkResponse): NetworkRequestRow | null => {
+  const updateResponse = (
+    response: UpdateNetworkResponse,
+  ): NetworkRequestRow | null => {
     updateStmt.run(response);
     return getByIdStmt.get(response.id) ?? null;
   };
@@ -61,7 +65,8 @@ export const createNetworkRepository = (db: Database.Database): NetworkRepositor
     if (filter.graphql_type) conditions.push('graphql_type = @graphql_type');
     if (filter.pending !== undefined) conditions.push('pending = @pending_val');
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const where =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const sql = `SELECT * FROM network_requests
       ${where}
       ORDER BY timestamp ASC, id ASC
@@ -74,9 +79,7 @@ export const createNetworkRepository = (db: Database.Database): NetworkRepositor
       offset: filter.offset ?? 0,
     };
 
-    return db
-      .prepare<typeof params, NetworkRequestRow>(sql)
-      .all(params);
+    return db.prepare<typeof params, NetworkRequestRow>(sql).all(params);
   };
 
   const count = (filter: NetworkQueryFilter): number => {
@@ -87,7 +90,8 @@ export const createNetworkRepository = (db: Database.Database): NetworkRepositor
     if (filter.graphql_type) conditions.push('graphql_type = @graphql_type');
     if (filter.pending !== undefined) conditions.push('pending = @pending_val');
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const where =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const sql = `SELECT COUNT(*) as count FROM network_requests ${where}`;
 
     const params = {
@@ -95,9 +99,7 @@ export const createNetworkRepository = (db: Database.Database): NetworkRepositor
       pending_val: filter.pending ? 1 : 0,
     };
 
-    const row = db
-      .prepare<typeof params, { count: number }>(sql)
-      .get(params);
+    const row = db.prepare<typeof params, { count: number }>(sql).get(params);
 
     return row?.count ?? 0;
   };
@@ -114,5 +116,13 @@ export const createNetworkRepository = (db: Database.Database): NetworkRepositor
     return result.changes;
   };
 
-  return { insertRequest, updateResponse, query, getById, count, clear, clearAll };
+  return {
+    insertRequest,
+    updateResponse,
+    query,
+    getById,
+    count,
+    clear,
+    clearAll,
+  };
 };

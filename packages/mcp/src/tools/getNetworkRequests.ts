@@ -23,14 +23,32 @@ export const registerGetNetworkRequests = (
         .boolean()
         .optional()
         .describe('Filter by pending status (true = in-flight requests)'),
-      limit: z.number().optional().default(50).describe('Max results (default 50)'),
-      offset: z.number().optional().default(0).describe('Offset for pagination'),
+      limit: z
+        .number()
+        .optional()
+        .default(50)
+        .describe('Max results (default 50)'),
+      offset: z
+        .number()
+        .optional()
+        .default(0)
+        .describe('Offset for pagination'),
       deviceId: z
         .string()
         .optional()
-        .describe('Device ID to filter by. Omit to get requests from all devices.'),
+        .describe(
+          'Device ID to filter by. Omit to get requests from all devices.',
+        ),
     },
-    async ({ method, status, graphqlType, pending, limit, offset, deviceId }) => {
+    async ({
+      method,
+      status,
+      graphqlType,
+      pending,
+      limit,
+      offset,
+      deviceId,
+    }) => {
       const requests = ctx.db.network.query({
         device_id: deviceId,
         method,
@@ -48,7 +66,7 @@ export const registerGetNetworkRequests = (
         pending,
       });
 
-      const summaries = requests.map((r) => ({
+      const summaries = requests.map(r => ({
         id: r.id,
         deviceId: r.device_id,
         method: r.method,

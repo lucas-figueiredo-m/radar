@@ -1,6 +1,6 @@
-import { Download, Github } from "lucide-react";
-import { AnimatedSection } from "../AnimatedSection";
-import { DOWNLOAD_URL } from "@/utils/constants";
+import { Download, Github } from 'lucide-react';
+import { AnimatedSection } from '../AnimatedSection';
+import { DOWNLOAD_URL } from '@/utils/constants';
 
 export const CtaSection = () => {
   return (
@@ -11,7 +11,8 @@ export const CtaSection = () => {
             Ready to simplify your debugging?
           </h2>
           <p className="text-text-secondary text-lg mb-10 max-w-xl mx-auto">
-            Stop juggling multiple tools. Radar gives you everything in one beautiful interface.
+            Stop juggling multiple tools. Radar gives you everything in one
+            beautiful interface.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a

@@ -41,33 +41,78 @@ describe('createDatabase', () => {
     });
 
     it('filters by level', () => {
-      db.console.insert({ device_id: 'device-1', level: 'log', args: '["a"]', timestamp: 1000 });
-      db.console.insert({ device_id: 'device-1', level: 'error', args: '["b"]', timestamp: 2000 });
+      db.console.insert({
+        device_id: 'device-1',
+        level: 'log',
+        args: '["a"]',
+        timestamp: 1000,
+      });
+      db.console.insert({
+        device_id: 'device-1',
+        level: 'error',
+        args: '["b"]',
+        timestamp: 2000,
+      });
 
-      const errors = db.console.query({ device_id: 'device-1', level: 'error' });
+      const errors = db.console.query({
+        device_id: 'device-1',
+        level: 'error',
+      });
       expect(errors).toHaveLength(1);
       expect(errors[0].args).toBe('["b"]');
     });
 
     it('filters by device_id', () => {
-      db.console.insert({ device_id: 'device-1', level: 'log', args: '["a"]', timestamp: 1000 });
-      db.console.insert({ device_id: 'device-2', level: 'log', args: '["b"]', timestamp: 2000 });
+      db.console.insert({
+        device_id: 'device-1',
+        level: 'log',
+        args: '["a"]',
+        timestamp: 1000,
+      });
+      db.console.insert({
+        device_id: 'device-2',
+        level: 'log',
+        args: '["b"]',
+        timestamp: 2000,
+      });
 
       const logs = db.console.query({ device_id: 'device-1' });
       expect(logs).toHaveLength(1);
     });
 
     it('counts logs', () => {
-      db.console.insert({ device_id: 'device-1', level: 'log', args: '["a"]', timestamp: 1000 });
-      db.console.insert({ device_id: 'device-1', level: 'log', args: '["b"]', timestamp: 2000 });
+      db.console.insert({
+        device_id: 'device-1',
+        level: 'log',
+        args: '["a"]',
+        timestamp: 1000,
+      });
+      db.console.insert({
+        device_id: 'device-1',
+        level: 'log',
+        args: '["b"]',
+        timestamp: 2000,
+      });
 
       expect(db.console.count({ device_id: 'device-1' })).toBe(2);
-      expect(db.console.count({ device_id: 'device-1', level: 'error' })).toBe(0);
+      expect(db.console.count({ device_id: 'device-1', level: 'error' })).toBe(
+        0,
+      );
     });
 
     it('clears logs by device', () => {
-      db.console.insert({ device_id: 'device-1', level: 'log', args: '["a"]', timestamp: 1000 });
-      db.console.insert({ device_id: 'device-2', level: 'log', args: '["b"]', timestamp: 2000 });
+      db.console.insert({
+        device_id: 'device-1',
+        level: 'log',
+        args: '["a"]',
+        timestamp: 1000,
+      });
+      db.console.insert({
+        device_id: 'device-2',
+        level: 'log',
+        args: '["b"]',
+        timestamp: 2000,
+      });
 
       db.console.clear('device-1');
       expect(db.console.count({ device_id: 'device-1' })).toBe(0);
@@ -76,11 +121,24 @@ describe('createDatabase', () => {
 
     it('supports pagination', () => {
       for (let i = 0; i < 10; i++) {
-        db.console.insert({ device_id: 'device-1', level: 'log', args: `["${i}"]`, timestamp: i * 1000 });
+        db.console.insert({
+          device_id: 'device-1',
+          level: 'log',
+          args: `["${i}"]`,
+          timestamp: i * 1000,
+        });
       }
 
-      const page1 = db.console.query({ device_id: 'device-1', limit: 3, offset: 0 });
-      const page2 = db.console.query({ device_id: 'device-1', limit: 3, offset: 3 });
+      const page1 = db.console.query({
+        device_id: 'device-1',
+        limit: 3,
+        offset: 0,
+      });
+      const page2 = db.console.query({
+        device_id: 'device-1',
+        limit: 3,
+        offset: 3,
+      });
       expect(page1).toHaveLength(3);
       expect(page2).toHaveLength(3);
       expect(page1[0].args).toBe('["0"]');
@@ -135,19 +193,36 @@ describe('createDatabase', () => {
         timestamp: 1000,
       });
 
-      const gqlRequests = db.network.query({ device_id: 'device-1', graphql_type: 'query' });
+      const gqlRequests = db.network.query({
+        device_id: 'device-1',
+        graphql_type: 'query',
+      });
       expect(gqlRequests).toHaveLength(1);
       expect(gqlRequests[0].graphql_name).toBe('GetUsers');
     });
 
     it('clears by device', () => {
       db.network.insertRequest({
-        id: 'req_0', device_id: 'device-1', method: 'GET', url: '/a',
-        request_headers: null, request_body: null, graphql_type: null, graphql_name: null, timestamp: 1000,
+        id: 'req_0',
+        device_id: 'device-1',
+        method: 'GET',
+        url: '/a',
+        request_headers: null,
+        request_body: null,
+        graphql_type: null,
+        graphql_name: null,
+        timestamp: 1000,
       });
       db.network.insertRequest({
-        id: 'req_1', device_id: 'device-2', method: 'GET', url: '/b',
-        request_headers: null, request_body: null, graphql_type: null, graphql_name: null, timestamp: 2000,
+        id: 'req_1',
+        device_id: 'device-2',
+        method: 'GET',
+        url: '/b',
+        request_headers: null,
+        request_body: null,
+        graphql_type: null,
+        graphql_name: null,
+        timestamp: 2000,
       });
 
       db.network.clear('device-1');
@@ -166,7 +241,8 @@ describe('createDatabase', () => {
 
       db.componentTree.insert({
         device_id: 'device-1',
-        root_nodes: '[{"id":"1","name":"App","key":null,"children":[{"id":"2","name":"View","key":null,"children":[]}]}]',
+        root_nodes:
+          '[{"id":"1","name":"App","key":null,"children":[{"id":"2","name":"View","key":null,"children":[]}]}]',
         timestamp: 2000,
       });
 
@@ -216,7 +292,10 @@ describe('createDatabase', () => {
     });
 
     it('clears session and its commits', () => {
-      const session = db.profiler.insertSession({ device_id: 'device-1', timestamp: 1000 });
+      const session = db.profiler.insertSession({
+        device_id: 'device-1',
+        timestamp: 1000,
+      });
       db.profiler.insertCommit({
         profiler_session_id: session.id,
         device_id: 'device-1',
@@ -296,7 +375,10 @@ describe('createDatabase', () => {
         timestamp: 1000,
       });
 
-      const first = db.inspectedComponent.getByComponentId('device-1', 'comp-1');
+      const first = db.inspectedComponent.getByComponentId(
+        'device-1',
+        'comp-1',
+      );
       expect(first?.timestamp).toBe(1000);
 
       db.inspectedComponent.upsert({
@@ -306,7 +388,10 @@ describe('createDatabase', () => {
         timestamp: 2000,
       });
 
-      const updated = db.inspectedComponent.getByComponentId('device-1', 'comp-1');
+      const updated = db.inspectedComponent.getByComponentId(
+        'device-1',
+        'comp-1',
+      );
       expect(updated?.timestamp).toBe(2000);
       expect(JSON.parse(updated!.data).props).toHaveLength(1);
     });
@@ -314,16 +399,40 @@ describe('createDatabase', () => {
 
   describe('cross-device isolation', () => {
     it('isolates data between devices', () => {
-      db.console.insert({ device_id: 'device-1', level: 'log', args: '["from 1"]', timestamp: 1000 });
-      db.console.insert({ device_id: 'device-2', level: 'log', args: '["from 2"]', timestamp: 2000 });
+      db.console.insert({
+        device_id: 'device-1',
+        level: 'log',
+        args: '["from 1"]',
+        timestamp: 1000,
+      });
+      db.console.insert({
+        device_id: 'device-2',
+        level: 'log',
+        args: '["from 2"]',
+        timestamp: 2000,
+      });
 
       db.network.insertRequest({
-        id: 'req_0', device_id: 'device-1', method: 'GET', url: '/a',
-        request_headers: null, request_body: null, graphql_type: null, graphql_name: null, timestamp: 1000,
+        id: 'req_0',
+        device_id: 'device-1',
+        method: 'GET',
+        url: '/a',
+        request_headers: null,
+        request_body: null,
+        graphql_type: null,
+        graphql_name: null,
+        timestamp: 1000,
       });
       db.network.insertRequest({
-        id: 'req_1', device_id: 'device-2', method: 'POST', url: '/b',
-        request_headers: null, request_body: null, graphql_type: null, graphql_name: null, timestamp: 2000,
+        id: 'req_1',
+        device_id: 'device-2',
+        method: 'POST',
+        url: '/b',
+        request_headers: null,
+        request_body: null,
+        graphql_type: null,
+        graphql_name: null,
+        timestamp: 2000,
       });
 
       expect(db.console.query({ device_id: 'device-1' })).toHaveLength(1);
@@ -346,7 +455,10 @@ describe('createDatabase', () => {
       });
       expect(tree.session_id).toBe(1);
 
-      const session = db.profiler.insertSession({ device_id: 'device-1', timestamp: 1000 });
+      const session = db.profiler.insertSession({
+        device_id: 'device-1',
+        timestamp: 1000,
+      });
       expect(session.session_id).toBe(1);
 
       const metric = db.performance.insert({

@@ -55,7 +55,7 @@ export const startMcpServer = (
 
         const transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: () => crypto.randomUUID(),
-          onsessioninitialized: (id) => {
+          onsessioninitialized: id => {
             sessions.set(id, { transport, server: mcpServer });
           },
         });

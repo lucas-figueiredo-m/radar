@@ -18,12 +18,22 @@ export const registerGetPerformanceMetrics = (
         .number()
         .optional()
         .describe('End of time range (unix ms)'),
-      limit: z.number().optional().default(100).describe('Max results (default 100)'),
-      offset: z.number().optional().default(0).describe('Offset for pagination'),
+      limit: z
+        .number()
+        .optional()
+        .default(100)
+        .describe('Max results (default 100)'),
+      offset: z
+        .number()
+        .optional()
+        .default(0)
+        .describe('Offset for pagination'),
       deviceId: z
         .string()
         .optional()
-        .describe('Device ID to filter by. Omit to get metrics from all devices.'),
+        .describe(
+          'Device ID to filter by. Omit to get metrics from all devices.',
+        ),
     },
     async ({ fromTimestamp, toTimestamp, limit, offset, deviceId }) => {
       const metrics = ctx.db.performance.query({
@@ -39,7 +49,7 @@ export const registerGetPerformanceMetrics = (
         to_timestamp: toTimestamp,
       });
 
-      const parsed = metrics.map((m) => ({
+      const parsed = metrics.map(m => ({
         deviceId: m.device_id,
         jsFps: m.js_fps,
         uiFps: m.ui_fps,

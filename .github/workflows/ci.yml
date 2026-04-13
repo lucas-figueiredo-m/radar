@@ -16,7 +16,11 @@ jobs:
           bun-version: "1.3.3"
       - run: bun install --frozen-lockfile
       - run: cd apps/app && bun run lint
+      - run: cd apps/landing && bun run lint
       - run: cd packages/devtools && bun run lint
+      - run: cd packages/database && bun run lint
+      - run: cd packages/mcp && bun run lint
+      - run: cd packages/types && bun run lint
 
   typecheck:
     name: Typecheck
@@ -28,9 +32,11 @@ jobs:
           bun-version: "1.3.3"
       - run: bun install --frozen-lockfile
       - run: cd apps/app && bun run typecheck
-      - run: cd packages/devtools && bun run typecheck
-      - run: cd packages/types && bun run typecheck
       - run: cd apps/landing && bun run typecheck
+      - run: cd packages/devtools && bun run typecheck
+      - run: cd packages/database && bun run typecheck
+      - run: cd packages/mcp && bun run typecheck
+      - run: cd packages/types && bun run typecheck
 
   test:
     name: Test
@@ -43,3 +49,14 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: cd apps/app && bun run test:run
       - run: cd packages/devtools && bun run test:run
+
+  audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.3"
+      - run: bun install --frozen-lockfile
+      - run: bunx audit-ci --moderate

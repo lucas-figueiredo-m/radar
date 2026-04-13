@@ -1,8 +1,9 @@
 set -e
-bun run --filter=radar-app lint
 bun run --filter=radar-app typecheck
 bun run --filter=radar-app test:run
-bun run --filter=@radar/mcp typecheck
+bun run --filter=radar-landing typecheck
 bun run --filter=radar-devtools typecheck
-bun run --filter=radar-devtools lint
 bun run --filter=radar-devtools test:run
+bun run --filter=@radar/database typecheck
+bun run --filter=@radar/mcp typecheck
+bun run --filter=@radar/types typecheck

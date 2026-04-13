@@ -13,7 +13,9 @@ export type ConsoleRepository = {
   clearAll: () => number;
 };
 
-export const createConsoleRepository = (db: Database.Database): ConsoleRepository => {
+export const createConsoleRepository = (
+  db: Database.Database,
+): ConsoleRepository => {
   const insertStmt = db.prepare<InsertConsoleLog>(
     `INSERT INTO console_logs (device_id, level, args, timestamp)
      VALUES (@device_id, @level, @args, @timestamp)`,
@@ -31,15 +33,18 @@ export const createConsoleRepository = (db: Database.Database): ConsoleRepositor
     if (filter.device_id) conditions.push('device_id = @device_id');
     if (filter.level) conditions.push('level = @level');
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const where =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const sql = `SELECT * FROM console_logs
       ${where}
       ORDER BY timestamp ASC, id ASC
       LIMIT @limit OFFSET @offset`;
 
-    return db
-      .prepare<ConsoleQueryFilter, ConsoleLogRow>(sql)
-      .all({ ...filter, limit: filter.limit ?? 5000, offset: filter.offset ?? 0 });
+    return db.prepare<ConsoleQueryFilter, ConsoleLogRow>(sql).all({
+      ...filter,
+      limit: filter.limit ?? 5000,
+      offset: filter.offset ?? 0,
+    });
   };
 
   const count = (filter: ConsoleQueryFilter): number => {
@@ -47,7 +52,8 @@ export const createConsoleRepository = (db: Database.Database): ConsoleRepositor
     if (filter.device_id) conditions.push('device_id = @device_id');
     if (filter.level) conditions.push('level = @level');
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const where =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const sql = `SELECT COUNT(*) as count FROM console_logs ${where}`;
 
     const row = db

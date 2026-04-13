@@ -110,9 +110,7 @@ export const createStorageRepository = (
       WHERE ${conditions.join(' AND ')}
       ORDER BY key ASC`;
 
-    return db
-      .prepare<StorageEntryFilter, StorageEntryRow>(sql)
-      .all(filter);
+    return db.prepare<StorageEntryFilter, StorageEntryRow>(sql).all(filter);
   };
 
   const removeEntry = (

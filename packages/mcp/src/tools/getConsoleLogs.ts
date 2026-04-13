@@ -19,7 +19,11 @@ export const registerGetConsoleLogs = (
         .optional()
         .default(50)
         .describe('Max number of logs to return (default 50)'),
-      offset: z.number().optional().default(0).describe('Offset for pagination'),
+      offset: z
+        .number()
+        .optional()
+        .default(0)
+        .describe('Offset for pagination'),
       deviceId: z
         .string()
         .optional()
@@ -37,7 +41,7 @@ export const registerGetConsoleLogs = (
         level,
       });
 
-      const parsed = logs.map((log) => ({
+      const parsed = logs.map(log => ({
         id: log.id,
         deviceId: log.device_id,
         level: log.level,

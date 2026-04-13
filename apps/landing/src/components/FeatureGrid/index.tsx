@@ -1,9 +1,18 @@
-"use client";
+'use client';
 
-import { Terminal, Globe, TreePine, Activity, Gauge, Database, HardDrive, Bot } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { AnimatedSection } from "../AnimatedSection";
-import { FEATURES } from "@/utils/constants";
+import {
+  Terminal,
+  Globe,
+  TreePine,
+  Activity,
+  Gauge,
+  Database,
+  HardDrive,
+  Bot,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { AnimatedSection } from '../AnimatedSection';
+import { FEATURES } from '@/utils/constants';
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Terminal,
@@ -26,7 +35,8 @@ export const FeatureGrid = () => {
               Everything you need
             </h2>
             <p className="text-text-secondary text-lg max-w-xl mx-auto">
-              Eight powerful panels, one unified interface. No more switching between tools.
+              Eight powerful panels, one unified interface. No more switching
+              between tools.
             </p>
           </div>
         </AnimatedSection>
@@ -50,10 +60,15 @@ export const FeatureGrid = () => {
                         className="w-10 h-10 rounded-lg flex items-center justify-center mb-4"
                         style={{ backgroundColor: `${feature.color}15` }}
                       >
-                        <Icon className="w-5 h-5" style={{ color: feature.color }} />
+                        <Icon
+                          className="w-5 h-5"
+                          style={{ color: feature.color }}
+                        />
                       </div>
                     )}
-                    <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                    <h3 className="text-xl font-semibold mb-2">
+                      {feature.title}
+                    </h3>
                     <p className="text-text-secondary text-sm leading-relaxed">
                       {feature.description}
                     </p>

@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { Download, BookOpen } from "lucide-react";
-import { AnimatedSection } from "../AnimatedSection";
-import { GradientText } from "../GradientText";
-import { DOWNLOAD_URL } from "@/utils/constants";
+import { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { Download, BookOpen } from 'lucide-react';
+import { AnimatedSection } from '../AnimatedSection';
+import { GradientText } from '../GradientText';
+import { DOWNLOAD_URL } from '@/utils/constants';
 
 export const Hero = () => {
   const screenshotRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: screenshotRef,
-    offset: ["start end", "end start"],
+    offset: ['start end', 'end start'],
   });
   const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
 
@@ -29,9 +29,9 @@ export const Hero = () => {
           </h1>
 
           <p className="text-lg md:text-xl text-text-secondary max-w-2xl mx-auto mb-10 leading-relaxed">
-            One tool to replace React DevTools, Flipper, and Reactotron. Console,
-            network, components, profiler, performance, state, storage — unified
-            and AI-ready.
+            One tool to replace React DevTools, Flipper, and Reactotron.
+            Console, network, components, profiler, performance, state, storage
+            — unified and AI-ready.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -61,7 +61,9 @@ export const Hero = () => {
             style={{ y }}
             className="mt-16 max-w-4xl mx-auto aspect-video bg-bg-secondary rounded-2xl border border-border-default shadow-[0_0_60px_rgba(108,108,255,0.15)] flex items-center justify-center"
           >
-            <span className="text-text-tertiary text-lg">Product Screenshot</span>
+            <span className="text-text-tertiary text-lg">
+              Product Screenshot
+            </span>
           </motion.div>
         </AnimatedSection>
       </div>

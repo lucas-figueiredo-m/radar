@@ -13,24 +13,30 @@ export const registerGetStateActions = (
       storeName: z
         .string()
         .optional()
-        .describe('Store name to get actions for. Omit to get actions from all stores.'),
+        .describe(
+          'Store name to get actions for. Omit to get actions from all stores.',
+        ),
       sliceName: z
         .string()
         .optional()
-        .describe('Redux slice name to filter by (e.g. "todos" matches actions like "todos/addTodo"). Omit to get actions from all slices.'),
+        .describe(
+          'Redux slice name to filter by (e.g. "todos" matches actions like "todos/addTodo"). Omit to get actions from all slices.',
+        ),
       deviceId: z
         .string()
         .optional()
-        .describe('Device ID to filter by. Omit to get actions from all devices.'),
+        .describe(
+          'Device ID to filter by. Omit to get actions from all devices.',
+        ),
     },
     async ({ storeName, sliceName, deviceId }) => {
       const actions = ctx.db.state.getActions(storeName, deviceId);
 
       const filtered = sliceName
-        ? actions.filter((a) => a.action_type.startsWith(`${sliceName}/`))
+        ? actions.filter(a => a.action_type.startsWith(`${sliceName}/`))
         : actions;
 
-      const parsed = filtered.map((a) => ({
+      const parsed = filtered.map(a => ({
         id: a.id,
         deviceId: a.device_id,
         storeName: a.store_name,

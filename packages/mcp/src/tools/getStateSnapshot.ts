@@ -13,24 +13,29 @@ export const registerGetStateSnapshot = (
       storeName: z
         .string()
         .optional()
-        .describe('Store name to get state for. Omit to get snapshots for all stores.'),
+        .describe(
+          'Store name to get state for. Omit to get snapshots for all stores.',
+        ),
       sliceName: z
         .string()
         .optional()
-        .describe('Redux slice name to extract from the state (e.g. "todos" returns only state.todos). Omit to get the full state.'),
+        .describe(
+          'Redux slice name to extract from the state (e.g. "todos" returns only state.todos). Omit to get the full state.',
+        ),
       deviceId: z
         .string()
         .optional()
-        .describe('Device ID to filter by. Omit to get stores from all devices.'),
+        .describe(
+          'Device ID to filter by. Omit to get stores from all devices.',
+        ),
     },
     async ({ storeName, sliceName, deviceId }) => {
       const capabilities = ctx.db.state.getCapabilities(deviceId);
       const snapshots = ctx.db.state.getSnapshots(deviceId);
 
-      const stores = capabilities.map((c) => {
+      const stores = capabilities.map(c => {
         const snapshot = snapshots.find(
-          (s) =>
-            s.store_name === c.store_name && s.device_id === c.device_id,
+          s => s.store_name === c.store_name && s.device_id === c.device_id,
         );
 
         const fullState = snapshot ? JSON.parse(snapshot.state) : null;
@@ -50,7 +55,7 @@ export const registerGetStateSnapshot = (
       });
 
       const filtered = storeName
-        ? stores.filter((s) => s.name === storeName)
+        ? stores.filter(s => s.name === storeName)
         : stores;
 
       if (storeName && filtered.length === 0) {

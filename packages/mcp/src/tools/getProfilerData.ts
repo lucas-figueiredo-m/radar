@@ -17,12 +17,14 @@ export const registerGetProfilerData = (
       deviceId: z
         .string()
         .optional()
-        .describe('Device ID to filter by. Omit to get the latest session from any device.'),
+        .describe(
+          'Device ID to filter by. Omit to get the latest session from any device.',
+        ),
     },
     async ({ sessionId, deviceId }) => {
       if (sessionId) {
         const commits = ctx.db.profiler.getCommitsBySession(sessionId);
-        const parsed = commits.map((c) => ({
+        const parsed = commits.map(c => ({
           deviceId: c.device_id,
           commitIndex: c.commit_index,
           duration: c.duration,
@@ -56,7 +58,7 @@ export const registerGetProfilerData = (
       }
 
       const commits = ctx.db.profiler.getCommitsBySession(latestSession.id);
-      const parsed = commits.map((c) => ({
+      const parsed = commits.map(c => ({
         deviceId: c.device_id,
         commitIndex: c.commit_index,
         duration: c.duration,

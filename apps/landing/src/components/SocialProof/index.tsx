@@ -1,6 +1,6 @@
-import { AnimatedSection } from "../AnimatedSection";
+import { AnimatedSection } from '../AnimatedSection';
 
-const TECHS = ["React Native", "Expo", "Hermes", "TypeScript"];
+const TECHS = ['React Native', 'Expo', 'Hermes', 'TypeScript'];
 
 export const SocialProof = () => {
   return (
@@ -11,7 +11,7 @@ export const SocialProof = () => {
             Built for React Native developers
           </p>
           <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
-            {TECHS.map((tech) => (
+            {TECHS.map(tech => (
               <span
                 key={tech}
                 className="text-text-secondary/60 text-lg font-medium font-display"

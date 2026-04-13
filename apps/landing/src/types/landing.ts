@@ -15,7 +15,7 @@ export type FeatureDeepDive = {
   headline: string;
   description: string;
   highlights: string[];
-  imagePosition: "left" | "right";
+  imagePosition: 'left' | 'right';
 };
 
 export type HowItWorksStep = {

@@ -13,7 +13,9 @@ export const registerGetStorageEntries = (
       backend: z
         .enum(['asyncStorage', 'mmkv'])
         .optional()
-        .describe('Storage backend to query. Omit to get the first available backend.'),
+        .describe(
+          'Storage backend to query. Omit to get the first available backend.',
+        ),
       instanceId: z
         .string()
         .optional()
@@ -21,12 +23,14 @@ export const registerGetStorageEntries = (
       deviceId: z
         .string()
         .optional()
-        .describe('Device ID to filter by. Omit to get entries from all devices.'),
+        .describe(
+          'Device ID to filter by. Omit to get entries from all devices.',
+        ),
     },
     async ({ backend, instanceId, deviceId }) => {
       const capabilities = ctx.db.storage.getCapabilities(deviceId);
 
-      const availableBackends = capabilities.map((c) => ({
+      const availableBackends = capabilities.map(c => ({
         deviceId: c.device_id,
         backend: c.backend,
         available: c.available === 1,
@@ -34,9 +38,7 @@ export const registerGetStorageEntries = (
       }));
 
       const selectedBackend =
-        backend ??
-        capabilities.find((c) => c.available === 1)?.backend ??
-        null;
+        backend ?? capabilities.find(c => c.available === 1)?.backend ?? null;
 
       if (!selectedBackend) {
         return {
@@ -63,7 +65,7 @@ export const registerGetStorageEntries = (
         instance_id: instanceId,
       });
 
-      const parsed = entries.map((e) => ({
+      const parsed = entries.map(e => ({
         deviceId: e.device_id,
         key: e.key,
         value: e.value,

@@ -30,9 +30,7 @@ export const createStateRepository = (
        store_type = @store_type`,
   );
 
-  const upsertCapability = (
-    cap: InsertStateCapability,
-  ): StateCapabilityRow => {
+  const upsertCapability = (cap: InsertStateCapability): StateCapabilityRow => {
     upsertCapStmt.run(cap);
     return db
       .prepare<[string, string], StateCapabilityRow>(
@@ -64,9 +62,7 @@ export const createStateRepository = (
        timestamp = @timestamp`,
   );
 
-  const upsertSnapshot = (
-    snapshot: InsertStateSnapshot,
-  ): StateSnapshotRow => {
+  const upsertSnapshot = (snapshot: InsertStateSnapshot): StateSnapshotRow => {
     upsertSnapshotStmt.run(snapshot);
     return db
       .prepare<[string, string], StateSnapshotRow>(
@@ -125,7 +121,8 @@ export const createStateRepository = (
     if (deviceId) conditions.push('device_id = ?');
     if (storeName) conditions.push('store_name = ?');
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const where =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const sql = `SELECT * FROM state_actions ${where} ORDER BY timestamp ASC, id ASC`;
 
     const params = [
