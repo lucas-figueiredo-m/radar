@@ -32,6 +32,8 @@ export type {
   InsertStateSnapshot,
   StateActionRow,
   InsertStateAction,
+  StartupMetricRow,
+  InsertStartupMetric,
 } from './types';
 
 export type { ConsoleRepository } from './repositories/consoleRepository';
@@ -42,3 +44,5 @@ export type { ProfilerRepository } from './repositories/profilerRepository';
 export type { PerformanceRepository } from './repositories/performanceRepository';
 export type { StorageRepository } from './repositories/storageRepository';
 export type { StateRepository } from './repositories/stateRepository';
+
+export type { StartupRepository } from './repositories/startupRepository';

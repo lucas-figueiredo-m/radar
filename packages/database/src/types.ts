@@ -153,7 +153,7 @@ export type InsertPerformanceMetric = {
 };
 
 export type QueryFilter = {
-  device_id: string;
+  device_id?: string;
   limit?: number;
   offset?: number;
 };
@@ -213,7 +213,7 @@ export type InsertStorageEntry = {
 };
 
 export type StorageEntryFilter = {
-  device_id: string;
+  device_id?: string;
   backend: 'asyncStorage' | 'mmkv';
   instance_id?: string;
 };
@@ -265,5 +265,23 @@ export type InsertStateAction = {
   action_type: string;
   payload: string;
   state: string;
+  timestamp: number;
+};
+
+export type StartupMetricRow = {
+  id: number;
+  device_id: string;
+  js_bundle_eval: number;
+  native_launch: number | null;
+  tti: number | null;
+  timestamp: number;
+  db_created_at: number;
+};
+
+export type InsertStartupMetric = {
+  device_id: string;
+  js_bundle_eval: number;
+  native_launch: number | null;
+  tti: number | null;
   timestamp: number;
 };

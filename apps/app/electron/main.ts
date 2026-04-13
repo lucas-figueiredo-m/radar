@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } from 'electron';
 import path from 'node:path';
 import {
   detectEditors,
@@ -10,7 +10,9 @@ import { startDeviceDetection } from './deviceDetection';
 import { startWebSocketServer } from './websocketServer';
 import { setupAutoUpdater } from './autoUpdater';
 import { getDatabase, closeDatabase } from './database';
+import { startMcpServer } from '@radar/mcp';
 import type { WebSocketServerHandle } from './websocketServer';
+import type { McpServerHandle } from '@radar/mcp';
 import type { RadarCommand } from '@radar/types';
 import type {
   ConsoleQueryFilter,
@@ -26,8 +28,11 @@ process.env.VITE_PUBLIC = app.isPackaged
   : path.join(process.env.DIST, '../public');
 
 let win: BrowserWindow | null;
+let tray: Tray | null = null;
 let wsHandle: WebSocketServerHandle | null = null;
+let mcpHandle: McpServerHandle | null = null;
 let cleanupDeviceDetection: (() => void) | null = null;
+let isQuitting = false;
 
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
 
@@ -42,11 +47,72 @@ const createWindow = () => {
     },
   });
 
+  win.on('close', e => {
+    if (!isQuitting) {
+      e.preventDefault();
+      win?.hide();
+    }
+  });
+
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
   } else {
     win.loadFile(path.join(process.env.DIST!, 'index.html'));
   }
+};
+
+const createTray = () => {
+  const iconPath = path.join(
+    app.isPackaged ? process.resourcesPath : path.join(__dirname, '..'),
+    'build',
+    'icon.png',
+  );
+  const icon = nativeImage
+    .createFromPath(iconPath)
+    .resize({ width: 16, height: 16 });
+  icon.setTemplateImage(true);
+
+  tray = new Tray(icon);
+  tray.setToolTip('Radar DevTools');
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Show Radar',
+      click: () => {
+        if (win) {
+          win.show();
+          win.focus();
+        } else {
+          createWindow();
+        }
+      },
+    },
+    {
+      label: 'MCP Server: Running (port 8348)',
+      enabled: false,
+    },
+    { type: 'separator' },
+    {
+      label: 'Quit Radar',
+      click: () => {
+        isQuitting = true;
+        app.quit();
+      },
+    },
+  ]);
+
+  tray.setContextMenu(contextMenu);
+
+  tray.on('click', () => {
+    if (win?.isVisible()) {
+      win.hide();
+    } else if (win) {
+      win.show();
+      win.focus();
+    } else {
+      createWindow();
+    }
+  });
 };
 
 ipcMain.on('radar:toggle-devtools', () => {
@@ -217,13 +283,22 @@ ipcMain.handle('radar:db:state:getSnapshots', (_event, deviceId: string) => {
 
 ipcMain.handle(
   'radar:db:state:getActions',
-  (_event, deviceId: string, storeName: string) => {
-    return getDatabase().state.getActions(deviceId, storeName);
+  (_event, storeName: string, deviceId: string) => {
+    return getDatabase().state.getActions(storeName, deviceId);
   },
 );
 
 ipcMain.handle('radar:db:state:clear', (_event, deviceId: string) => {
   return getDatabase().state.clear(deviceId);
+});
+
+// Startup metrics IPC handlers
+ipcMain.handle('radar:db:startup:get', (_event, deviceId: string) => {
+  return getDatabase().startup.get(deviceId);
+});
+
+ipcMain.handle('radar:db:startup:clear', (_event, deviceId: string) => {
+  return getDatabase().startup.clear(deviceId);
 });
 
 ipcMain.handle('radar:get-editor-info', () => {
@@ -269,6 +344,7 @@ ipcMain.handle(
 
 app.whenReady().then(() => {
   createWindow();
+  createTray();
 
   if (win) {
     const detection = startDeviceDetection(win);
@@ -276,6 +352,8 @@ app.whenReady().then(() => {
 
     const db = getDatabase();
     wsHandle = startWebSocketServer(win, detection.getDetectedDevices, db);
+
+    mcpHandle = startMcpServer({ db, wsHandle });
   }
 
   if (app.isPackaged) {
@@ -284,16 +362,22 @@ app.whenReady().then(() => {
 });
 
 app.on('before-quit', () => {
+  isQuitting = true;
   cleanupDeviceDetection?.();
 });
 
 app.on('window-all-closed', () => {
-  cleanupDeviceDetection?.();
-  cleanupDeviceDetection = null;
-  wsHandle?.close();
-  closeDatabase();
-  if (process.platform !== 'darwin') {
-    app.quit();
+  // Don't quit — keep services alive for MCP access via system tray.
+  // Actual cleanup happens in 'before-quit'.
+  if (isQuitting) {
+    cleanupDeviceDetection?.();
+    cleanupDeviceDetection = null;
+    mcpHandle?.close();
+    mcpHandle = null;
+    wsHandle?.close();
+    closeDatabase();
+    tray?.destroy();
+    tray = null;
     win = null;
   }
 });

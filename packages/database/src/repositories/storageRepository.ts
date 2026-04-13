@@ -9,7 +9,7 @@ import type {
 
 export type StorageRepository = {
   upsertCapability: (cap: InsertStorageCapability) => StorageCapabilityRow;
-  getCapabilities: (deviceId: string) => StorageCapabilityRow[];
+  getCapabilities: (deviceId?: string) => StorageCapabilityRow[];
   replaceEntries: (
     deviceId: string,
     backend: 'asyncStorage' | 'mmkv',
@@ -54,12 +54,19 @@ export const createStorageRepository = (
       .get(cap.device_id, cap.backend, cap.instance_id ?? '')!;
   };
 
-  const getCapabilities = (deviceId: string): StorageCapabilityRow[] => {
+  const getCapabilities = (deviceId?: string): StorageCapabilityRow[] => {
+    if (deviceId) {
+      return db
+        .prepare<string, StorageCapabilityRow>(
+          'SELECT * FROM storage_capabilities WHERE device_id = ? ORDER BY backend, instance_id',
+        )
+        .all(deviceId);
+    }
     return db
-      .prepare<string, StorageCapabilityRow>(
-        'SELECT * FROM storage_capabilities WHERE device_id = ? ORDER BY backend, instance_id',
+      .prepare<[], StorageCapabilityRow>(
+        'SELECT * FROM storage_capabilities ORDER BY device_id, backend, instance_id',
       )
-      .all(deviceId);
+      .all();
   };
 
   const insertEntryStmt = db.prepare<InsertStorageEntry>(
@@ -91,12 +98,16 @@ export const createStorageRepository = (
   };
 
   const getEntries = (filter: StorageEntryFilter): StorageEntryRow[] => {
-    const instanceClause = filter.instance_id
-      ? 'AND instance_id = @instance_id'
-      : "AND (instance_id IS NULL OR instance_id = '')";
+    const conditions = ['backend = @backend'];
+    if (filter.device_id) conditions.push('device_id = @device_id');
+    if (filter.instance_id) {
+      conditions.push('instance_id = @instance_id');
+    } else {
+      conditions.push("(instance_id IS NULL OR instance_id = '')");
+    }
 
     const sql = `SELECT * FROM storage_entries
-      WHERE device_id = @device_id AND backend = @backend ${instanceClause}
+      WHERE ${conditions.join(' AND ')}
       ORDER BY key ASC`;
 
     return db

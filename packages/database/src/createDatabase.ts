@@ -9,6 +9,7 @@ import {
   createPerformanceRepository,
   createStorageRepository,
   createStateRepository,
+  createStartupRepository,
 } from './repositories';
 import type {
   ConsoleRepository,
@@ -19,6 +20,7 @@ import type {
   PerformanceRepository,
   StorageRepository,
   StateRepository,
+  StartupRepository,
 } from './repositories';
 
 export type RadarDatabase = {
@@ -30,6 +32,7 @@ export type RadarDatabase = {
   performance: PerformanceRepository;
   storage: StorageRepository;
   state: StateRepository;
+  startup: StartupRepository;
   close: () => void;
   raw: Database.Database;
 };
@@ -51,6 +54,7 @@ export const createDatabase = (): RadarDatabase => {
     performance: createPerformanceRepository(db),
     storage: createStorageRepository(db),
     state: createStateRepository(db),
+    startup: createStartupRepository(db),
     close: () => db.close(),
     raw: db,
   };

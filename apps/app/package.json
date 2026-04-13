@@ -21,6 +21,7 @@
   "dependencies": {
     "@radar/database": "workspace:*",
     "@radar/design-system": "workspace:*",
+    "@radar/mcp": "workspace:*",
     "@radar/types": "workspace:*",
     "@tanstack/react-virtual": "^3.13.21",
     "better-sqlite3": "^11.9.1",

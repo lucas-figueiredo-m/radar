@@ -4,11 +4,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Radar — Unified React Native Developer Tools",
   description:
-    "One tool to replace React DevTools, Flipper, and Reactotron. Console, network, components, profiler, and performance — unified.",
+    "One tool to replace React DevTools, Flipper, and Reactotron. Console, network, components, profiler, performance, state, storage — unified and AI-ready with built-in MCP.",
   openGraph: {
     title: "Radar — Unified React Native Developer Tools",
     description:
-      "One tool to replace React DevTools, Flipper, and Reactotron. Console, network, components, profiler, and performance — unified.",
+      "One tool to replace React DevTools, Flipper, and Reactotron. Console, network, components, profiler, performance, state, storage — unified and AI-ready with built-in MCP.",
     type: "website",
   },
 };

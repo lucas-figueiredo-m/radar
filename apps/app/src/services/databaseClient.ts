@@ -106,10 +106,10 @@ export const databaseClient = {
     getSnapshots: (deviceId: string): Promise<StateSnapshotRow[]> =>
       ipcRenderer.invoke('radar:db:state:getSnapshots', deviceId),
     getActions: (
-      deviceId: string,
       storeName: string,
+      deviceId: string,
     ): Promise<StateActionRow[]> =>
-      ipcRenderer.invoke('radar:db:state:getActions', deviceId, storeName),
+      ipcRenderer.invoke('radar:db:state:getActions', storeName, deviceId),
     clear: (deviceId: string): Promise<number> =>
       ipcRenderer.invoke('radar:db:state:clear', deviceId),
   },

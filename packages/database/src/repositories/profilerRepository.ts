@@ -16,7 +16,7 @@ export type ProfilerRepository = {
   ) => { session: ProfilerSessionRow; commits: ProfilerCommitRow[] };
   getSessions: (filter: QueryFilter) => ProfilerSessionRow[];
   getCommitsBySession: (profilerSessionId: number) => ProfilerCommitRow[];
-  getLatestSession: (deviceId: string) => ProfilerSessionRow | null;
+  getLatestSession: (deviceId?: string) => ProfilerSessionRow | null;
   clearSession: (profilerSessionId: number) => number;
   clear: (deviceId: string) => number;
   clearAll: () => number;
@@ -58,8 +58,12 @@ export const createProfilerRepository = (db: Database.Database): ProfilerReposit
   );
 
   const getSessions = (filter: QueryFilter): ProfilerSessionRow[] => {
+    const conditions: string[] = [];
+    if (filter.device_id) conditions.push('device_id = @device_id');
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const sql = `SELECT * FROM profiler_sessions
-      WHERE device_id = @device_id
+      ${where}
       ORDER BY timestamp DESC
       LIMIT @limit OFFSET @offset`;
 
@@ -76,12 +80,19 @@ export const createProfilerRepository = (db: Database.Database): ProfilerReposit
       .all(profilerSessionId);
   };
 
-  const getLatestSession = (deviceId: string): ProfilerSessionRow | null => {
+  const getLatestSession = (deviceId?: string): ProfilerSessionRow | null => {
+    if (deviceId) {
+      return db
+        .prepare<string, ProfilerSessionRow>(
+          'SELECT * FROM profiler_sessions WHERE device_id = ? ORDER BY timestamp DESC LIMIT 1',
+        )
+        .get(deviceId) ?? null;
+    }
     return db
-      .prepare<string, ProfilerSessionRow>(
-        'SELECT * FROM profiler_sessions WHERE device_id = ? ORDER BY timestamp DESC LIMIT 1',
+      .prepare<[], ProfilerSessionRow>(
+        'SELECT * FROM profiler_sessions ORDER BY timestamp DESC LIMIT 1',
       )
-      .get(deviceId) ?? null;
+      .get() ?? null;
   };
 
   const clearSession = (profilerSessionId: number): number => {

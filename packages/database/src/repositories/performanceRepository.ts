@@ -27,12 +27,14 @@ export const createPerformanceRepository = (db: Database.Database): PerformanceR
   };
 
   const query = (filter: PerformanceQueryFilter): PerformanceMetricRow[] => {
-    const conditions = ['device_id = @device_id'];
+    const conditions: string[] = [];
+    if (filter.device_id) conditions.push('device_id = @device_id');
     if (filter.from_timestamp !== undefined) conditions.push('timestamp >= @from_timestamp');
     if (filter.to_timestamp !== undefined) conditions.push('timestamp <= @to_timestamp');
 
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const sql = `SELECT * FROM performance_metrics
-      WHERE ${conditions.join(' AND ')}
+      ${where}
       ORDER BY timestamp ASC
       LIMIT @limit OFFSET @offset`;
 
@@ -42,12 +44,13 @@ export const createPerformanceRepository = (db: Database.Database): PerformanceR
   };
 
   const count = (filter: PerformanceQueryFilter): number => {
-    const conditions = ['device_id = @device_id'];
+    const conditions: string[] = [];
+    if (filter.device_id) conditions.push('device_id = @device_id');
     if (filter.from_timestamp !== undefined) conditions.push('timestamp >= @from_timestamp');
     if (filter.to_timestamp !== undefined) conditions.push('timestamp <= @to_timestamp');
 
-    const sql = `SELECT COUNT(*) as count FROM performance_metrics
-      WHERE ${conditions.join(' AND ')}`;
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const sql = `SELECT COUNT(*) as count FROM performance_metrics ${where}`;
 
     const row = db
       .prepare<PerformanceQueryFilter, { count: number }>(sql)
