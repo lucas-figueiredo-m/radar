@@ -51,7 +51,6 @@ export const startMcpServer = (
           return;
         }
 
-        // Create a new MCP server + transport per session
         const mcpServer = createMcpServer(ctx);
 
         const transport = new StreamableHTTPServerTransport({
