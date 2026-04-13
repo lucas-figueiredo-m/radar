@@ -22,6 +22,9 @@
   "engines": {
     "node": ">= 22.11.0"
   },
+  "overrides": {
+    "zod": "^4.0.0"
+  },
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",
     "@commitlint/config-conventional": "^20.4.2",
