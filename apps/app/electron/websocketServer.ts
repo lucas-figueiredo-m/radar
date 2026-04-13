@@ -16,6 +16,7 @@ import type {
   StateCapabilitiesMessage,
   StateSnapshotMessage,
   StateActionMessage,
+  StartupMetricsMessage,
 } from '@radar/types';
 import type { RadarDatabase } from '@radar/database';
 
@@ -61,6 +62,7 @@ const NOTIFICATION_CHANNELS: Record<string, string> = {
   stateCapabilities: 'radar:db:state:capabilities:changed',
   stateSnapshot: 'radar:db:state:changed',
   stateAction: 'radar:db:state:action:changed',
+  startupMetrics: 'radar:db:startup:changed',
 };
 
 const notifyRenderer = (
@@ -246,6 +248,17 @@ const persistMessage = (
           action_type: msg.actionType,
           payload: msg.payload,
           state: msg.state,
+          timestamp: msg.timestamp,
+        });
+        break;
+      }
+      case 'startupMetrics': {
+        const msg = message as unknown as StartupMetricsMessage;
+        db.startup.upsert({
+          device_id: deviceId,
+          js_bundle_eval: msg.jsBundleEval,
+          native_launch: msg.nativeLaunch ?? null,
+          tti: msg.tti ?? null,
           timestamp: msg.timestamp,
         });
         break;

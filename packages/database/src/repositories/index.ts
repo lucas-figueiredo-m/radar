@@ -21,3 +21,6 @@ export type { StorageRepository } from './storageRepository';
 
 export { createStateRepository } from './stateRepository';
 export type { StateRepository } from './stateRepository';
+
+export { createStartupRepository } from './startupRepository';
+export type { StartupRepository } from './startupRepository';

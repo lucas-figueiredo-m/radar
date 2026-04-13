@@ -168,4 +168,16 @@ export const CREATE_TABLES_SQL = `
 
   CREATE INDEX IF NOT EXISTS idx_state_actions_device_store
     ON state_actions(device_id, store_name, timestamp);
+
+  CREATE TABLE IF NOT EXISTS startup_metrics (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    device_id       TEXT NOT NULL,
+    js_bundle_eval  REAL NOT NULL,
+    native_launch   REAL,
+    tti             REAL,
+    timestamp       INTEGER NOT NULL,
+    db_created_at   INTEGER NOT NULL DEFAULT (unixepoch('now','subsec') * 1000)
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_startup_device ON startup_metrics(device_id);
 `;

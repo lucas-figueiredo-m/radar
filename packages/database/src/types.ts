@@ -267,3 +267,21 @@ export type InsertStateAction = {
   state: string;
   timestamp: number;
 };
+
+export type StartupMetricRow = {
+  id: number;
+  device_id: string;
+  js_bundle_eval: number;
+  native_launch: number | null;
+  tti: number | null;
+  timestamp: number;
+  db_created_at: number;
+};
+
+export type InsertStartupMetric = {
+  device_id: string;
+  js_bundle_eval: number;
+  native_launch: number | null;
+  tti: number | null;
+  timestamp: number;
+};
