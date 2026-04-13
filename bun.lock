@@ -22,7 +22,7 @@
         "@radar/mcp": "workspace:*",
         "@radar/types": "workspace:*",
         "@tanstack/react-virtual": "^3.13.21",
-        "better-sqlite3": "^11.9.1",
+        "better-sqlite3": "^12.9.0",
         "electron-updater": "^6.6.0",
         "lucide-react": "^0.575.0",
         "react": "19.2.3",
@@ -169,7 +169,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@radar/types": "workspace:*",
-        "better-sqlite3": "^11.9.1",
+        "better-sqlite3": "^12.9.0",
       },
       "devDependencies": {
         "@types/better-sqlite3": "^7.6.13",
@@ -1392,7 +1392,7 @@
 
     "better-opn": ["better-opn@3.0.2", "", { "dependencies": { "open": "^8.0.4" } }, "sha512-aVNobHnJqLiUelTaHat9DZ1qM2w0C0Eym4LPI/3JxOnSokGVdsl1T1kN7TFvsEAD8G47A6VKQ0TVHqbBnYMJlQ=="],
 
-    "better-sqlite3": ["better-sqlite3@11.10.0", "", { "dependencies": { "bindings": "^1.5.0", "prebuild-install": "^7.1.1" } }, "sha512-EwhOpyXiOEL/lKzHz9AW1msWFNzGc/z+LzeB3/jnFJpxu+th2yqvzsSWas1v9jgs9+xiXJcD5A8CJxAG2TaghQ=="],
+    "better-sqlite3": ["better-sqlite3@12.9.0", "", { "dependencies": { "bindings": "^1.5.0", "prebuild-install": "^7.1.1" } }, "sha512-wqUv4Gm3toFpHDQmaKD4QhZm3g1DjUBI0yzS4UBl6lElUmXFYdTQmmEDpAFa5o8FiFiymURypEnfVHzILKaxqQ=="],
 
     "bidi-js": ["bidi-js@1.0.3", "", { "dependencies": { "require-from-string": "^2.0.2" } }, "sha512-RKshQI1R3YQ+n9YJz2QQ147P66ELpa1FQEg20Dk8oW9t2KgLbpDLLp9aGZ7y8WHSshDknG0bknqGw5/tyCs5tw=="],
 
