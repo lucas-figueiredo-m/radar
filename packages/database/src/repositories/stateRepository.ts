@@ -15,7 +15,7 @@ export type StateRepository = {
   getSnapshot: (deviceId: string, storeName: string) => StateSnapshotRow | null;
   getSnapshots: (deviceId?: string) => StateSnapshotRow[];
   insertAction: (action: InsertStateAction) => StateActionRow;
-  getActions: (storeName: string, deviceId?: string) => StateActionRow[];
+  getActions: (storeName?: string, deviceId?: string) => StateActionRow[];
   clear: (deviceId: string) => number;
   clearAll: () => number;
 };
@@ -118,21 +118,22 @@ export const createStateRepository = (
   };
 
   const getActions = (
-    storeName: string,
+    storeName?: string,
     deviceId?: string,
   ): StateActionRow[] => {
-    if (deviceId) {
-      return db
-        .prepare<[string, string], StateActionRow>(
-          'SELECT * FROM state_actions WHERE device_id = ? AND store_name = ? ORDER BY timestamp ASC, id ASC',
-        )
-        .all(deviceId, storeName);
-    }
-    return db
-      .prepare<string, StateActionRow>(
-        'SELECT * FROM state_actions WHERE store_name = ? ORDER BY timestamp ASC, id ASC',
-      )
-      .all(storeName);
+    const conditions: string[] = [];
+    if (deviceId) conditions.push('device_id = ?');
+    if (storeName) conditions.push('store_name = ?');
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const sql = `SELECT * FROM state_actions ${where} ORDER BY timestamp ASC, id ASC`;
+
+    const params = [
+      ...(deviceId ? [deviceId] : []),
+      ...(storeName ? [storeName] : []),
+    ];
+
+    return db.prepare<string[], StateActionRow>(sql).all(...params);
   };
 
   const clear = (deviceId: string): number => {

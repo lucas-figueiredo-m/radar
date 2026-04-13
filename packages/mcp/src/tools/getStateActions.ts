@@ -8,9 +8,12 @@ export const registerGetStateActions = (
 ): void => {
   server.tool(
     'get_state_actions',
-    'Get the action history for a state management store. Shows dispatched actions with their type, payload, and resulting state. Without deviceId, returns actions from all devices.',
+    'Get the action history for a state management store. Shows dispatched actions with their type, payload, and resulting state. Without storeName, returns actions from all stores. Without deviceId, returns actions from all devices.',
     {
-      storeName: z.string().describe('The store name to get actions for'),
+      storeName: z
+        .string()
+        .optional()
+        .describe('Store name to get actions for. Omit to get actions from all stores.'),
       deviceId: z
         .string()
         .optional()
@@ -22,6 +25,7 @@ export const registerGetStateActions = (
       const parsed = actions.map((a) => ({
         id: a.id,
         deviceId: a.device_id,
+        storeName: a.store_name,
         actionType: a.action_type,
         payload: JSON.parse(a.payload),
         state: JSON.parse(a.state),
@@ -33,7 +37,11 @@ export const registerGetStateActions = (
           {
             type: 'text' as const,
             text: JSON.stringify(
-              { storeName, actionCount: parsed.length, actions: parsed },
+              {
+                storeName: storeName ?? 'all',
+                actionCount: parsed.length,
+                actions: parsed,
+              },
               null,
               2,
             ),
