@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import { Copy, Check } from "lucide-react";
+import { useState, useCallback } from 'react';
+import { Copy, Check } from 'lucide-react';
 
 type PackageManager = {
   id: string;
@@ -10,10 +10,10 @@ type PackageManager = {
 };
 
 const PACKAGE_MANAGERS: PackageManager[] = [
-  { id: "npm", name: "npm", command: "npm install --save-dev radar-devtools" },
-  { id: "yarn", name: "yarn", command: "yarn add --dev radar-devtools" },
-  { id: "pnpm", name: "pnpm", command: "pnpm add -D radar-devtools" },
-  { id: "bun", name: "bun", command: "bun add -d radar-devtools" },
+  { id: 'npm', name: 'npm', command: 'npm install --save-dev radar-devtools' },
+  { id: 'yarn', name: 'yarn', command: 'yarn add --dev radar-devtools' },
+  { id: 'pnpm', name: 'pnpm', command: 'pnpm add -D radar-devtools' },
+  { id: 'bun', name: 'bun', command: 'bun add -d radar-devtools' },
 ];
 
 export const PackageManagerSwitcher = () => {
@@ -29,7 +29,7 @@ export const PackageManagerSwitcher = () => {
   return (
     <div>
       <div className="flex gap-2 mb-3">
-        {PACKAGE_MANAGERS.map((pm) => (
+        {PACKAGE_MANAGERS.map(pm => (
           <button
             key={pm.id}
             type="button"
@@ -39,8 +39,8 @@ export const PackageManagerSwitcher = () => {
             }}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium font-mono transition-all duration-200 ${
               active.id === pm.id
-                ? "bg-accent text-white"
-                : "bg-bg-surface border border-border-default text-text-secondary hover:text-text-primary hover:border-border-strong"
+                ? 'bg-accent text-white'
+                : 'bg-bg-surface border border-border-default text-text-secondary hover:text-text-primary hover:border-border-strong'
             }`}
           >
             {pm.name}
@@ -55,11 +55,14 @@ export const PackageManagerSwitcher = () => {
           type="button"
           onClick={handleCopy}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bg-surface border border-border-default text-text-secondary hover:text-text-primary hover:border-border-strong transition-all duration-200 text-xs font-medium shrink-0 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-          aria-label={copied ? "Copied" : "Copy command"}
+          aria-label={copied ? 'Copied' : 'Copy command'}
         >
           {copied ? (
             <>
-              <Check className="w-3.5 h-3.5 text-status-success" aria-hidden="true" />
+              <Check
+                className="w-3.5 h-3.5 text-status-success"
+                aria-hidden="true"
+              />
               Copied
             </>
           ) : (

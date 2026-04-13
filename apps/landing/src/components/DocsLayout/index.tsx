@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 type DocsLayoutProps = {
   children: ReactNode;
 };
 
 const SIDEBAR_ITEMS = [
-  { label: "Installation", href: "#installation" },
-  { label: "Quick Start", href: "#quick-start" },
-  { label: "Configuration", href: "#configuration" },
-  { label: "Features", href: "#features-overview" },
-  { label: "AI Integration", href: "#mcp" },
+  { label: 'Installation', href: '#installation' },
+  { label: 'Quick Start', href: '#quick-start' },
+  { label: 'Configuration', href: '#configuration' },
+  { label: 'Features', href: '#features-overview' },
+  { label: 'AI Integration', href: '#mcp' },
 ] as const;
 
 export const DocsLayout = ({ children }: DocsLayoutProps) => {
@@ -27,7 +27,11 @@ export const DocsLayout = ({ children }: DocsLayoutProps) => {
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors"
         >
-          {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          {sidebarOpen ? (
+            <X className="w-4 h-4" />
+          ) : (
+            <Menu className="w-4 h-4" />
+          )}
           Documentation
         </button>
       </div>
@@ -36,7 +40,7 @@ export const DocsLayout = ({ children }: DocsLayoutProps) => {
         {/* Sidebar */}
         <aside
           className={`${
-            sidebarOpen ? "block" : "hidden"
+            sidebarOpen ? 'block' : 'hidden'
           } lg:block w-64 shrink-0 border-r border-border-default bg-bg-inset sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto`}
         >
           <nav className="py-8 px-4">
@@ -44,7 +48,7 @@ export const DocsLayout = ({ children }: DocsLayoutProps) => {
               Documentation
             </h3>
             <ul className="space-y-1">
-              {SIDEBAR_ITEMS.map((item) => (
+              {SIDEBAR_ITEMS.map(item => (
                 <li key={item.href}>
                   <a
                     href={item.href}
@@ -60,9 +64,7 @@ export const DocsLayout = ({ children }: DocsLayoutProps) => {
         </aside>
 
         {/* Content */}
-        <main className="flex-1 min-w-0 px-8 py-12 max-w-3xl">
-          {children}
-        </main>
+        <main className="flex-1 min-w-0 px-8 py-12 max-w-3xl">{children}</main>
       </div>
     </div>
   );

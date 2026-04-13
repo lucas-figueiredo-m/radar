@@ -13,7 +13,9 @@ export const registerGetStartupMetrics = (
       deviceId: z
         .string()
         .optional()
-        .describe('Device ID to filter by. Omit to get startup metrics from all devices.'),
+        .describe(
+          'Device ID to filter by. Omit to get startup metrics from all devices.',
+        ),
     },
     async ({ deviceId }) => {
       if (deviceId) {
@@ -60,7 +62,7 @@ export const registerGetStartupMetrics = (
         };
       }
 
-      const parsed = allMetrics.map((m) => ({
+      const parsed = allMetrics.map(m => ({
         deviceId: m.device_id,
         jsBundleEvalMs: m.js_bundle_eval,
         nativeLaunchMs: m.native_launch,

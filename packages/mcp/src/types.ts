@@ -2,9 +2,7 @@ import type { RadarDatabase } from '@radar/database';
 
 export type WebSocketHandle = {
   getConnectedDeviceIds: () => string[];
-  getDevice: (
-    deviceId: string,
-  ) =>
+  getDevice: (deviceId: string) =>
     | {
         deviceId: string;
         deviceName: string;
@@ -43,6 +41,8 @@ export const resolveDeviceId = (
     return ids[0];
   }
   throw new Error(
-    `Multiple devices connected. Please specify a deviceId. Available: ${ids.join(', ')}`,
+    `Multiple devices connected. Please specify a deviceId. Available: ${ids.join(
+      ', ',
+    )}`,
   );
 };

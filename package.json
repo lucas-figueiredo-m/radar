@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "examples/*"
   ],
   "scripts": {
     "dev:app": "bun run --filter=radar-app dev",
@@ -13,7 +14,7 @@
     "dev:landing": "bun run --filter=radar-landing dev",
     "build:landing": "bun run --filter=radar-landing build",
     "start:test-app": "bun run --filter=RadarTestApp start",
-    "lint": "bun run --filter=radar-app lint && bun run --filter=radar-devtools lint",
+    "lint": "bun run --filter=radar-app lint && bun run --filter=radar-landing lint && bun run --filter=radar-devtools lint && bun run --filter=@radar/database lint && bun run --filter=@radar/mcp lint && bun run --filter=@radar/types lint",
     "typecheck": "bun run --filter=radar-app typecheck && bun run --filter=radar-devtools typecheck && bun run --filter=@radar/types typecheck && bun run --filter=radar-landing typecheck",
     "test": "bun run --filter=radar-app test:run && bun run --filter=radar-devtools test:run",
     "prepare": "husky"
@@ -23,11 +24,15 @@
     "node": ">= 22.11.0"
   },
   "overrides": {
-    "zod": "^4.0.0"
+    "zod": "^4.0.0",
+    "tar": ">=7.5.7"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",
     "@commitlint/config-conventional": "^20.4.2",
-    "husky": "^9.1.7"
+    "eslint": "^8.19.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
+    "prettier": "2.8.8"
   }
 }

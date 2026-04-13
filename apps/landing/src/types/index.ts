@@ -5,4 +5,4 @@ export type {
   HowItWorksStep,
   ComparisonRow,
   TechLogo,
-} from "./landing";
+} from './landing';

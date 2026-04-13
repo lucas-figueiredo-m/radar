@@ -15,8 +15,18 @@ export type ComponentTreeMessage = {
 export type SerializedValue =
   | { type: 'primitive'; value: string | number | boolean | null | undefined }
   | { type: 'string'; value: string; truncated?: boolean }
-  | { type: 'object'; preview: string; entries?: SerializedEntry[]; dehydrated?: boolean }
-  | { type: 'array'; length: number; items?: SerializedValue[]; dehydrated?: boolean }
+  | {
+      type: 'object';
+      preview: string;
+      entries?: SerializedEntry[];
+      dehydrated?: boolean;
+    }
+  | {
+      type: 'array';
+      length: number;
+      items?: SerializedValue[];
+      dehydrated?: boolean;
+    }
   | { type: 'function'; name: string }
   | { type: 'symbol'; description: string }
   | { type: 'element'; elementType: string }

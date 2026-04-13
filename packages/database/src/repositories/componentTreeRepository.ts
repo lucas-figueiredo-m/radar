@@ -14,7 +14,9 @@ export type ComponentTreeRepository = {
   clearAll: () => number;
 };
 
-export const createComponentTreeRepository = (db: Database.Database): ComponentTreeRepository => {
+export const createComponentTreeRepository = (
+  db: Database.Database,
+): ComponentTreeRepository => {
   const insertStmt = db.prepare<InsertComponentTree>(
     `INSERT INTO component_trees (device_id, root_nodes, timestamp)
      VALUES (@device_id, @root_nodes, @timestamp)`,
@@ -23,38 +25,47 @@ export const createComponentTreeRepository = (db: Database.Database): ComponentT
   const insert = (tree: InsertComponentTree): ComponentTreeRow => {
     const result = insertStmt.run(tree);
     return db
-      .prepare<number, ComponentTreeRow>('SELECT * FROM component_trees WHERE id = ?')
+      .prepare<number, ComponentTreeRow>(
+        'SELECT * FROM component_trees WHERE id = ?',
+      )
       .get(result.lastInsertRowid as number)!;
   };
 
   const getLatest = (deviceId?: string): ComponentTreeRow | null => {
     if (deviceId) {
-      return db
-        .prepare<string, ComponentTreeRow>(
-          'SELECT * FROM component_trees WHERE device_id = ? ORDER BY timestamp DESC LIMIT 1',
-        )
-        .get(deviceId) ?? null;
+      return (
+        db
+          .prepare<string, ComponentTreeRow>(
+            'SELECT * FROM component_trees WHERE device_id = ? ORDER BY timestamp DESC LIMIT 1',
+          )
+          .get(deviceId) ?? null
+      );
     }
-    return db
-      .prepare<[], ComponentTreeRow>(
-        'SELECT * FROM component_trees ORDER BY timestamp DESC LIMIT 1',
-      )
-      .get() ?? null;
+    return (
+      db
+        .prepare<[], ComponentTreeRow>(
+          'SELECT * FROM component_trees ORDER BY timestamp DESC LIMIT 1',
+        )
+        .get() ?? null
+    );
   };
 
   const query = (filter: QueryFilter): ComponentTreeRow[] => {
     const conditions: string[] = [];
     if (filter.device_id) conditions.push('device_id = @device_id');
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const where =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const sql = `SELECT * FROM component_trees
       ${where}
       ORDER BY timestamp ASC
       LIMIT @limit OFFSET @offset`;
 
-    return db
-      .prepare<QueryFilter, ComponentTreeRow>(sql)
-      .all({ ...filter, limit: filter.limit ?? 1000, offset: filter.offset ?? 0 });
+    return db.prepare<QueryFilter, ComponentTreeRow>(sql).all({
+      ...filter,
+      limit: filter.limit ?? 1000,
+      offset: filter.offset ?? 0,
+    });
   };
 
   const count = (filter: QueryFilter): number => {

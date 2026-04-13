@@ -1,5 +1,5 @@
-import { Radar } from "lucide-react";
-import { DOWNLOAD_URL } from "@/utils/constants";
+import { Radar } from 'lucide-react';
+import { DOWNLOAD_URL } from '@/utils/constants';
 
 export const Footer = () => {
   return (
@@ -14,24 +14,53 @@ export const Footer = () => {
               <span className="font-display font-bold">Radar</span>
             </div>
             <p className="text-text-tertiary text-sm max-w-xs">
-              Unified developer tools for React Native. Debug smarter, not harder.
+              Unified developer tools for React Native. Debug smarter, not
+              harder.
             </p>
           </div>
 
           {/* Nav links */}
           <div className="flex gap-16">
             <div>
-              <h4 className="text-text-primary text-sm font-semibold mb-4">Product</h4>
+              <h4 className="text-text-primary text-sm font-semibold mb-4">
+                Product
+              </h4>
               <div className="flex flex-col gap-3">
-                <a href="#features" className="text-text-secondary text-sm hover:text-text-primary transition-colors">Features</a>
-                <a href="/docs" className="text-text-secondary text-sm hover:text-text-primary transition-colors">Docs</a>
-                <a href={DOWNLOAD_URL} target="_blank" rel="noopener noreferrer" className="text-text-secondary text-sm hover:text-text-primary transition-colors">Download</a>
+                <a
+                  href="#features"
+                  className="text-text-secondary text-sm hover:text-text-primary transition-colors"
+                >
+                  Features
+                </a>
+                <a
+                  href="/docs"
+                  className="text-text-secondary text-sm hover:text-text-primary transition-colors"
+                >
+                  Docs
+                </a>
+                <a
+                  href={DOWNLOAD_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-text-secondary text-sm hover:text-text-primary transition-colors"
+                >
+                  Download
+                </a>
               </div>
             </div>
             <div>
-              <h4 className="text-text-primary text-sm font-semibold mb-4">Community</h4>
+              <h4 className="text-text-primary text-sm font-semibold mb-4">
+                Community
+              </h4>
               <div className="flex flex-col gap-3">
-                <a href="https://github.com/trontechnologies/radar" target="_blank" rel="noopener noreferrer" className="text-text-secondary text-sm hover:text-text-primary transition-colors">GitHub</a>
+                <a
+                  href="https://github.com/trontechnologies/radar"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-text-secondary text-sm hover:text-text-primary transition-colors"
+                >
+                  GitHub
+                </a>
               </div>
             </div>
           </div>

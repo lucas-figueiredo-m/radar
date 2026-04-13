@@ -1,43 +1,46 @@
-"use client";
+'use client';
 
-import { Sparkles, ArrowRight } from "lucide-react";
-import { AnimatedSection } from "../AnimatedSection";
-import { GradientText } from "../GradientText";
-import { McpProviderSwitcher } from "../McpProviderSwitcher";
+import { Sparkles, ArrowRight } from 'lucide-react';
+import { AnimatedSection } from '../AnimatedSection';
+import { GradientText } from '../GradientText';
+import { McpProviderSwitcher } from '../McpProviderSwitcher';
 
 const TOOL_CATEGORIES = [
   {
-    label: "Observe",
-    description: "Read console logs, network requests, component trees, profiler data, and performance metrics",
+    label: 'Observe',
+    description:
+      'Read console logs, network requests, component trees, profiler data, and performance metrics',
     count: 10,
-    color: "#60A5FA",
+    color: '#60A5FA',
   },
   {
-    label: "Inspect",
-    description: "Dive into component props, state snapshots, storage entries, and startup metrics",
+    label: 'Inspect',
+    description:
+      'Dive into component props, state snapshots, storage entries, and startup metrics',
     count: 5,
-    color: "#A78BFA",
+    color: '#A78BFA',
   },
   {
-    label: "Act",
-    description: "Modify storage, start/stop profiling, reload and profile, refresh state, and reset data",
+    label: 'Act',
+    description:
+      'Modify storage, start/stop profiling, reload and profile, refresh state, and reset data',
     count: 3,
-    color: "#34D399",
+    color: '#34D399',
   },
 ];
 
 const PROMPT_EXAMPLES = [
   {
-    prompt: "Why is my app re-rendering so much?",
-    result: "AI reads profiler data, identifies triggers, and suggests fixes",
+    prompt: 'Why is my app re-rendering so much?',
+    result: 'AI reads profiler data, identifies triggers, and suggests fixes',
   },
   {
-    prompt: "Show me all failed network requests",
-    result: "AI filters requests by status code and highlights errors",
+    prompt: 'Show me all failed network requests',
+    result: 'AI filters requests by status code and highlights errors',
   },
   {
-    prompt: "What does the Redux state look like for the todos slice?",
-    result: "AI reads the state snapshot and returns the current slice data",
+    prompt: 'What does the Redux state look like for the todos slice?',
+    result: 'AI reads the state snapshot and returns the current slice data',
   },
 ];
 
@@ -74,7 +77,8 @@ export const McpSection = () => {
               </h3>
               <p className="text-text-secondary text-sm mb-6">
                 Add Radar as an MCP server in your AI tool&apos;s config.
-                That&apos;s it — your assistant can now see everything your app does at runtime.
+                That&apos;s it — your assistant can now see everything your app
+                does at runtime.
               </p>
               <McpProviderSwitcher />
             </div>
@@ -83,7 +87,7 @@ export const McpSection = () => {
           {/* Tool categories */}
           <AnimatedSection delay={0.2}>
             <div className="space-y-4">
-              {TOOL_CATEGORIES.map((category) => (
+              {TOOL_CATEGORIES.map(category => (
                 <div
                   key={category.label}
                   className="group relative bg-bg-secondary border border-border-default rounded-xl p-6 hover:border-border-strong transition-all duration-300"
@@ -110,7 +114,7 @@ export const McpSection = () => {
         {/* Prompt examples */}
         <AnimatedSection delay={0.3}>
           <div className="mt-12 space-y-4">
-            {PROMPT_EXAMPLES.map((example) => (
+            {PROMPT_EXAMPLES.map(example => (
               <div
                 key={example.prompt}
                 className="rounded-xl border border-border-default bg-bg-secondary p-6 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6"
@@ -118,10 +122,11 @@ export const McpSection = () => {
                 <p className="font-mono text-sm text-text-primary shrink-0">
                   &ldquo;{example.prompt}&rdquo;
                 </p>
-                <ArrowRight className="w-4 h-4 text-accent shrink-0 hidden sm:block" aria-hidden="true" />
-                <p className="text-text-secondary text-sm">
-                  {example.result}
-                </p>
+                <ArrowRight
+                  className="w-4 h-4 text-accent shrink-0 hidden sm:block"
+                  aria-hidden="true"
+                />
+                <p className="text-text-secondary text-sm">{example.result}</p>
               </div>
             ))}
           </div>

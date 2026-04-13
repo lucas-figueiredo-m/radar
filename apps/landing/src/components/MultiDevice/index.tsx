@@ -1,21 +1,21 @@
-import { Smartphone, Monitor, Wifi } from "lucide-react";
-import { AnimatedSection } from "../AnimatedSection";
+import { Smartphone, Monitor, Wifi } from 'lucide-react';
+import { AnimatedSection } from '../AnimatedSection';
 
 const HIGHLIGHTS = [
   {
-    icon: "Wifi",
-    title: "Auto-Detection",
-    description: "Radar automatically discovers devices on your network.",
+    icon: 'Wifi',
+    title: 'Auto-Detection',
+    description: 'Radar automatically discovers devices on your network.',
   },
   {
-    icon: "Monitor",
-    title: "Multi-Device Selector",
-    description: "Switch between connected devices with a single click.",
+    icon: 'Monitor',
+    title: 'Multi-Device Selector',
+    description: 'Switch between connected devices with a single click.',
   },
   {
-    icon: "Smartphone",
-    title: "Per-Device Filtering",
-    description: "Filter logs and network requests by device.",
+    icon: 'Smartphone',
+    title: 'Per-Device Filtering',
+    description: 'Filter logs and network requests by device.',
   },
 ];
 
@@ -51,9 +51,13 @@ export const MultiDevice = () => {
             return (
               <AnimatedSection key={item.title} delay={index * 0.1}>
                 <div className="p-6">
-                  {Icon && <Icon className="w-8 h-8 text-accent mx-auto mb-4" />}
+                  {Icon && (
+                    <Icon className="w-8 h-8 text-accent mx-auto mb-4" />
+                  )}
                   <h3 className="font-semibold mb-2">{item.title}</h3>
-                  <p className="text-text-secondary text-sm">{item.description}</p>
+                  <p className="text-text-secondary text-sm">
+                    {item.description}
+                  </p>
                 </div>
               </AnimatedSection>
             );

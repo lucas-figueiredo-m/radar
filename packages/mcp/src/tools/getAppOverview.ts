@@ -21,7 +21,7 @@ export const registerGetAppOverview = (
       const { db, wsHandle } = ctx;
       const connectedIds = wsHandle.getConnectedDeviceIds();
 
-      const devices = connectedIds.map((id) => {
+      const devices = connectedIds.map(id => {
         const device = wsHandle.getDevice(id);
         return {
           deviceId: id,
@@ -37,12 +37,10 @@ export const registerGetAppOverview = (
         deviceCount: devices.length,
       };
 
-      const targetIds = deviceId
-        ? [deviceId]
-        : connectedIds;
+      const targetIds = deviceId ? [deviceId] : connectedIds;
 
       if (targetIds.length > 0) {
-        const perDevice = targetIds.map((id) => {
+        const perDevice = targetIds.map(id => {
           const consoleCounts = {
             total: db.console.count({ device_id: id }),
             error: db.console.count({ device_id: id, level: 'error' }),
@@ -70,11 +68,11 @@ export const registerGetAppOverview = (
               consoleLogs: consoleCounts,
               networkRequests: networkCount,
               performanceSamples: performanceCount,
-              stateStores: stateCapabilities.map((c) => ({
+              stateStores: stateCapabilities.map(c => ({
                 name: c.store_name,
                 type: c.store_type,
               })),
-              storageBackends: storageCapabilities.map((c) => ({
+              storageBackends: storageCapabilities.map(c => ({
                 backend: c.backend,
                 available: c.available === 1,
                 instanceId: c.instance_id,

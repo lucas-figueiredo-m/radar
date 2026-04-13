@@ -16,10 +16,7 @@ const DATA_TYPES = [
 
 type DataType = (typeof DATA_TYPES)[number];
 
-export const registerResetData = (
-  server: McpServer,
-  ctx: McpContext,
-): void => {
+export const registerResetData = (server: McpServer, ctx: McpContext): void => {
   server.tool(
     'reset_data',
     'Clear data from the Radar database. Useful when switching between apps or starting a fresh debugging session. Can clear specific data types or everything.',
@@ -52,7 +49,7 @@ export const registerResetData = (
       const clearAll = types.includes('all');
       const typesToClear: DataType[] = clearAll
         ? [...DATA_TYPES]
-        : (types.filter((t): t is DataType => t !== 'all'));
+        : types.filter((t): t is DataType => t !== 'all');
 
       const results: Record<string, number> = {};
 
@@ -96,7 +93,9 @@ export const registerResetData = (
             type: 'text' as const,
             text: JSON.stringify(
               {
-                message: `Cleared ${typesToClear.join(', ')} data${deviceId ? ` for device ${deviceId}` : ' for all devices'}.`,
+                message: `Cleared ${typesToClear.join(', ')} data${
+                  deviceId ? ` for device ${deviceId}` : ' for all devices'
+                }.`,
                 recordsCleared: results,
               },
               null,

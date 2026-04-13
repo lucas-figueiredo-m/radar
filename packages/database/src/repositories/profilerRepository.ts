@@ -22,7 +22,9 @@ export type ProfilerRepository = {
   clearAll: () => number;
 };
 
-export const createProfilerRepository = (db: Database.Database): ProfilerRepository => {
+export const createProfilerRepository = (
+  db: Database.Database,
+): ProfilerRepository => {
   const insertSessionStmt = db.prepare<InsertProfilerSession>(
     `INSERT INTO profiler_sessions (device_id, timestamp)
      VALUES (@device_id, @timestamp)`,
@@ -33,22 +35,31 @@ export const createProfilerRepository = (db: Database.Database): ProfilerReposit
      VALUES (@profiler_session_id, @device_id, @commit_index, @timestamp, @duration, @components)`,
   );
 
-  const insertSession = (session: InsertProfilerSession): ProfilerSessionRow => {
+  const insertSession = (
+    session: InsertProfilerSession,
+  ): ProfilerSessionRow => {
     const result = insertSessionStmt.run(session);
     return db
-      .prepare<number, ProfilerSessionRow>('SELECT * FROM profiler_sessions WHERE id = ?')
+      .prepare<number, ProfilerSessionRow>(
+        'SELECT * FROM profiler_sessions WHERE id = ?',
+      )
       .get(result.lastInsertRowid as number)!;
   };
 
   const insertCommit = (commit: InsertProfilerCommit): ProfilerCommitRow => {
     const result = insertCommitStmt.run(commit);
     return db
-      .prepare<number, ProfilerCommitRow>('SELECT * FROM profiler_commits WHERE id = ?')
+      .prepare<number, ProfilerCommitRow>(
+        'SELECT * FROM profiler_commits WHERE id = ?',
+      )
       .get(result.lastInsertRowid as number)!;
   };
 
   const insertSessionWithCommits = db.transaction(
-    (session: InsertProfilerSession, commits: Omit<InsertProfilerCommit, 'profiler_session_id'>[]) => {
+    (
+      session: InsertProfilerSession,
+      commits: Omit<InsertProfilerCommit, 'profiler_session_id'>[],
+    ) => {
       const sessionRow = insertSession(session);
       const commitRows = commits.map(commit =>
         insertCommit({ ...commit, profiler_session_id: sessionRow.id }),
@@ -61,18 +72,23 @@ export const createProfilerRepository = (db: Database.Database): ProfilerReposit
     const conditions: string[] = [];
     if (filter.device_id) conditions.push('device_id = @device_id');
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const where =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const sql = `SELECT * FROM profiler_sessions
       ${where}
       ORDER BY timestamp DESC
       LIMIT @limit OFFSET @offset`;
 
-    return db
-      .prepare<QueryFilter, ProfilerSessionRow>(sql)
-      .all({ ...filter, limit: filter.limit ?? 100, offset: filter.offset ?? 0 });
+    return db.prepare<QueryFilter, ProfilerSessionRow>(sql).all({
+      ...filter,
+      limit: filter.limit ?? 100,
+      offset: filter.offset ?? 0,
+    });
   };
 
-  const getCommitsBySession = (profilerSessionId: number): ProfilerCommitRow[] => {
+  const getCommitsBySession = (
+    profilerSessionId: number,
+  ): ProfilerCommitRow[] => {
     return db
       .prepare<number, ProfilerCommitRow>(
         'SELECT * FROM profiler_commits WHERE profiler_session_id = ? ORDER BY commit_index ASC',
@@ -82,29 +98,39 @@ export const createProfilerRepository = (db: Database.Database): ProfilerReposit
 
   const getLatestSession = (deviceId?: string): ProfilerSessionRow | null => {
     if (deviceId) {
-      return db
-        .prepare<string, ProfilerSessionRow>(
-          'SELECT * FROM profiler_sessions WHERE device_id = ? ORDER BY timestamp DESC LIMIT 1',
-        )
-        .get(deviceId) ?? null;
+      return (
+        db
+          .prepare<string, ProfilerSessionRow>(
+            'SELECT * FROM profiler_sessions WHERE device_id = ? ORDER BY timestamp DESC LIMIT 1',
+          )
+          .get(deviceId) ?? null
+      );
     }
-    return db
-      .prepare<[], ProfilerSessionRow>(
-        'SELECT * FROM profiler_sessions ORDER BY timestamp DESC LIMIT 1',
-      )
-      .get() ?? null;
+    return (
+      db
+        .prepare<[], ProfilerSessionRow>(
+          'SELECT * FROM profiler_sessions ORDER BY timestamp DESC LIMIT 1',
+        )
+        .get() ?? null
+    );
   };
 
   const clearSession = (profilerSessionId: number): number => {
     const commitResult = db
-      .prepare<number>('DELETE FROM profiler_commits WHERE profiler_session_id = ?')
+      .prepare<number>(
+        'DELETE FROM profiler_commits WHERE profiler_session_id = ?',
+      )
       .run(profilerSessionId);
-    db.prepare<number>('DELETE FROM profiler_sessions WHERE id = ?').run(profilerSessionId);
+    db.prepare<number>('DELETE FROM profiler_sessions WHERE id = ?').run(
+      profilerSessionId,
+    );
     return commitResult.changes;
   };
 
   const clear = (deviceId: string): number => {
-    db.prepare<string>('DELETE FROM profiler_commits WHERE device_id = ?').run(deviceId);
+    db.prepare<string>('DELETE FROM profiler_commits WHERE device_id = ?').run(
+      deviceId,
+    );
     const result = db
       .prepare<string>('DELETE FROM profiler_sessions WHERE device_id = ?')
       .run(deviceId);

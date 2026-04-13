@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Radar, Menu, X } from "lucide-react";
-import { NAV_ITEMS, DOWNLOAD_URL } from "@/utils/constants";
+import { useState } from 'react';
+import { Radar, Menu, X } from 'lucide-react';
+import { NAV_ITEMS, DOWNLOAD_URL } from '@/utils/constants';
 
 export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -18,7 +18,7 @@ export const Navbar = () => {
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
-          {NAV_ITEMS.map((item) => (
+          {NAV_ITEMS.map(item => (
             <a
               key={item.href}
               href={item.href}
@@ -45,7 +45,11 @@ export const Navbar = () => {
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle menu"
         >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {mobileMenuOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <Menu className="w-6 h-6" />
+          )}
         </button>
       </div>
 
@@ -53,7 +57,7 @@ export const Navbar = () => {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border-default bg-bg-base/95 backdrop-blur-xl">
           <div className="px-6 py-4 flex flex-col gap-4">
-            {NAV_ITEMS.map((item) => (
+            {NAV_ITEMS.map(item => (
               <a
                 key={item.href}
                 href={item.href}

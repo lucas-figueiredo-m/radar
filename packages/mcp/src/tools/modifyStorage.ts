@@ -13,7 +13,9 @@ export const registerModifyStorage = (
     {
       action: z
         .enum(['set', 'remove', 'clear'])
-        .describe('"set" to add/update, "remove" to delete a key, "clear" to wipe all entries'),
+        .describe(
+          '"set" to add/update, "remove" to delete a key, "clear" to wipe all entries',
+        ),
       backend: z
         .enum(['asyncStorage', 'mmkv'])
         .describe('Storage backend to modify'),
@@ -39,7 +41,15 @@ export const registerModifyStorage = (
         .optional()
         .describe('Device ID (auto-resolved if only one device connected)'),
     },
-    async ({ action, backend, instanceId, key, value, valueType, deviceId }) => {
+    async ({
+      action,
+      backend,
+      instanceId,
+      key,
+      value,
+      valueType,
+      deviceId,
+    }) => {
       const resolvedId = resolveDeviceId(ctx.wsHandle, deviceId);
       const requestId = crypto.randomUUID();
 
@@ -71,7 +81,9 @@ export const registerModifyStorage = (
           content: [
             {
               type: 'text' as const,
-              text: `Set "${key}" = "${value}" (${valueType}) on ${backend}${instanceId ? ` [${instanceId}]` : ''}.`,
+              text: `Set "${key}" = "${value}" (${valueType}) on ${backend}${
+                instanceId ? ` [${instanceId}]` : ''
+              }.`,
             },
           ],
         };
@@ -103,7 +115,9 @@ export const registerModifyStorage = (
           content: [
             {
               type: 'text' as const,
-              text: `Removed "${key}" from ${backend}${instanceId ? ` [${instanceId}]` : ''}.`,
+              text: `Removed "${key}" from ${backend}${
+                instanceId ? ` [${instanceId}]` : ''
+              }.`,
             },
           ],
         };
@@ -123,7 +137,9 @@ export const registerModifyStorage = (
         content: [
           {
             type: 'text' as const,
-            text: `Cleared all entries from ${backend}${instanceId ? ` [${instanceId}]` : ''}.`,
+            text: `Cleared all entries from ${backend}${
+              instanceId ? ` [${instanceId}]` : ''
+            }.`,
           },
         ],
       };

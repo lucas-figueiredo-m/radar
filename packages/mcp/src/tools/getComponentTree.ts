@@ -13,7 +13,9 @@ export const registerGetComponentTree = (
       deviceId: z
         .string()
         .optional()
-        .describe('Device ID to filter by. Omit to get the latest tree from any device.'),
+        .describe(
+          'Device ID to filter by. Omit to get the latest tree from any device.',
+        ),
     },
     async ({ deviceId }) => {
       const tree = ctx.db.componentTree.getLatest(deviceId);

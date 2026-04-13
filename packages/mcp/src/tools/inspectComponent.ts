@@ -4,7 +4,7 @@ import type { McpContext } from '../types';
 import { resolveDeviceId } from '../types';
 
 const sleep = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+  new Promise(resolve => setTimeout(resolve, ms));
 
 export const registerInspectComponent = (
   server: McpServer,

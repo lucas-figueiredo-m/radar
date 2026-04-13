@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { AnimatedSection } from "../AnimatedSection";
-import { CodeBlock } from "../CodeBlock";
-import { HOW_IT_WORKS_STEPS } from "@/utils/constants";
+import { AnimatedSection } from '../AnimatedSection';
+import { CodeBlock } from '../CodeBlock';
+import { HOW_IT_WORKS_STEPS } from '@/utils/constants';
 
 export const HowItWorks = () => {
   return (
@@ -28,11 +28,15 @@ export const HowItWorks = () => {
                 </span>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-xl font-semibold mb-1">{step.title}</h3>
-                  <p className="text-text-secondary text-sm mb-4">{step.description}</p>
+                  <p className="text-text-secondary text-sm mb-4">
+                    {step.description}
+                  </p>
                   {step.code && <CodeBlock code={step.code} />}
                   {!step.code && (
                     <div className="h-24 bg-bg-secondary rounded-xl border border-border-default flex items-center justify-center">
-                      <span className="text-text-tertiary text-sm">Open Radar</span>
+                      <span className="text-text-tertiary text-sm">
+                        Open Radar
+                      </span>
                     </div>
                   )}
                 </div>
