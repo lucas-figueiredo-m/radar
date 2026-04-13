@@ -153,7 +153,7 @@ export type InsertPerformanceMetric = {
 };
 
 export type QueryFilter = {
-  device_id: string;
+  device_id?: string;
   limit?: number;
   offset?: number;
 };
@@ -213,7 +213,7 @@ export type InsertStorageEntry = {
 };
 
 export type StorageEntryFilter = {
-  device_id: string;
+  device_id?: string;
   backend: 'asyncStorage' | 'mmkv';
   instance_id?: string;
 };

@@ -40,7 +40,7 @@ export const useStateManagement = (selectedDeviceId: string | null) => {
   const queryActions = useCallback(
     (deviceId: string) => {
       if (!selectedStore) return Promise.resolve([] as StateActionRow[]);
-      return databaseClient.state.getActions(deviceId, selectedStore);
+      return databaseClient.state.getActions(selectedStore, deviceId);
     },
     [selectedStore],
   );

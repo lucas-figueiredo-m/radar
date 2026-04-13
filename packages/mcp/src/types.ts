@@ -25,6 +25,10 @@ export type McpServerHandle = {
   close: () => void;
 };
 
+/**
+ * For command tools that MUST target a specific device.
+ * Auto-resolves if only one device is connected, errors otherwise.
+ */
 export const resolveDeviceId = (
   wsHandle: WebSocketHandle,
   deviceId?: string,

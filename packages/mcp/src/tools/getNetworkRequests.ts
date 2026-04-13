@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpContext } from '../types';
-import { resolveDeviceId } from '../types';
 
 export const registerGetNetworkRequests = (
   server: McpServer,
@@ -9,7 +8,7 @@ export const registerGetNetworkRequests = (
 ): void => {
   server.tool(
     'get_network_requests',
-    'Query HTTP/GraphQL network requests captured from the React Native app. Returns request summaries (method, url, status, duration). Use get_network_request_detail for full headers and bodies.',
+    'Query HTTP/GraphQL network requests captured from the React Native app. Returns request summaries (method, url, status, duration). Use get_network_request_detail for full headers and bodies. Without deviceId, returns requests from all devices.',
     {
       method: z
         .string()
@@ -29,12 +28,11 @@ export const registerGetNetworkRequests = (
       deviceId: z
         .string()
         .optional()
-        .describe('Device ID (auto-resolved if only one device connected)'),
+        .describe('Device ID to filter by. Omit to get requests from all devices.'),
     },
     async ({ method, status, graphqlType, pending, limit, offset, deviceId }) => {
-      const resolvedId = resolveDeviceId(ctx.wsHandle, deviceId);
       const requests = ctx.db.network.query({
-        device_id: resolvedId,
+        device_id: deviceId,
         method,
         status,
         graphql_type: graphqlType,
@@ -43,7 +41,7 @@ export const registerGetNetworkRequests = (
         offset,
       });
       const total = ctx.db.network.count({
-        device_id: resolvedId,
+        device_id: deviceId,
         method,
         status,
         graphql_type: graphqlType,
@@ -52,6 +50,7 @@ export const registerGetNetworkRequests = (
 
       const summaries = requests.map((r) => ({
         id: r.id,
+        deviceId: r.device_id,
         method: r.method,
         url: r.url,
         status: r.status,

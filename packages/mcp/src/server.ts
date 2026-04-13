@@ -13,7 +13,10 @@ import {
   registerModifyStorage,
   registerGetStateSnapshot,
   registerGetStateActions,
-  registerSendCommand,
+  registerStartProfiling,
+  registerStopProfiling,
+  registerReloadAndProfile,
+  registerRefreshState,
   registerResetData,
 } from './tools';
 import type { McpContext } from './types';
@@ -37,7 +40,10 @@ export const createMcpServer = (ctx: McpContext): McpServer => {
   registerModifyStorage(server, ctx);
   registerGetStateSnapshot(server, ctx);
   registerGetStateActions(server, ctx);
-  registerSendCommand(server, ctx);
+  registerStartProfiling(server, ctx);
+  registerStopProfiling(server, ctx);
+  registerReloadAndProfile(server, ctx);
+  registerRefreshState(server, ctx);
   registerResetData(server, ctx);
 
   return server;

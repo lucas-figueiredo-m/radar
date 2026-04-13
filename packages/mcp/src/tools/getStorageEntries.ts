@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpContext } from '../types';
-import { resolveDeviceId } from '../types';
 
 export const registerGetStorageEntries = (
   server: McpServer,
@@ -9,14 +8,12 @@ export const registerGetStorageEntries = (
 ): void => {
   server.tool(
     'get_storage_entries',
-    'List storage entries from AsyncStorage or MMKV on the connected device. Returns available backends and their key-value entries.',
+    'List storage entries from AsyncStorage or MMKV on the connected device. Returns available backends and their key-value entries. Without deviceId, returns entries from all devices.',
     {
       backend: z
         .enum(['asyncStorage', 'mmkv'])
         .optional()
-        .describe(
-          'Storage backend to query. Omit to get capabilities and entries from the first available backend.',
-        ),
+        .describe('Storage backend to query. Omit to get the first available backend.'),
       instanceId: z
         .string()
         .optional()
@@ -24,13 +21,13 @@ export const registerGetStorageEntries = (
       deviceId: z
         .string()
         .optional()
-        .describe('Device ID (auto-resolved if only one device connected)'),
+        .describe('Device ID to filter by. Omit to get entries from all devices.'),
     },
     async ({ backend, instanceId, deviceId }) => {
-      const resolvedId = resolveDeviceId(ctx.wsHandle, deviceId);
-      const capabilities = ctx.db.storage.getCapabilities(resolvedId);
+      const capabilities = ctx.db.storage.getCapabilities(deviceId);
 
       const availableBackends = capabilities.map((c) => ({
+        deviceId: c.device_id,
         backend: c.backend,
         available: c.available === 1,
         instanceId: c.instance_id,
@@ -61,12 +58,13 @@ export const registerGetStorageEntries = (
       }
 
       const entries = ctx.db.storage.getEntries({
-        device_id: resolvedId,
+        device_id: deviceId,
         backend: selectedBackend,
         instance_id: instanceId,
       });
 
       const parsed = entries.map((e) => ({
+        deviceId: e.device_id,
         key: e.key,
         value: e.value,
         valueType: e.value_type,

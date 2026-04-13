@@ -3,7 +3,8 @@ import type { StartupMetricRow, InsertStartupMetric } from '../types';
 
 export type StartupRepository = {
   upsert: (metric: InsertStartupMetric) => StartupMetricRow;
-  get: (deviceId: string) => StartupMetricRow | null;
+  get: (deviceId?: string) => StartupMetricRow | null;
+  getAll: () => StartupMetricRow[];
   clear: (deviceId: string) => number;
   clearAll: () => number;
 };
@@ -30,14 +31,31 @@ export const createStartupRepository = (
       .get(metric.device_id)!;
   };
 
-  const get = (deviceId: string): StartupMetricRow | null => {
+  const get = (deviceId?: string): StartupMetricRow | null => {
+    if (deviceId) {
+      return (
+        db
+          .prepare<string, StartupMetricRow>(
+            'SELECT * FROM startup_metrics WHERE device_id = ?',
+          )
+          .get(deviceId) ?? null
+      );
+    }
     return (
       db
-        .prepare<string, StartupMetricRow>(
-          'SELECT * FROM startup_metrics WHERE device_id = ?',
+        .prepare<[], StartupMetricRow>(
+          'SELECT * FROM startup_metrics ORDER BY timestamp DESC LIMIT 1',
         )
-        .get(deviceId) ?? null
+        .get() ?? null
     );
+  };
+
+  const getAll = (): StartupMetricRow[] => {
+    return db
+      .prepare<[], StartupMetricRow>(
+        'SELECT * FROM startup_metrics ORDER BY device_id',
+      )
+      .all();
   };
 
   const clear = (deviceId: string): number => {
@@ -52,5 +70,5 @@ export const createStartupRepository = (
     return result.changes;
   };
 
-  return { upsert, get, clear, clearAll };
+  return { upsert, get, getAll, clear, clearAll };
 };

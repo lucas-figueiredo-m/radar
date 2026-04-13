@@ -11,6 +11,10 @@ export const registerGetNetworkRequestDetail = (
     'Get full details of a specific network request including headers and bodies. Use the requestId from get_network_requests.',
     {
       requestId: z.string().describe('The network request ID'),
+      deviceId: z
+        .string()
+        .optional()
+        .describe('Device ID (auto-resolved if only one device connected)'),
     },
     async ({ requestId }) => {
       const request = ctx.db.network.getById(requestId);

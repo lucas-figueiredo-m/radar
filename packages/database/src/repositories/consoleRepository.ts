@@ -27,11 +27,13 @@ export const createConsoleRepository = (db: Database.Database): ConsoleRepositor
   };
 
   const query = (filter: ConsoleQueryFilter): ConsoleLogRow[] => {
-    const conditions = ['device_id = @device_id'];
+    const conditions: string[] = [];
+    if (filter.device_id) conditions.push('device_id = @device_id');
     if (filter.level) conditions.push('level = @level');
 
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const sql = `SELECT * FROM console_logs
-      WHERE ${conditions.join(' AND ')}
+      ${where}
       ORDER BY timestamp ASC, id ASC
       LIMIT @limit OFFSET @offset`;
 
@@ -41,11 +43,12 @@ export const createConsoleRepository = (db: Database.Database): ConsoleRepositor
   };
 
   const count = (filter: ConsoleQueryFilter): number => {
-    const conditions = ['device_id = @device_id'];
+    const conditions: string[] = [];
+    if (filter.device_id) conditions.push('device_id = @device_id');
     if (filter.level) conditions.push('level = @level');
 
-    const sql = `SELECT COUNT(*) as count FROM console_logs
-      WHERE ${conditions.join(' AND ')}`;
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const sql = `SELECT COUNT(*) as count FROM console_logs ${where}`;
 
     const row = db
       .prepare<ConsoleQueryFilter, { count: number }>(sql)

@@ -7,7 +7,7 @@ import type {
 
 export type ComponentTreeRepository = {
   insert: (tree: InsertComponentTree) => ComponentTreeRow;
-  getLatest: (deviceId: string) => ComponentTreeRow | null;
+  getLatest: (deviceId?: string) => ComponentTreeRow | null;
   query: (filter: QueryFilter) => ComponentTreeRow[];
   count: (filter: QueryFilter) => number;
   clear: (deviceId: string) => number;
@@ -27,17 +27,28 @@ export const createComponentTreeRepository = (db: Database.Database): ComponentT
       .get(result.lastInsertRowid as number)!;
   };
 
-  const getLatest = (deviceId: string): ComponentTreeRow | null => {
+  const getLatest = (deviceId?: string): ComponentTreeRow | null => {
+    if (deviceId) {
+      return db
+        .prepare<string, ComponentTreeRow>(
+          'SELECT * FROM component_trees WHERE device_id = ? ORDER BY timestamp DESC LIMIT 1',
+        )
+        .get(deviceId) ?? null;
+    }
     return db
-      .prepare<string, ComponentTreeRow>(
-        'SELECT * FROM component_trees WHERE device_id = ? ORDER BY timestamp DESC LIMIT 1',
+      .prepare<[], ComponentTreeRow>(
+        'SELECT * FROM component_trees ORDER BY timestamp DESC LIMIT 1',
       )
-      .get(deviceId) ?? null;
+      .get() ?? null;
   };
 
   const query = (filter: QueryFilter): ComponentTreeRow[] => {
+    const conditions: string[] = [];
+    if (filter.device_id) conditions.push('device_id = @device_id');
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const sql = `SELECT * FROM component_trees
-      WHERE device_id = @device_id
+      ${where}
       ORDER BY timestamp ASC
       LIMIT @limit OFFSET @offset`;
 
@@ -47,12 +58,19 @@ export const createComponentTreeRepository = (db: Database.Database): ComponentT
   };
 
   const count = (filter: QueryFilter): number => {
+    if (filter.device_id) {
+      const row = db
+        .prepare<string, { count: number }>(
+          'SELECT COUNT(*) as count FROM component_trees WHERE device_id = ?',
+        )
+        .get(filter.device_id);
+      return row?.count ?? 0;
+    }
     const row = db
-      .prepare<string, { count: number }>(
-        'SELECT COUNT(*) as count FROM component_trees WHERE device_id = ?',
+      .prepare<[], { count: number }>(
+        'SELECT COUNT(*) as count FROM component_trees',
       )
-      .get(filter.device_id);
-
+      .get();
     return row?.count ?? 0;
   };
 

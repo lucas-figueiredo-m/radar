@@ -54,14 +54,16 @@ export const createNetworkRepository = (db: Database.Database): NetworkRepositor
   };
 
   const query = (filter: NetworkQueryFilter): NetworkRequestRow[] => {
-    const conditions = ['device_id = @device_id'];
+    const conditions: string[] = [];
+    if (filter.device_id) conditions.push('device_id = @device_id');
     if (filter.method) conditions.push('method = @method');
     if (filter.status !== undefined) conditions.push('status = @status');
     if (filter.graphql_type) conditions.push('graphql_type = @graphql_type');
     if (filter.pending !== undefined) conditions.push('pending = @pending_val');
 
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const sql = `SELECT * FROM network_requests
-      WHERE ${conditions.join(' AND ')}
+      ${where}
       ORDER BY timestamp ASC, id ASC
       LIMIT @limit OFFSET @offset`;
 
@@ -78,14 +80,15 @@ export const createNetworkRepository = (db: Database.Database): NetworkRepositor
   };
 
   const count = (filter: NetworkQueryFilter): number => {
-    const conditions = ['device_id = @device_id'];
+    const conditions: string[] = [];
+    if (filter.device_id) conditions.push('device_id = @device_id');
     if (filter.method) conditions.push('method = @method');
     if (filter.status !== undefined) conditions.push('status = @status');
     if (filter.graphql_type) conditions.push('graphql_type = @graphql_type');
     if (filter.pending !== undefined) conditions.push('pending = @pending_val');
 
-    const sql = `SELECT COUNT(*) as count FROM network_requests
-      WHERE ${conditions.join(' AND ')}`;
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const sql = `SELECT COUNT(*) as count FROM network_requests ${where}`;
 
     const params = {
       ...filter,

@@ -284,7 +284,7 @@ ipcMain.handle('radar:db:state:getSnapshots', (_event, deviceId: string) => {
 ipcMain.handle(
   'radar:db:state:getActions',
   (_event, deviceId: string, storeName: string) => {
-    return getDatabase().state.getActions(deviceId, storeName);
+    return getDatabase().state.getActions(storeName, deviceId);
   },
 );
 

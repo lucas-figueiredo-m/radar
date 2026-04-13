@@ -10,12 +10,12 @@ import type {
 
 export type StateRepository = {
   upsertCapability: (cap: InsertStateCapability) => StateCapabilityRow;
-  getCapabilities: (deviceId: string) => StateCapabilityRow[];
+  getCapabilities: (deviceId?: string) => StateCapabilityRow[];
   upsertSnapshot: (snapshot: InsertStateSnapshot) => StateSnapshotRow;
   getSnapshot: (deviceId: string, storeName: string) => StateSnapshotRow | null;
-  getSnapshots: (deviceId: string) => StateSnapshotRow[];
+  getSnapshots: (deviceId?: string) => StateSnapshotRow[];
   insertAction: (action: InsertStateAction) => StateActionRow;
-  getActions: (deviceId: string, storeName: string) => StateActionRow[];
+  getActions: (storeName: string, deviceId?: string) => StateActionRow[];
   clear: (deviceId: string) => number;
   clearAll: () => number;
 };
@@ -41,12 +41,19 @@ export const createStateRepository = (
       .get(cap.device_id, cap.store_name)!;
   };
 
-  const getCapabilities = (deviceId: string): StateCapabilityRow[] => {
+  const getCapabilities = (deviceId?: string): StateCapabilityRow[] => {
+    if (deviceId) {
+      return db
+        .prepare<string, StateCapabilityRow>(
+          'SELECT * FROM state_capabilities WHERE device_id = ? ORDER BY store_name',
+        )
+        .all(deviceId);
+    }
     return db
-      .prepare<string, StateCapabilityRow>(
-        'SELECT * FROM state_capabilities WHERE device_id = ? ORDER BY store_name',
+      .prepare<[], StateCapabilityRow>(
+        'SELECT * FROM state_capabilities ORDER BY device_id, store_name',
       )
-      .all(deviceId);
+      .all();
   };
 
   const upsertSnapshotStmt = db.prepare<InsertStateSnapshot>(
@@ -81,12 +88,19 @@ export const createStateRepository = (
     );
   };
 
-  const getSnapshots = (deviceId: string): StateSnapshotRow[] => {
+  const getSnapshots = (deviceId?: string): StateSnapshotRow[] => {
+    if (deviceId) {
+      return db
+        .prepare<string, StateSnapshotRow>(
+          'SELECT * FROM state_snapshots WHERE device_id = ? ORDER BY store_name',
+        )
+        .all(deviceId);
+    }
     return db
-      .prepare<string, StateSnapshotRow>(
-        'SELECT * FROM state_snapshots WHERE device_id = ? ORDER BY store_name',
+      .prepare<[], StateSnapshotRow>(
+        'SELECT * FROM state_snapshots ORDER BY device_id, store_name',
       )
-      .all(deviceId);
+      .all();
   };
 
   const insertActionStmt = db.prepare<InsertStateAction>(
@@ -104,14 +118,21 @@ export const createStateRepository = (
   };
 
   const getActions = (
-    deviceId: string,
     storeName: string,
+    deviceId?: string,
   ): StateActionRow[] => {
+    if (deviceId) {
+      return db
+        .prepare<[string, string], StateActionRow>(
+          'SELECT * FROM state_actions WHERE device_id = ? AND store_name = ? ORDER BY timestamp ASC, id ASC',
+        )
+        .all(deviceId, storeName);
+    }
     return db
-      .prepare<[string, string], StateActionRow>(
-        'SELECT * FROM state_actions WHERE device_id = ? AND store_name = ? ORDER BY timestamp ASC, id ASC',
+      .prepare<string, StateActionRow>(
+        'SELECT * FROM state_actions WHERE store_name = ? ORDER BY timestamp ASC, id ASC',
       )
-      .all(deviceId, storeName);
+      .all(storeName);
   };
 
   const clear = (deviceId: string): number => {

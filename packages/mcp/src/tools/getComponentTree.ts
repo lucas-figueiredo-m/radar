@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpContext } from '../types';
-import { resolveDeviceId } from '../types';
 
 export const registerGetComponentTree = (
   server: McpServer,
@@ -14,11 +13,10 @@ export const registerGetComponentTree = (
       deviceId: z
         .string()
         .optional()
-        .describe('Device ID (auto-resolved if only one device connected)'),
+        .describe('Device ID to filter by. Omit to get the latest tree from any device.'),
     },
     async ({ deviceId }) => {
-      const resolvedId = resolveDeviceId(ctx.wsHandle, deviceId);
-      const tree = ctx.db.componentTree.getLatest(resolvedId);
+      const tree = ctx.db.componentTree.getLatest(deviceId);
 
       if (!tree) {
         return {
@@ -32,6 +30,7 @@ export const registerGetComponentTree = (
       }
 
       const result = {
+        deviceId: tree.device_id,
         rootNodes: JSON.parse(tree.root_nodes),
         timestamp: tree.timestamp,
       };
