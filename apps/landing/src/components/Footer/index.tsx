@@ -33,7 +33,7 @@ export const Footer = () => {
                   Features
                 </a>
                 <a
-                  href="/docs"
+                  href="/docs/"
                   className="text-text-secondary text-sm hover:text-text-primary transition-colors"
                 >
                   Docs

@@ -45,7 +45,7 @@ export const Hero = () => {
               Download for macOS
             </a>
             <a
-              href="/docs"
+              href="/docs/"
               className="flex items-center gap-2 border border-border-default hover:bg-bg-surface text-text-primary rounded-xl px-8 py-3 font-semibold transition-colors"
             >
               <BookOpen className="w-5 h-5" />
