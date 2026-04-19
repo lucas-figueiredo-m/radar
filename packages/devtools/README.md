@@ -7,7 +7,15 @@ Captures console logs, network requests, component tree, profiler data, performa
 ## Installation
 
 ```bash
-bun add -d radar-devtools
+npm install radar-devtools
+# or: yarn add radar-devtools
+# or: bun add radar-devtools
+```
+
+Then install the iOS pods:
+
+```bash
+cd ios && pod install
 ```
 
 ## Quick Start
@@ -20,7 +28,9 @@ if (__DEV__) {
 }
 ```
 
-That's it. Open the Radar desktop app and your device will appear automatically.
+That's it. Open the Radar desktop app and your device will appear automatically. The `init()` call is gated by `__DEV__`, so nothing runs in production builds.
+
+> Install as a regular `dependency`, not a `devDependency`. Expo autolinking only scans `dependencies` when wiring native modules.
 
 ## Configuration
 

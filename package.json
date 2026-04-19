@@ -33,6 +33,8 @@
     "eslint": "^8.19.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.0",
-    "prettier": "2.8.8"
+    "prettier": "2.8.8",
+    "radar-devtools": "workspace:*",
+    "tsup": "^8.5.1"
   }
 }

@@ -10,3 +10,5 @@ release/
 .vercel
 **/.gradle/
 **/android/build/
+.playwright-mcp/
+*.tgz

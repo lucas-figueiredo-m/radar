@@ -1,27 +1,42 @@
 {
   "name": "radar-devtools",
-  "version": "0.4.1",
+  "version": "0.4.4",
   "description": "Radar client SDK for React Native apps",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./babel-plugin": "./babel-plugin.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./babel-plugin": "./babel-plugin.js",
+    "./package.json": "./package.json"
   },
+  "files": [
+    "dist",
+    "babel-plugin.js",
+    "android/src",
+    "android/build.gradle",
+    "ios",
+    "src/NativeRadarPerformance.ts",
+    "react-native.config.js",
+    "RadarDevtools.podspec",
+    "README.md"
+  ],
   "private": false,
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vitest",
-    "test:run": "vitest run"
-  },
-  "dependencies": {
-    "@radar/types": "workspace:*"
+    "test:run": "vitest run",
+    "prepublishOnly": "bun run build"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
+    "@radar/types": "workspace:*",
     "@types/babel__core": "^7.20.0",
     "@types/react-native": "^0.73.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
@@ -31,6 +46,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "prettier": "2.8.8",
+    "tsup": "^8.5.1",
     "typescript": "^5.7.0",
     "vitest": "^4.0.18"
   },

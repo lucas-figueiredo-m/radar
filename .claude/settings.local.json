@@ -77,7 +77,24 @@
       "mcp__radar__stop_profiling",
       "mcp__radar__refresh_state",
       "mcp__radar__modify_storage",
-      "mcp__radar__reset_data"
+      "mcp__radar__reset_data",
+      "Bash(gh run:*)",
+      "Bash(npm view:*)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(npm pack *)",
+      "Bash(tar -tzf radar-devtools-0.4.2.tgz)",
+      "Bash(npm install *)",
+      "Bash(npm uninstall *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(npm --version)",
+      "Bash(pod --version)",
+      "Bash(npm start *)",
+      "Bash(npm run *)",
+      "Bash(tee /tmp/radar_ios_build.log)",
+      "Bash(tee /tmp/radar_ios_build2.log)",
+      "Bash(pkill -9 xcodebuild)",
+      "Bash(pkill -9 clang)",
+      "Bash(rm -f /tmp/radar_ios_build2.log)"
     ]
   }
 }
