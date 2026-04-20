@@ -94,7 +94,9 @@
       "Bash(tee /tmp/radar_ios_build2.log)",
       "Bash(pkill -9 xcodebuild)",
       "Bash(pkill -9 clang)",
-      "Bash(rm -f /tmp/radar_ios_build2.log)"
+      "Bash(rm -f /tmp/radar_ios_build2.log)",
+      "Bash(nm -U /Users/lucasfigueiredo/Library/Developer/Xcode/DerivedData/truckAtlasMobile-dlxxibsvmbrjbaaxuxhrhdotmksh/Build/Products/Debug-iphonesimulator/truckAtlasMobile.app/truckAtlasMobile)",
+      "Bash(nm /Users/lucasfigueiredo/Library/Developer/Xcode/DerivedData/truckAtlasMobile-dlxxibsvmbrjbaaxuxhrhdotmksh/Build/Products/Debug-iphonesimulator/RadarDevtools/RadarDevtools.framework/RadarDevtools)"
     ]
   }
 }

@@ -1,7 +1,5 @@
 #import "RadarPerformance.h"
 
-#ifdef RCT_NEW_ARCH_ENABLED
-
 #import <QuartzCore/CADisplayLink.h>
 #import <mach/mach.h>
 #import <sys/sysctl.h>
@@ -87,7 +85,6 @@ RCT_EXPORT_MODULE(RadarPerformance)
 }
 
 - (NSNumber *)getNativeLaunchTime {
-  // Get process start time via sysctl
   struct kinfo_proc info;
   size_t size = sizeof(info);
   int mib[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid() };
@@ -107,14 +104,14 @@ RCT_EXPORT_MODULE(RadarPerformance)
   [_displayLink invalidate];
 }
 
-- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const facebook::react::ObjCTurboModule::InitParams &)params {
-  return std::make_shared<facebook::react::NativeRadarPerformanceSpecJSI>(params);
-}
-
 + (BOOL)requiresMainQueueSetup {
   return NO;
 }
 
-@end
-
+#ifdef RCT_NEW_ARCH_ENABLED
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const facebook::react::ObjCTurboModule::InitParams &)params {
+  return std::make_shared<facebook::react::NativeRadarPerformanceSpecJSI>(params);
+}
 #endif
+
+@end
