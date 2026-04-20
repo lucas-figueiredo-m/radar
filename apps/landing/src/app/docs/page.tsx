@@ -36,6 +36,43 @@ const DocsPage = () => {
               <PackageManagerSwitcher />
             </div>
 
+            <div className="bg-bg-surface border border-border-default rounded-xl p-4 mb-6">
+              <p className="text-sm text-text-secondary">
+                <strong className="text-text-primary">
+                  dependency or devDependency?
+                </strong>{' '}
+                Both work on{' '}
+                <strong className="text-text-primary">Expo SDK 54+</strong>{' '}
+                (autolinking{' '}
+                <code className="font-mono text-xs bg-bg-elevated px-1.5 py-0.5 rounded">
+                  &gt;=3.0.14
+                </code>
+                ). Since Radar only runs behind{' '}
+                <code className="font-mono text-xs bg-bg-elevated px-1.5 py-0.5 rounded">
+                  __DEV__
+                </code>
+                , installing as a{' '}
+                <code className="font-mono text-xs bg-bg-elevated px-1.5 py-0.5 rounded">
+                  devDependency
+                </code>{' '}
+                (add{' '}
+                <code className="font-mono text-xs bg-bg-elevated px-1.5 py-0.5 rounded">
+                  -D
+                </code>
+                /
+                <code className="font-mono text-xs bg-bg-elevated px-1.5 py-0.5 rounded">
+                  --save-dev
+                </code>
+                ) is idiomatic there. On{' '}
+                <strong className="text-text-primary">Expo SDK ≤ 53</strong>,
+                install it as a regular dependency — older autolinkers skip{' '}
+                <code className="font-mono text-xs bg-bg-elevated px-1.5 py-0.5 rounded">
+                  devDependencies
+                </code>
+                .
+              </p>
+            </div>
+
             <h2 className="font-semibold text-lg mb-3">
               Step 2: Initialize in your app
             </h2>

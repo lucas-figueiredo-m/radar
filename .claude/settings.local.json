@@ -96,7 +96,10 @@
       "Bash(pkill -9 clang)",
       "Bash(rm -f /tmp/radar_ios_build2.log)",
       "Bash(nm -U /Users/lucasfigueiredo/Library/Developer/Xcode/DerivedData/truckAtlasMobile-dlxxibsvmbrjbaaxuxhrhdotmksh/Build/Products/Debug-iphonesimulator/truckAtlasMobile.app/truckAtlasMobile)",
-      "Bash(nm /Users/lucasfigueiredo/Library/Developer/Xcode/DerivedData/truckAtlasMobile-dlxxibsvmbrjbaaxuxhrhdotmksh/Build/Products/Debug-iphonesimulator/RadarDevtools/RadarDevtools.framework/RadarDevtools)"
+      "Bash(nm /Users/lucasfigueiredo/Library/Developer/Xcode/DerivedData/truckAtlasMobile-dlxxibsvmbrjbaaxuxhrhdotmksh/Build/Products/Debug-iphonesimulator/RadarDevtools/RadarDevtools.framework/RadarDevtools)",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "mcp__plugin_playwright_playwright__browser_close"
     ]
   }
 }

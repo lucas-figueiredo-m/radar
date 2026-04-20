@@ -161,7 +161,7 @@ export const HOW_IT_WORKS_STEPS: HowItWorksStep[] = [
     step: 1,
     title: 'Install',
     description: 'Add the devtools package to your React Native project.',
-    code: 'npm install --save-dev radar-devtools',
+    code: 'npm install radar-devtools',
   },
   {
     step: 2,

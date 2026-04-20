@@ -18,6 +18,12 @@ Then install the iOS pods:
 cd ios && pod install
 ```
 
+### `dependency` or `devDependency`?
+
+Both work. On **Expo SDK 54+** (autolinking `>=3.0.14`, released Oct 2025), you can install as either — autolinking now picks up top-level `devDependencies` too. Since Radar is debug-only, `devDependency` is the more idiomatic choice there.
+
+On **Expo SDK ≤ 53** (and plain RN projects using Expo autolinking), install as a regular `dependency`. Older autolinkers skip `devDependencies`, so the native module won't register.
+
 ## Quick Start
 
 ```typescript
@@ -29,8 +35,6 @@ if (__DEV__) {
 ```
 
 That's it. Open the Radar desktop app and your device will appear automatically. The `init()` call is gated by `__DEV__`, so nothing runs in production builds.
-
-> Install as a regular `dependency`, not a `devDependency`. Expo autolinking only scans `dependencies` when wiring native modules.
 
 ## Configuration
 

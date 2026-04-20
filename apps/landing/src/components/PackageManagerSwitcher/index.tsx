@@ -10,10 +10,10 @@ type PackageManager = {
 };
 
 const PACKAGE_MANAGERS: PackageManager[] = [
-  { id: 'npm', name: 'npm', command: 'npm install --save-dev radar-devtools' },
-  { id: 'yarn', name: 'yarn', command: 'yarn add --dev radar-devtools' },
-  { id: 'pnpm', name: 'pnpm', command: 'pnpm add -D radar-devtools' },
-  { id: 'bun', name: 'bun', command: 'bun add -d radar-devtools' },
+  { id: 'npm', name: 'npm', command: 'npm install radar-devtools' },
+  { id: 'yarn', name: 'yarn', command: 'yarn add radar-devtools' },
+  { id: 'pnpm', name: 'pnpm', command: 'pnpm add radar-devtools' },
+  { id: 'bun', name: 'bun', command: 'bun add radar-devtools' },
 ];
 
 export const PackageManagerSwitcher = () => {
