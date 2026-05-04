@@ -1,0 +1,39 @@
+export type FiberComponentType = {
+  displayName?: string;
+  name?: string;
+  render?: { displayName?: string; name?: string };
+  type?: { displayName?: string; name?: string };
+  _context?: { displayName?: string };
+  $$typeof?: symbol;
+  __sourceFile?: string;
+  __source?: { fileName: string; lineNumber: number };
+};
+
+export type FiberNode = {
+  tag: number;
+  type: FiberComponentType | string | null;
+  child: FiberNode | null;
+  sibling: FiberNode | null;
+  return: FiberNode | null;
+  key: string | null;
+  memoizedProps: Record<string, unknown> | null;
+  memoizedState: MemoizedState | null;
+  stateNode: unknown;
+  _debugHookTypes: string[] | null;
+  actualDuration?: number;
+  selfBaseDuration?: number;
+  actualStartTime?: number;
+  treeBaseDuration?: number;
+  alternate: FiberNode | null;
+  flags?: number;
+};
+
+export type MemoizedState = {
+  memoizedState: unknown;
+  next: MemoizedState | null;
+  queue: unknown;
+};
+
+export type FiberRoot = {
+  current: FiberNode;
+};

@@ -1,0 +1,79 @@
+import type { ReactNode } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { EditorPicker } from './EditorPicker';
+
+type EditorOption = {
+  id: string;
+  name: string;
+};
+
+export type StatusBarProps = {
+  label: string;
+  selectedDeviceName: string | null;
+  editors: EditorOption[];
+  preferredEditor: string | null;
+  onEditorChange: (id: string) => void;
+  pickerOpen: boolean;
+  onTogglePicker: () => void;
+  onClosePicker: () => void;
+  performanceIndicator?: ReactNode;
+};
+
+export const StatusBar = ({
+  label,
+  selectedDeviceName,
+  editors,
+  preferredEditor,
+  onEditorChange,
+  pickerOpen,
+  onTogglePicker,
+  onClosePicker,
+  performanceIndicator,
+}: StatusBarProps) => {
+  const editorName = editors.find(e => e.id === preferredEditor)?.name ?? null;
+
+  return (
+    <div className="px-4 py-1.5 border-t border-border-default text-detail text-text-tertiary shrink-0 flex justify-between items-center">
+      <div className="flex items-center gap-2">
+        <span>{label}</span>
+        {performanceIndicator}
+        {selectedDeviceName && (
+          <>
+            <span className="text-text-disabled">&middot;</span>
+            <span>{selectedDeviceName}</span>
+          </>
+        )}
+      </div>
+
+      <div className="flex items-center gap-3">
+        {editors.length > 0 && (
+          <div className="relative">
+            <button
+              onClick={onTogglePicker}
+              className="flex items-center gap-1 hover:text-text-secondary cursor-pointer transition-colors"
+            >
+              <span>{editorName ?? 'Select editor'}</span>
+              <ChevronDown size={12} />
+            </button>
+
+            {pickerOpen && (
+              <EditorPicker
+                editors={editors}
+                preferred={preferredEditor}
+                onSelect={onEditorChange}
+                onClose={onClosePicker}
+              />
+            )}
+          </div>
+        )}
+
+        <span>ws://localhost:8347</span>
+      </div>
+    </div>
+  );
+};
+
+export { EditorPicker } from './EditorPicker';
+export type { EditorPickerProps } from './EditorPicker';
+export { PerformanceIndicator } from './PerformanceIndicator';
+export type { PerformanceIndicatorProps } from './PerformanceIndicator';

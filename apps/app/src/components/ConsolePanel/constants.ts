@@ -1,0 +1,1 @@
+export const TIME_GAP_THRESHOLD_MS = 2000;

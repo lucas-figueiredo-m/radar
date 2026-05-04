@@ -1,0 +1,33 @@
+export const spacing = {
+  '0': 'var(--spacing-0)',
+  '0.5': 'var(--spacing-0\\.5)',
+  '1': 'var(--spacing-1)',
+  '1.5': 'var(--spacing-1\\.5)',
+  '2': 'var(--spacing-2)',
+  '2.5': 'var(--spacing-2\\.5)',
+  '3': 'var(--spacing-3)',
+  '4': 'var(--spacing-4)',
+  '5': 'var(--spacing-5)',
+  '6': 'var(--spacing-6)',
+  '8': 'var(--spacing-8)',
+  '10': 'var(--spacing-10)',
+  '12': 'var(--spacing-12)',
+  '16': 'var(--spacing-16)',
+} as const;
+
+export const spacingValues = {
+  '0': '0px',
+  '0.5': '2px',
+  '1': '4px',
+  '1.5': '6px',
+  '2': '8px',
+  '2.5': '10px',
+  '3': '12px',
+  '4': '16px',
+  '5': '20px',
+  '6': '24px',
+  '8': '32px',
+  '10': '40px',
+  '12': '48px',
+  '16': '64px',
+} as const;

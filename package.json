@@ -1,0 +1,45 @@
+{
+  "name": "radar",
+  "private": true,
+  "license": "MIT",
+  "author": "Lucas Figueiredo <lucasfigueiredo285@gmail.com> (https://www.figueiredolucas.com.br)",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "dev:app": "bun run --filter=radar-app dev",
+    "dev:devtools": "bun run --filter=radar-devtools dev",
+    "build:devtools": "bun run --filter=radar-devtools build",
+    "publish:devtools": "bun run --filter=radar-devtools build && cd packages/devtools && npm publish --access public",
+    "start:test-app": "bun run --filter=RadarTestApp start",
+    "lint": "bun run --filter=radar-app lint && bun run --filter=radar-devtools lint && bun run --filter=@radar/database lint && bun run --filter=@radar/mcp lint && bun run --filter=@radar/types lint",
+    "typecheck": "bun run --filter=radar-app typecheck && bun run --filter=radar-devtools typecheck && bun run --filter=@radar/types typecheck",
+    "test": "bun run --filter=radar-app test:run && bun run --filter=radar-devtools test:run",
+    "prepare": "husky"
+  },
+  "packageManager": "bun@1.3.3",
+  "engines": {
+    "node": ">= 22.11.0"
+  },
+  "overrides": {
+    "zod": "4.3.6",
+    "tar": ">=7.5.7",
+    "hono": ">=4.12.14",
+    "@xmldom/xmldom": "~0.8.13",
+    "postcss": ">=8.5.10",
+    "fast-xml-parser": ">=5.7.0",
+    "uuid": ">=14.0.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.4.2",
+    "@commitlint/config-conventional": "^20.4.2",
+    "eslint": "^8.19.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
+    "prettier": "2.8.8",
+    "radar-devtools": "workspace:*",
+    "tsup": "^8.5.1"
+  }
+}

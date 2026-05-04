@@ -1,0 +1,15 @@
+**/node_modules/
+dist/
+dist-electron/
+release/
+**/.DS_Store
+*.tsbuildinfo
+.npmrc
+
+.claude/
+.vercel
+**/.gradle/
+**/android/build/
+examples/react-native/vendor/
+.playwright-mcp/
+*.tgz
