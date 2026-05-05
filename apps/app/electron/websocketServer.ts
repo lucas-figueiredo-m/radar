@@ -8,6 +8,7 @@ import type {
 } from '@radar/types';
 import { radarMessageSchema } from '@radar/types';
 import type { RadarDatabase } from '@radar/database';
+import { verifyOrigin } from './verifyOrigin';
 
 type ConnectedDevice = {
   socket: WsWebSocket;
@@ -262,21 +263,10 @@ export const startWebSocketServer = (
       origin: string;
       req: { headers: { host?: string } };
     }) => {
-      if (!info.origin) return true;
-      try {
-        const originHost = new URL(info.origin).host;
-        const requestHost = info.req.headers.host;
-        if (originHost === requestHost) return true;
-        console.warn(
-          `[radar] Rejected origin "${info.origin}" — host "${originHost}" vs request host "${requestHost}"`,
-        );
-      } catch (err) {
-        console.warn(
-          `[radar] Rejected unparseable origin "${info.origin}": ${
-            (err as Error).message
-          }`,
-        );
-      }
+      if (verifyOrigin(info.origin, info.req.headers.host)) return true;
+      console.warn(
+        `[radar] Rejected WebSocket: origin "${info.origin}" does not match host "${info.req.headers.host}"`,
+      );
       return false;
     },
   });
