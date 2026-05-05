@@ -316,11 +316,21 @@ export const startWebSocketServer = (
 
         const resolvedDeviceId = match?.id ?? message.deviceId;
 
-        if (connectedDevices.has(resolvedDeviceId)) {
-          console.warn(
-            `[radar] Rejected metadata claiming already-registered deviceId: ${resolvedDeviceId}`,
+        const stale = connectedDevices.get(resolvedDeviceId);
+        if (stale) {
+          // Almost always a reload: the old socket's `close` event hasn't been
+          // processed yet but the device JS context is gone. Evict the stale
+          // entry, force-close the old socket so its `close` handler fires
+          // through the unregistered-client path, and register fresh.
+          socketToDeviceId.delete(stale.socket);
+          try {
+            stale.socket.close();
+          } catch {
+            // ignore — socket may already be closing
+          }
+          console.log(
+            `[radar] Replaced stale connection for deviceId: ${resolvedDeviceId}`,
           );
-          return;
         }
 
         const device: ConnectedDevice = {
@@ -357,13 +367,18 @@ export const startWebSocketServer = (
 
     socket.on('close', () => {
       const deviceId = socketToDeviceId.get(socket);
-      if (deviceId) {
+      if (!deviceId) {
+        console.log('[radar] Unregistered client disconnected');
+        return;
+      }
+      socketToDeviceId.delete(socket);
+      // Only clear the device entry if we still own it — a takeover may have
+      // already replaced this socket with a fresh one for the same deviceId.
+      const current = connectedDevices.get(deviceId);
+      if (current?.socket === socket) {
         connectedDevices.delete(deviceId);
-        socketToDeviceId.delete(socket);
         console.log(`[radar] Device disconnected: ${deviceId}`);
         sendConnectedDevices();
-      } else {
-        console.log('[radar] Unregistered client disconnected');
       }
     });
   });
