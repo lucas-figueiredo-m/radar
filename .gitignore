@@ -13,3 +13,16 @@ release/
 examples/react-native/vendor/
 .playwright-mcp/
 *.tgz
+
+# Secrets and signing artifacts
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.keystore
+!**/android/app/debug.keystore
+.netrc
+id_rsa*
+*.mobileprovision

@@ -1,40 +1,21 @@
 # Radar — Open-Source Readiness Security Audit
 
-> Pre-release audit conducted by 10 parallel security subagents covering: secrets/git history, Electron hardening, WebSocket transport, devtools-package privacy, dependency/supply-chain, CI/CD & release, code injection, path traversal, DoS/resource exhaustion, and MCP+database packages.
+> Pre-release audit covering: secrets/git history, Electron hardening, WebSocket transport, devtools-package privacy, dependency/supply-chain, CI/CD & release, code injection, path traversal, DoS/resource exhaustion, and MCP+database packages.
 >
-> **Revision 2026-05-04:** reframed against the actual product threat model — Radar is a *local* React Native debugging tool. Developers install the `radar-devtools` SDK in their own RN app; the Electron app on the dev's laptop receives captured data over a LAN WebSocket; an MCP server feeds the same data to local LLMs (Claude Code, Cursor). Several findings (default header redaction, ReDoS in the user's own search box, PATH-resolution hardening, source maps in an open-source SDK) were dropped as not-issues for that model. B2's "fix" was rewritten to keep the `0.0.0.0` binding (real-device wifi debugging needs it) and require auth + origin check + payload cap on top instead.
+> See [SECURITY_AUDIT_RESOLVED.md](./SECURITY_AUDIT_RESOLVED.md) for items completed, dropped after threat-model review, or moved out of audit scope (with full rationale).
 
 ## Verdict
 
-**Still NOT safe to publish in current state**, but the surface is smaller than the original audit suggested. The remaining real chain is: git history with secrets and personal data + an unauthenticated LAN WebSocket + Electron with Node in the renderer + path traversal in editor open + an unsigned auto-updater. A focused week of work closes the lot.
-
-### Per-audit grades
-
-| # | Audit area | Grade | One-line verdict |
-|---|---|---|---|
-| 1 | Secrets & git history | **F** | Multiple history leaks; squash recommended |
-| 2 | Electron hardening | **F** | nodeIntegration on, no CSP, no preload |
-| 3 | WebSocket transport | **D** | 0.0.0.0 is intentional; no auth/origin/cap is not |
-| 4 | Devtools capture / privacy | **B** | Full capture is by design for a debugger; B5 + transport hardening is the real fix |
-| 5 | Dependency / supply chain | **A−** | `bun audit` clean, zero runtime deps in published bundle |
-| 6 | CI/CD & release | **C+** | Cmd-injection in tag flow remains; PAT rotated 2026-05-03 |
-| 7 | Code injection patterns | **C+** | No eval/innerHTML/SQLi; one cmd-injection sink |
-| 8 | Path traversal / FS | **C** | Real bug, downgraded once B2 has auth |
-| 9 | DoS / resource exhaustion | **C** | In-memory SQLite no eviction → stability, not security |
-| 10 | MCP + Database | MCP **D**, DB **B+** | MCP needs loopback + token; DB layer is sound |
+**Still NOT safe to publish in current state.** The remaining real-issue chain is: an unauthenticated LAN WebSocket + Electron with Node in the renderer + path traversal in editor open + an unsigned auto-updater. Plus the GitHub UI checklist below for branch protection, environments, and secret scoping. A focused week of work closes the lot.
 
 ### Threat model — who is at risk
 
 **You (the maintainer)**
-- Personal home paths, prior employer name (`trontechnologies` × 71), private client app name (`truckAtlasMobile`), Linear ticket IDs, internal prompts, and `.claude/` agent state are all in git history and inside published tags.
-- ~~`RELEASES_GITHUB_TOKEN` is a classic PAT with `repo` scope~~ — **rotated 2026-05-03 to a fine-grained PAT scoped to `radar-releases`.**
 - Apple signing creds reused across two env vars; deprecated env name.
 
 **The repo**
-- Next.js preview-mode signing/encryption keys baked into commit `c33fb02` — burned for that build, must be rotated.
 - No SHA-pinning of third-party GitHub Actions; tag-pinning was the `tj-actions/changed-files` 2025 vector.
 - Self-push of version bumps to `main` from a tag-triggered job — bypasses any future branch protection.
-- Command injection in `scripts/sync-version.ts` via tag name (`v1.2.3$(rm -rf /)`).
 
 **Users who install `radar-devtools`**
 - The SDK has **no internal `__DEV__` guard**. If a downstream developer forgets the README's `if (__DEV__)` wrapper, every one of their end users ships the devtools client, which connects to whatever host is configured. (See B5.)
@@ -60,58 +41,7 @@
 
 ---
 
-## Items dropped after threat-model review
-
-These were in the original audit but reframed as not-issues for a *local* React Native dev tool:
-
-- ~~**B4** — default header/body redaction in `radar-devtools` capture.~~ A debugger that hides `Authorization`/`Cookie`/bodies is broken; Chrome DevTools, Reactotron, Charles, mitmproxy all show full requests. Captured creds are dev-account tokens against staging APIs (especially after B5). The real defense is locking the *transport* (B2/B3); full capture is correct behaviour. Optional opt-in redaction config can be added later.
-- ~~**S3** — source maps in `radar-devtools/dist`.~~ Open-source SDK; maps help downstream devs debug their integration.
-- ~~**S14** — `adb`/`xcrun`/editors resolved via `$PATH`.~~ PATH hijacking presupposes the attacker can already write to a PATH dir = local code exec already.
-- ~~**S15** — ReDoS in search regex.~~ User searching their own captured data; only victim is themselves.
-- ~~**N3** — persistent `deviceId` UUID.~~ Per-launch nonce is correct for ephemeral debug sessions.
-
-Items reframed as correctness/performance rather than security (still worth fixing, just not in this doc):
-
-- **S4** capture-before-handshake → correctness
-- **S11** missing `LIMIT` clauses → performance/robustness
-- **S16** reconnect backoff → battery/CPU
-- **N9** `inspected_components` upsert key missing `session_id` → correctness bug
-
----
-
 ## BLOCKERS — must fix before flipping the repo public
-
-### B1 — CRITICAL — Git history contains secrets and personal/client data
-
-**Where:**
-- `apps/landing/.next/prerender-manifest.json` (commit `c33fb02`) leaks Next.js `previewModeSigningKey` and `previewModeEncryptionKey`.
-- `.claude/` history exposes internal prompts, Linear ticket IDs, and the private client app name `truckAtlasMobile`.
-- `trontechnologies` appears in 71 historical references across podspec, package.json, README, autoupdater download URLs, and rendered HTML.
-- Personal absolute paths (`/Users/lucasfigueiredo/...`) baked into committed `.next/` source maps.
-
-**Risk:** Permanent public exposure once the repo goes public; ex-employer / client IP issues; preview-mode key reuse.
-
-**Fix (recommended):** squash entire history into a single fresh "Initial public release" commit. Cleanest option, kills four findings at once.
-```bash
-git checkout --orphan fresh
-git add -A
-git commit -m "Initial public release"
-git branch -M main
-git push --force-with-lease origin main
-```
-
-**Fix (alternative):** rewrite history with `git filter-repo`:
-```bash
-git filter-repo \
-  --path apps/landing/.next --invert-paths \
-  --path .claude --invert-paths \
-  --replace-text replacements.txt
-# replacements.txt: trontechnologies==>lfigueiredo
-```
-
-After either: rotate Next.js preview keys (delete `apps/landing/.next` and rebuild), and delete pre-`v0.4.6` tags that still contain `.claude/`.
-
----
 
 ### B2 — CRITICAL — WebSocket server has no auth, no origin check, no payload cap, no schema validation
 
@@ -156,12 +86,6 @@ httpServer.listen(port, '127.0.0.1', () => { ... });
 Plus in `parseBody`: cap total body size at 1 MiB and abort with 413. Add an Origin allowlist check on `POST /mcp`. Require a per-launch token (env var or auto-generated, surfaced in the tray) — gates the entire MCP, not per-call.
 
 The write tools (`modify_storage`, `reset_data`, `reload_and_profile`) are *features* for LLM-driven debugging; one MCP-level token is sufficient, no per-call user confirmation needed (the original B12's confirmation requirement was reframed for the same reason).
-
----
-
-### ~~B4~~ — DROPPED after threat-model review
-
-Default header/body redaction in `radar-devtools` capture would break the tool — full capture is the design intent. Closing B2/B3 (transport) and B5 (`__DEV__` guard) is what actually protects users. Optional opt-in redaction config can be added later as a config knob.
 
 ---
 
@@ -273,37 +197,6 @@ Apply the same pattern to all `execSync` shell-string calls (also `editors.ts:84
 
 ---
 
-### B9 — CRITICAL — Command injection via tag name in release workflow
-
-**Where:** `.github/workflows/release.yml:48,113` + `scripts/sync-version.ts:16`
-
-**Risk:** `${GITHUB_REF_NAME#v}` is interpolated into bash, and `sync-version.ts`'s regex `/^\d+\.\d+\.\d+/` is unanchored — strings like `1.2.3$(rm -rf /)` pass validation. Anyone with tag-push access can RCE the runner.
-
-**Fix:** anchor the regex and pass via env var instead of YAML interpolation:
-```ts
-// scripts/sync-version.ts
-if (!/^\d+\.\d+\.\d+(-[\w.]+)?$/.test(version)) throw new Error('bad version');
-```
-```yaml
-# release.yml
-- name: Sync version
-  env:
-    VERSION: ${{ steps.version.outputs.VERSION }}
-  run: bun run scripts/sync-version.ts "$VERSION"
-```
-
----
-
-### B10 — DONE (2026-05-03) — `RELEASES_GITHUB_TOKEN` rotated
-
-**Where:** `.github/workflows/release.yml:121`
-
-**Status:** Rotated to a fine-grained PAT scoped only to `radar-releases` (Contents: Read & Write, Metadata: Read), 30-day expiry. Original classic PAT revoked.
-
-**Future hardening:** consider migrating to a GitHub App installation token via `actions/create-github-app-token` for shorter-lived credentials.
-
----
-
 ### B11 — MEDIUM (downgraded from HIGH) — In-memory SQLite has no eviction
 
 **Where:**
@@ -377,12 +270,6 @@ win.webContents.on('will-navigate', (e, url) => {
 });
 ```
 
-### ~~S3~~ — DROPPED
-Source maps in `radar-devtools/dist` are fine for an open-source SDK; they help downstream devs debug their integration.
-
-### ~~S4~~ — Moved out of audit scope (correctness)
-Capture-before-handshake is a correctness/perf concern in the SDK, not a security issue. Track separately.
-
 ### S5 — HIGH — GitHub Actions not SHA-pinned
 **Where:** all `uses:` in `.github/workflows/*.yml`
 **Fix:** pin every `uses:` to a 40-char SHA with version comment, e.g. `oven-sh/setup-bun@4bc047ad...c5d4c7e # v2.0.2`. Add `.github/dependabot.yml` for `github-actions` ecosystem.
@@ -409,9 +296,6 @@ Capture-before-handshake is a correctness/perf concern in the SDK, not a securit
 ### S10 — MEDIUM — No GitHub Environment for production publishes
 **Fix:** create environment `production` with required reviewer = maintainer. Add `environment: production` to publish jobs. Move `MAC_*`, `APPLE_*`, `RELEASES_GITHUB_TOKEN` into the environment.
 
-### ~~S11~~ — Moved out of audit scope (perf)
-Missing `LIMIT` clauses in DB/MCP read queries are a robustness/perf concern. Track separately.
-
 ### S12 — MEDIUM — MCP returns raw captured strings without prompt-injection fencing
 **Where:** every MCP read tool in `packages/mcp/src/tools/`
 **Note:** This matters specifically because Radar's MCP feeds LLMs (the tool's primary purpose). Captured request/response bodies can contain attacker-influenced strings that try to redirect the LLM.
@@ -425,15 +309,6 @@ Prepend a one-line LLM warning in tool results. Truncate each field to a fixed c
 **Where:** `apps/app/electron/main.ts:118-124`
 **Fix:** `if (!app.isPackaged) ipcMain.on('radar:toggle-devtools', ...)`.
 
-### ~~S14~~ — DROPPED
-PATH hijacking presupposes the attacker can already write to a PATH directory (= local code exec). Resolving paths at startup adds complexity for no real protection.
-
-### ~~S15~~ — DROPPED
-Self-DoS in a search box: the user is searching their own data. Bug, not security.
-
-### ~~S16~~ — Moved out of audit scope (battery/CPU)
-Aggressive 3 s reconnect loop is a battery/CPU concern. Track separately.
-
 ### S17 — LOW (downgraded from MEDIUM) — No cap on concurrent WS clients, no idle timeout
 **Where:** `apps/app/electron/websocketServer.ts:293-356`
 **Note:** With B2 auth in place, untrusted peers can't connect, so this is defense-in-depth.
@@ -442,28 +317,6 @@ Aggressive 3 s reconnect loop is a battery/CPU concern. Track separately.
 ---
 
 ## NICE-TO-FIX
-
-### N1 — `.gitignore` doesn't cover `.env*` and signing artifacts
-**Fix:** add to `.gitignore`:
-```
-.env
-.env.*
-!.env.example
-*.pem
-*.key
-*.p12
-*.keystore
-!**/android/app/debug.keystore
-.netrc
-id_rsa*
-*.mobileprovision
-```
-
-### N2 — Tighten `bun audit` to `--audit-level=low`
-**Where:** `.github/workflows/ci.yml:60`
-
-### ~~N3~~ — DROPPED
-Per-launch `deviceId` nonce is correct for ephemeral debug sessions.
 
 ### N4 — Migrate to `eslint@9` (current is EOL `8.57.1`, dev-time only)
 
@@ -478,9 +331,6 @@ Warn about LAN exposure (until B2 ships); explicitly state `__DEV__` gating is r
 
 ### N8 — Remove dead `journal_mode = WAL` pragma on `:memory:` DB
 **Where:** `packages/database/src/createDatabase.ts:43`
-
-### ~~N9~~ — Moved out of audit scope (correctness)
-`inspected_components` upsert key missing `session_id` is a correctness bug. Track separately.
 
 ### N10 — `parseBody` swallows JSON parse errors silently
 **Where:** `packages/mcp/src/index.ts:29-31`
@@ -498,7 +348,6 @@ Warn about LAN exposure (until B2 ships); explicitly state `__DEV__` gating is r
 - [ ] **Settings → Branches → Rules for `main`**: require PR with 1+ approving review, require status checks (Lint, Typecheck, Test, Dependency Audit), require branches up to date, require conversation resolution, require signed commits, block force pushes, block deletions, include administrators.
 - [ ] **Settings → Tags → Rules for `v*`**: require signed tags; restrict who can push tags.
 - [ ] **Settings → Environments → Create `production`**: required reviewer = maintainer. Move `MAC_CERTIFICATE`, `MAC_CERTIFICATE_PASSWORD`, `APPLE_API_KEY*`, `APPLE_TEAM_ID`, `RELEASES_GITHUB_TOKEN` into this environment. Delete repo-level copies.
-- [x] **Settings → Secrets**: rotate `RELEASES_GITHUB_TOKEN` to a fine-grained PAT or GitHub App token scoped only to `radar-releases`. 30-day expiry. **Done 2026-05-03.**
 - [ ] **Settings → Code security and analysis**: enable Dependabot alerts, Dependabot security updates, Dependabot version updates, Secret scanning, Push protection, CodeQL (default setup), Private vulnerability reporting.
 - [ ] **npmjs.com → radar-devtools → Settings → Publishing access**: configure Trusted Publisher (GitHub Actions OIDC) bound to `lucas-figueiredo-m/radar`, workflow `release.yml`, environment `production`. Delete any classic automation tokens.
 - [ ] **npmjs.com account**: enable 2FA "Authorization and writes".
@@ -510,26 +359,23 @@ Warn about LAN exposure (until B2 ships); explicitly state `__DEV__` gating is r
 
 ## Recommended order of operations
 
-### Phase 1 — make the repo publishable (1 day)
-1. **B1** — squash history into a single commit (kills 4 history findings at once).
-2. **B9** — fix release-workflow command injection.
-3. ~~**B10**~~ — done 2026-05-03.
-4. Configure GitHub UI checklist above.
+### Phase 1 — make the repo publishable
+- Configure GitHub UI checklist above.
 
 ### Phase 2 — make `radar-devtools` safe to publish to npm (~1 day)
-5. **B5** — internal `__DEV__` guard in `init()`.
-6. **N7** — README SECURITY section warning about LAN exposure + reinforcing `__DEV__`.
+1. **B5** — internal `__DEV__` guard in `init()`.
+2. **N7** — README SECURITY section warning about LAN exposure + reinforcing `__DEV__`.
 
 ### Phase 3 — make the Electron app safe to install (3-5 days)
-7. **B2** — keep `0.0.0.0` binding, add per-launch token + Origin check + payload cap + zod schema validation.
-8. **B3** — bind MCP to `127.0.0.1`, add MCP-level token, body cap, Origin check.
-9. **B6** — Electron preload + contextIsolation + sandbox.
-10. **B7** — path-traversal hardening (downgraded but cheap).
-11. **B8** — `adb` shell-injection fix (`execFileSync` + serial regex).
-12. **B11** — DB eviction triggers + per-message size guard (robustness).
-13. **B12** — zod-validate `RadarCommand` in SDK (auth itself comes from B2).
-14. **B13** — wire signing+notarization, OR turn off auto-update for now.
-15. **S1, S2, S5–S10, S12, S13, S17** — defense-in-depth.
+3. **B2** — keep `0.0.0.0` binding, add per-launch token + Origin check + payload cap + zod schema validation.
+4. **B3** — bind MCP to `127.0.0.1`, add MCP-level token, body cap, Origin check.
+5. **B6** — Electron preload + contextIsolation + sandbox.
+6. **B7** — path-traversal hardening (downgraded but cheap).
+7. **B8** — `adb` shell-injection fix (`execFileSync` + serial regex).
+8. **B11** — DB eviction triggers + per-message size guard (robustness).
+9. **B12** — zod-validate `RadarCommand` in SDK (auth itself comes from B2).
+10. **B13** — wire signing+notarization, OR turn off auto-update for now.
+11. **S1, S2, S5–S10, S12, S13, S17** — defense-in-depth.
 
 After Phase 1+2 you can flip the repo public and `npm publish` the SDK with confidence. Phase 3 should land before promoting the Electron desktop app to general users.
 
@@ -537,16 +383,18 @@ After Phase 1+2 you can flip the repo public and `npm publish` the SDK with conf
 
 ## What's already good
 
-- `bun audit` returns clean. All seven `overrides` in root `package.json` resolve correctly.
+- `bun audit` returns clean at the strict `--audit-level=low` threshold. All seven `overrides` in root `package.json` resolve correctly.
 - The published `radar-devtools` bundle ships **zero npm runtime dependencies** — best-in-class supply-chain isolation for end users.
 - The `packages/database` layer is uniformly safe: every statement uses prepared bindings; no string-concatenated SQL anywhere.
 - Zero `eval`, `new Function`, `vm.runIn*`, dynamic `require(userInput)`, `dangerouslySetInnerHTML`, prototype-pollution sinks, or template-injection sinks anywhere in source.
 - CI uses `pull_request` not `pull_request_target` — fork PRs run with no secrets.
-- CI gates `bun audit --audit-level=moderate` on every PR.
 - iOS and Android native modules in `radar-devtools` only read process-local performance counters (no network, no FS, no permissions).
 - SQLite is `:memory:` — nothing persists to disk; no encryption-at-rest concerns today.
 - No `eval`-class or `pull_request_target` foot-guns; no self-hosted runners; no `actions/cache` to poison.
 - `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, `README.md` all present.
-- `RELEASES_GITHUB_TOKEN` rotated to a fine-grained, scope-limited PAT (2026-05-03).
+- `RELEASES_GITHUB_TOKEN` is a fine-grained PAT scoped only to `radar-releases`.
+- Git history is clean — no secrets, personal data, or prior-employer/client references in any reachable ref.
+- Release workflow has no `${{ ... }}`-in-`run:` interpolations; every value flows through env-var indirection.
+- `.gitignore` covers `.env*`, signing certs (`*.pem`/`*.key`/`*.p12`/`*.keystore`/`*.mobileprovision`), and SSH keys.
 
 The encouraging signal: the codebase clearly avoids the *flashy* sins. Closing the remaining transport-and-Electron-hardening items lifts it comfortably to A-/A.
