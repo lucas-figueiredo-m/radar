@@ -89,26 +89,6 @@ The write tools (`modify_storage`, `reset_data`, `reload_and_profile`) are *feat
 
 ---
 
-### B5 — CRITICAL — `radar-devtools` `init()` has no internal production gating
-
-**Where:** `packages/devtools/src/index.ts:62-144`
-
-**Risk:** README *recommends* `if (__DEV__) init()` but doesn't enforce. A developer who forgets the guard, copies an unguarded snippet, or hits an Expo prod-build `__DEV__` bug ships the devtools client to every customer. The visible `console.log('[radar] devtools initialized')` confirms execution.
-
-**Fix:** guard the entry point itself:
-```ts
-declare const __DEV__: boolean | undefined;
-
-export const init = (config: RadarConfig = {}) => {
-  if (typeof __DEV__ !== 'undefined' && __DEV__ === false) return;
-  if (process.env.NODE_ENV === 'production') return;
-  // ... rest of init
-};
-```
-Also fail loudly (single `console.warn`) if invoked when `host` is not loopback and `__DEV__` is unknown.
-
----
-
 ### B6 — CRITICAL — Electron renderer has Node integration on, contextIsolation off, no preload, no sandbox
 
 **Where:** `apps/app/electron/main.ts:44-47`
@@ -362,9 +342,9 @@ Warn about LAN exposure (until B2 ships); explicitly state `__DEV__` gating is r
 ### Phase 1 — make the repo publishable
 - Configure GitHub UI checklist above.
 
-### Phase 2 — make `radar-devtools` safe to publish to npm (~1 day)
-1. **B5** — internal `__DEV__` guard in `init()`.
-2. **N7** — README SECURITY section warning about LAN exposure + reinforcing `__DEV__`.
+### Phase 2 — make `radar-devtools` safe to publish to npm
+1. ~~**B5**~~ — done 2026-05-05.
+2. **N7** — README SECURITY section warning about LAN exposure + reinforcing `__DEV__`. **← only remaining Phase 2 item.**
 
 ### Phase 3 — make the Electron app safe to install (3-5 days)
 3. **B2** — keep `0.0.0.0` binding, add per-launch token + Origin check + payload cap + zod schema validation.

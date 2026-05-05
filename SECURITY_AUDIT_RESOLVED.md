@@ -101,6 +101,33 @@ Negative patterns (`!.env.example`, `!**/android/app/debug.keystore`) preserve t
 
 ---
 
+### B5 — DONE 2026-05-05 — `radar-devtools` `init()` now refuses to run in production builds
+
+**Where:** `packages/devtools/src/index.ts`
+
+**Status:** Two early-return guards added at the top of `init()`, before any state mutation or service creation:
+```ts
+const dev = (globalThis as { __DEV__?: boolean }).__DEV__;
+if (dev === false) return;
+const nodeEnv = (
+  globalThis as { process?: { env?: { NODE_ENV?: string } } }
+).process?.env?.NODE_ENV;
+if (nodeEnv === 'production') return;
+```
+Plus a single `console.warn` when `__DEV__` is undefined and the configured host is not in `{localhost, 127.0.0.1, ::1}` — flags the suspicious "unknown environment + remote host" combination without blocking the call.
+
+**Why two guards:** RN's Metro sets `__DEV__ === false` on production builds; bundlers in other ecosystems (Expo web, plain webpack) replace `process.env.NODE_ENV` with `'production'`. Either signal is enough to abort. The `globalThis` casts avoid pulling in `@types/node` for a package that targets React Native.
+
+**Behaviour:**
+- RN dev (`__DEV__ === true`): init runs normally.
+- RN production (`__DEV__ === false`): init returns immediately, no globals patched, no WebSocket connection attempted, no `[radar] devtools initialized` log.
+- Non-RN consumer with `NODE_ENV === 'production'`: same — init returns immediately.
+- Unknown environment (no `__DEV__`, no `NODE_ENV === 'production'`) with a remote host: init runs but logs a single warning so the developer notices.
+
+**Verified:** typecheck + lint clean; all 171 existing devtools tests pass.
+
+---
+
 ## Dropped after threat-model review
 
 ### B4 — Default header/body redaction in `radar-devtools` capture

@@ -52,6 +52,8 @@ const getProjectRoot = (config: RadarConfig): string | undefined => {
   return undefined;
 };
 
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
+
 let initialized = false;
 let startupRef: ReturnType<typeof createStartupService> | null = null;
 
@@ -60,12 +62,27 @@ export const markInteractive = () => {
 };
 
 export const init = (config: RadarConfig = {}) => {
+  // Refuse to run in production builds — defense against a missing `if (__DEV__)` wrapper.
+  const dev = (globalThis as { __DEV__?: boolean }).__DEV__;
+  if (dev === false) return;
+  const nodeEnv = (globalThis as { process?: { env?: { NODE_ENV?: string } } })
+    .process?.env?.NODE_ENV;
+  if (nodeEnv === 'production') return;
+
   if (initialized) return;
   initialized = true;
 
   const host = config.host ?? DEFAULT_HOST;
   const port = config.port ?? DEFAULT_PORT;
   const projectRoot = getProjectRoot(config);
+
+  // Suspicious combination: unknown dev environment AND a non-loopback target.
+  if (dev === undefined && !LOOPBACK_HOSTS.has(host)) {
+    console.warn(
+      `[radar] init() called with non-loopback host "${host}" but __DEV__ is undefined. ` +
+        'This may indicate the SDK is running outside an expected dev build.',
+    );
+  }
 
   const rawDeviceInfo = getDeviceInfo();
   const deviceInfo = {
