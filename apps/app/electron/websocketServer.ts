@@ -4,20 +4,9 @@ import { WebSocketServer } from 'ws';
 import type {
   DevicePlatform,
   DetectedDevice,
-  MetadataMessage,
-  ConsoleMessage,
-  NetworkMessage,
-  ComponentTreeMessage,
-  InspectComponentResponse,
-  ProfilerSessionMessage,
-  PerformanceMetricMessage,
-  StorageCapabilitiesMessage,
-  StorageDataMessage,
-  StateCapabilitiesMessage,
-  StateSnapshotMessage,
-  StateActionMessage,
-  StartupMetricsMessage,
+  RadarMessage,
 } from '@radar/types';
+import { radarMessageSchema } from '@radar/types';
 import type { RadarDatabase } from '@radar/database';
 
 type ConnectedDevice = {
@@ -29,8 +18,6 @@ type ConnectedDevice = {
   projectRoot: string | null;
 };
 
-type ParsedMessage = Record<string, string | number | boolean | null>;
-
 export type WebSocketServerHandle = {
   getConnectedDeviceIds: () => string[];
   getDevice: (deviceId: string) => ConnectedDevice | undefined;
@@ -39,16 +26,9 @@ export type WebSocketServerHandle = {
   close: () => void;
 };
 
-const isMetadataMessage = (
-  message: ParsedMessage,
-): message is ParsedMessage & MetadataMessage =>
-  message.type === 'metadata' &&
-  typeof message.deviceId === 'string' &&
-  typeof message.deviceName === 'string' &&
-  typeof message.platform === 'string' &&
-  typeof message.osVersion === 'string';
-
 const WS_PORT = 8347;
+const WS_HOST = '0.0.0.0';
+const WS_MAX_PAYLOAD_BYTES = 32 * 1024 * 1024;
 
 const NOTIFICATION_CHANNELS: Record<string, string> = {
   console: 'radar:db:console:changed',
@@ -68,14 +48,14 @@ const NOTIFICATION_CHANNELS: Record<string, string> = {
 const notifyRenderer = (
   win: BrowserWindow,
   deviceId: string,
-  message: ParsedMessage,
+  message: RadarMessage,
 ): void => {
-  const channel = NOTIFICATION_CHANNELS[message.type as string];
+  const channel = NOTIFICATION_CHANNELS[message.type];
   if (!channel) return;
 
   const payload =
     message.type === 'inspectComponent'
-      ? { deviceId, componentId: String(message.componentId) }
+      ? { deviceId, componentId: message.componentId }
       : { deviceId };
 
   win.webContents.send(channel, payload);
@@ -84,85 +64,80 @@ const notifyRenderer = (
 const persistMessage = (
   db: RadarDatabase,
   deviceId: string,
-  message: ParsedMessage,
+  message: RadarMessage,
 ): void => {
   try {
     switch (message.type) {
       case 'console': {
-        const msg = message as unknown as ConsoleMessage;
         db.console.insert({
           device_id: deviceId,
-          level: msg.level,
-          args: JSON.stringify(msg.args),
-          timestamp: msg.timestamp,
+          level: message.level,
+          args: JSON.stringify(message.args),
+          timestamp: message.timestamp,
         });
         break;
       }
       case 'network': {
-        const msg = message as unknown as NetworkMessage;
-        if (msg.event === 'request') {
+        if (message.event === 'request') {
           db.network.insertRequest({
-            id: msg.id,
+            id: message.id,
             device_id: deviceId,
-            method: msg.method,
-            url: msg.url,
-            request_headers: msg.requestHeaders
-              ? JSON.stringify(msg.requestHeaders)
+            method: message.method,
+            url: message.url,
+            request_headers: message.requestHeaders
+              ? JSON.stringify(message.requestHeaders)
               : null,
             request_body:
-              msg.requestBody !== undefined
-                ? JSON.stringify(msg.requestBody)
+              message.requestBody !== undefined
+                ? JSON.stringify(message.requestBody)
                 : null,
-            graphql_type: msg.graphql?.operationType ?? null,
-            graphql_name: msg.graphql?.operationName ?? null,
-            timestamp: msg.timestamp,
+            graphql_type: message.graphql?.operationType ?? null,
+            graphql_name: message.graphql?.operationName ?? null,
+            timestamp: message.timestamp,
           });
         } else {
           db.network.updateResponse({
-            id: msg.id,
-            status: msg.status ?? null,
-            status_text: msg.statusText ?? null,
-            response_headers: msg.responseHeaders
-              ? JSON.stringify(msg.responseHeaders)
+            id: message.id,
+            status: message.status ?? null,
+            status_text: message.statusText ?? null,
+            response_headers: message.responseHeaders
+              ? JSON.stringify(message.responseHeaders)
               : null,
             response_body:
-              msg.responseBody !== undefined
-                ? JSON.stringify(msg.responseBody)
+              message.responseBody !== undefined
+                ? JSON.stringify(message.responseBody)
                 : null,
-            duration: msg.duration ?? null,
-            response_timestamp: msg.timestamp ?? null,
+            duration: message.duration ?? null,
+            response_timestamp: message.timestamp ?? null,
           });
         }
         break;
       }
       case 'componentTree': {
-        const msg = message as unknown as ComponentTreeMessage;
         db.componentTree.insert({
           device_id: deviceId,
-          root_nodes: JSON.stringify(msg.rootNodes),
-          timestamp: msg.timestamp,
+          root_nodes: JSON.stringify(message.rootNodes),
+          timestamp: message.timestamp,
         });
         break;
       }
       case 'inspectComponent': {
-        const msg = message as unknown as InspectComponentResponse;
-        if (msg.direction === 'response' && msg.data) {
+        if (message.data) {
           db.inspectedComponent.upsert({
             device_id: deviceId,
-            component_id: msg.componentId,
-            data: JSON.stringify(msg.data),
-            timestamp: msg.timestamp,
+            component_id: message.componentId,
+            data: JSON.stringify(message.data),
+            timestamp: message.timestamp,
           });
         }
         break;
       }
       case 'profilerSession': {
-        const msg = message as unknown as ProfilerSessionMessage;
         const session = db.profiler.insertSession({
           device_id: deviceId,
-          timestamp: msg.timestamp,
+          timestamp: message.timestamp,
         });
-        for (const commit of msg.commits) {
+        for (const commit of message.commits) {
           db.profiler.insertCommit({
             profiler_session_id: session.id,
             device_id: deviceId,
@@ -175,23 +150,21 @@ const persistMessage = (
         break;
       }
       case 'performanceMetric': {
-        const msg = message as unknown as PerformanceMetricMessage;
         db.performance.insert({
           device_id: deviceId,
-          js_fps: msg.jsFps,
-          ui_fps: msg.uiFps ?? null,
-          js_heap: msg.jsHeap ?? null,
-          native_ram: msg.nativeRam ?? null,
-          cpu_usage: msg.cpuUsage ?? null,
-          dropped_frames: msg.droppedFrames,
-          gc_events: msg.gcEvents,
-          timestamp: msg.timestamp,
+          js_fps: message.jsFps,
+          ui_fps: message.uiFps,
+          js_heap: message.jsHeap,
+          native_ram: message.nativeRam,
+          cpu_usage: message.cpuUsage,
+          dropped_frames: message.droppedFrames,
+          gc_events: message.gcEvents,
+          timestamp: message.timestamp,
         });
         break;
       }
       case 'storageCapabilities': {
-        const msg = message as unknown as StorageCapabilitiesMessage;
-        for (const backend of msg.backends) {
+        for (const backend of message.backends) {
           db.storage.upsertCapability({
             device_id: deviceId,
             backend: backend.backend,
@@ -202,26 +175,24 @@ const persistMessage = (
         break;
       }
       case 'storageData': {
-        const msg = message as unknown as StorageDataMessage;
         db.storage.replaceEntries(
           deviceId,
-          msg.backend,
-          msg.instanceId ?? null,
-          msg.entries.map(e => ({
+          message.backend,
+          message.instanceId ?? null,
+          message.entries.map(e => ({
             device_id: deviceId,
-            backend: msg.backend,
-            instance_id: msg.instanceId ?? null,
+            backend: message.backend,
+            instance_id: message.instanceId ?? null,
             key: e.key,
             value: e.value,
             value_type: e.valueType,
-            timestamp: msg.timestamp,
+            timestamp: message.timestamp,
           })),
         );
         break;
       }
       case 'stateCapabilities': {
-        const msg = message as unknown as StateCapabilitiesMessage;
-        for (const store of msg.stores) {
+        for (const store of message.stores) {
           db.state.upsertCapability({
             device_id: deviceId,
             store_name: store.name,
@@ -231,38 +202,37 @@ const persistMessage = (
         break;
       }
       case 'stateSnapshot': {
-        const msg = message as unknown as StateSnapshotMessage;
         db.state.upsertSnapshot({
           device_id: deviceId,
-          store_name: msg.storeName,
-          state: msg.state,
-          timestamp: msg.timestamp,
+          store_name: message.storeName,
+          state: message.state,
+          timestamp: message.timestamp,
         });
         break;
       }
       case 'stateAction': {
-        const msg = message as unknown as StateActionMessage;
         db.state.insertAction({
           device_id: deviceId,
-          store_name: msg.storeName,
-          action_type: msg.actionType,
-          payload: msg.payload,
-          state: msg.state,
-          timestamp: msg.timestamp,
+          store_name: message.storeName,
+          action_type: message.actionType,
+          payload: message.payload,
+          state: message.state,
+          timestamp: message.timestamp,
         });
         break;
       }
       case 'startupMetrics': {
-        const msg = message as unknown as StartupMetricsMessage;
         db.startup.upsert({
           device_id: deviceId,
-          js_bundle_eval: msg.jsBundleEval,
-          native_launch: msg.nativeLaunch ?? null,
-          tti: msg.tti ?? null,
-          timestamp: msg.timestamp,
+          js_bundle_eval: message.jsBundleEval,
+          native_launch: message.nativeLaunch,
+          tti: message.tti,
+          timestamp: message.timestamp,
         });
         break;
       }
+      case 'metadata':
+        break;
     }
   } catch (err) {
     console.error('[radar] Failed to persist message:', err);
@@ -284,7 +254,32 @@ export const startWebSocketServer = (
     );
   };
 
-  const wss = new WebSocketServer({ port: WS_PORT });
+  const wss = new WebSocketServer({
+    host: WS_HOST,
+    port: WS_PORT,
+    maxPayload: WS_MAX_PAYLOAD_BYTES,
+    verifyClient: (info: {
+      origin: string;
+      req: { headers: { host?: string } };
+    }) => {
+      if (!info.origin) return true;
+      try {
+        const originHost = new URL(info.origin).host;
+        const requestHost = info.req.headers.host;
+        if (originHost === requestHost) return true;
+        console.warn(
+          `[radar] Rejected origin "${info.origin}" — host "${originHost}" vs request host "${requestHost}"`,
+        );
+      } catch (err) {
+        console.warn(
+          `[radar] Rejected unparseable origin "${info.origin}": ${
+            (err as Error).message
+          }`,
+        );
+      }
+      return false;
+    },
+  });
 
   wss.on('listening', () => {
     console.log(`[radar] WebSocket server listening on port ${WS_PORT}`);
@@ -294,51 +289,79 @@ export const startWebSocketServer = (
     console.log('[radar] Client connected, waiting for metadata...');
 
     socket.on('message', data => {
-      try {
-        const message = JSON.parse(data.toString()) as ParsedMessage;
+      const result = (() => {
+        try {
+          return radarMessageSchema.safeParse(JSON.parse(data.toString()));
+        } catch (err) {
+          console.error('[radar] Failed to parse message JSON:', err);
+          return null;
+        }
+      })();
+      if (!result) return;
 
-        if (isMetadataMessage(message)) {
-          const detected = getDetectedDevices();
-          const match = detected.find(
-            d =>
-              d.platform === message.platform &&
-              d.osVersion === message.osVersion,
+      if (!result.success) {
+        console.error(
+          '[radar] Rejected malformed message:',
+          result.error.issues,
+        );
+        return;
+      }
+
+      const message = result.data;
+
+      if (message.type === 'metadata') {
+        if (socketToDeviceId.has(socket)) {
+          console.warn(
+            '[radar] Rejected duplicate metadata from already-registered socket',
           );
-
-          const resolvedDeviceId = match?.id ?? message.deviceId;
-
-          const device: ConnectedDevice = {
-            socket,
-            deviceId: resolvedDeviceId,
-            deviceName: match?.name ?? message.deviceName,
-            platform: message.platform,
-            osVersion: message.osVersion,
-            projectRoot: message.projectRoot ?? null,
-          };
-
-          connectedDevices.set(resolvedDeviceId, device);
-          socketToDeviceId.set(socket, resolvedDeviceId);
-
-          console.log(
-            `[radar] Device registered: ${device.deviceName} (${resolvedDeviceId})`,
-          );
-          console.log('[radar] Project root set to:', message.projectRoot);
-
-          sendConnectedDevices();
-          win.webContents.send('radar:device-registered', {
-            deviceId: resolvedDeviceId,
-          });
           return;
         }
 
-        const deviceId = socketToDeviceId.get(socket);
+        const detected = getDetectedDevices();
+        const match = detected.find(
+          d =>
+            d.platform === message.platform &&
+            d.osVersion === message.osVersion,
+        );
 
-        if (deviceId) {
-          persistMessage(db, deviceId, message);
-          notifyRenderer(win, deviceId, message);
+        const resolvedDeviceId = match?.id ?? message.deviceId;
+
+        if (connectedDevices.has(resolvedDeviceId)) {
+          console.warn(
+            `[radar] Rejected metadata claiming already-registered deviceId: ${resolvedDeviceId}`,
+          );
+          return;
         }
-      } catch (err) {
-        console.error('[radar] Failed to parse message:', err);
+
+        const device: ConnectedDevice = {
+          socket,
+          deviceId: resolvedDeviceId,
+          deviceName: match?.name ?? message.deviceName,
+          platform: message.platform,
+          osVersion: message.osVersion,
+          projectRoot: message.projectRoot || null,
+        };
+
+        connectedDevices.set(resolvedDeviceId, device);
+        socketToDeviceId.set(socket, resolvedDeviceId);
+
+        console.log(
+          `[radar] Device registered: ${device.deviceName} (${resolvedDeviceId})`,
+        );
+        console.log('[radar] Project root set to:', message.projectRoot);
+
+        sendConnectedDevices();
+        win.webContents.send('radar:device-registered', {
+          deviceId: resolvedDeviceId,
+        });
+        return;
+      }
+
+      const deviceId = socketToDeviceId.get(socket);
+
+      if (deviceId) {
+        persistMessage(db, deviceId, message);
+        notifyRenderer(win, deviceId, message);
       }
     });
 
