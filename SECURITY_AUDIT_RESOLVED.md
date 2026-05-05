@@ -81,6 +81,26 @@ Negative patterns (`!.env.example`, `!**/android/app/debug.keystore`) preserve t
 
 ---
 
+### Dependabot 2026-05-05 — 5 Ruby-gem CVEs in `examples/react-native/Gemfile.lock` patched
+
+**Where:** `examples/react-native/Gemfile` + `Gemfile.lock` (Ruby gems used by CocoaPods on iOS for the example RN app — surfaced by GitHub Dependabot, not the original parallel audit, because `bun audit` only scans the Node/JS ecosystem).
+
+**Alerts closed:**
+| Gem | Severity | Issue | Was → Now |
+|---|---|---|---|
+| `addressable` | HIGH | ReDoS in URI templates | 2.8.8 → 2.9.0 |
+| `json` | HIGH | Format-string injection | 2.18.1 → 2.19.5 |
+| `activesupport` | MEDIUM ×3 | DoS in number helpers, XSS in `SafeBuffer#%`, ReDoS in `number_to_delimited` | 7.2.3 → 7.2.3.1 |
+
+**Side effects from the resolution:**
+- `minitest` 6.0.2 → 5.27.0 — required because `activesupport 7.2.3.1` depends on `minitest >= 5.1, < 6`. Added `gem 'minitest', '< 6'` to the Gemfile (with a comment explaining the constraint) so the resolver picks the right version.
+- `bigdecimal` 4.0.1 → 4.1.2 — transitive bump, harmless.
+- `prism` removed — it was a `minitest 6.x` dependency and isn't needed under 5.x.
+
+**Verification:** `bundle install` resolves cleanly. The example app's CocoaPods setup (`pod install`) was not re-run; gem changes are within minor/patch ranges so risk to the example is negligible. Re-scan from Dependabot will close the 5 alerts on next workflow run.
+
+---
+
 ## Dropped after threat-model review
 
 ### B4 — Default header/body redaction in `radar-devtools` capture
