@@ -210,6 +210,7 @@
         "eslint-plugin-prettier": "^5.5.5",
         "prettier": "2.8.8",
         "typescript": "^5.8.3",
+        "vitest": "^4.0.18",
       },
     },
     "packages/types": {
