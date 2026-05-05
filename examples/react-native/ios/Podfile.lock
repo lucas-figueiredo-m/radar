@@ -25,7 +25,7 @@ PODS:
   - hermes-engine (250829098.0.7):
     - hermes-engine/Pre-built (= 250829098.0.7)
   - hermes-engine/Pre-built (250829098.0.7)
-  - RadarDevtools (0.3.0):
+  - RadarDevtools (0.4.6):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2188,7 +2188,7 @@ SPEC CHECKSUMS:
   AsyncStorage: 2e1d431842588f5af845737e6435c1fcbecdab51
   FBLazyVector: c12d2108050e27952983d565a232f6f7b1ad5e69
   hermes-engine: e16a228890474dd5fc57f1eeecd30dd39c8e15f4
-  RadarDevtools: d0209fa6e8ce9941db5c6e73e25b2d692b076abb
+  RadarDevtools: d9428b15a06bbd26274f605c4591750c14525427
   RCTDeprecation: 3280799c14232a56e5a44f92981a8ee33bc69fd9
   RCTRequired: 9854a51b0f65ccf43ea0b744df4d70fce339db32
   RCTSwiftUI: 96986e49a4fdc2c2103929dee2641e1b57edf33d
