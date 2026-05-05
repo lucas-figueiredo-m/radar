@@ -30,7 +30,8 @@
     "@xmldom/xmldom": "~0.8.13",
     "postcss": ">=8.5.10",
     "fast-xml-parser": ">=5.7.0",
-    "uuid": ">=14.0.0"
+    "uuid": ">=14.0.0",
+    "ip-address": ">=10.1.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",
