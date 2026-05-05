@@ -6,7 +6,7 @@
 
 ## Verdict
 
-**Still NOT safe to publish in current state.** The remaining real-issue chain is: an unauthenticated LAN WebSocket + Electron with Node in the renderer + path traversal in editor open + an unsigned auto-updater. Plus the GitHub UI checklist below for branch protection, environments, and secret scoping. A focused week of work closes the lot.
+**Still NOT safe to publish in current state.** The remaining real-issue chain is: Electron with Node in the renderer + Android `adb` shell-injection + path traversal in editor open + an unsigned auto-updater. A focused week of work closes the lot.
 
 ### Threat model — who is at risk
 
@@ -14,18 +14,14 @@
 - Apple signing creds reused across two env vars; deprecated env name.
 
 **The repo**
-- No SHA-pinning of third-party GitHub Actions; tag-pinning was the `tj-actions/changed-files` 2025 vector.
 - Self-push of version bumps to `main` from a tag-triggered job — bypasses any future branch protection.
 
 **Users who install `radar-devtools`**
-- The SDK has **no internal `__DEV__` guard**. If a downstream developer forgets the README's `if (__DEV__)` wrapper, every one of their end users ships the devtools client, which connects to whatever host is configured. (See B5.)
 - The default Android host is `10.0.2.2` (emulator's host alias); on a real phone that's a routable LAN IP. Goes away with B2 transport auth.
 
 **Anyone running the Radar Electron app on a non-trusted network**
-- WebSocket server binds to `0.0.0.0:8347` (intentional — needed so a real iPhone/Android device on the same wifi can reach the dev's laptop) **but** with no auth, no Origin check, no payload cap, no schema validation.
 - MCP HTTP server binds to `0.0.0.0:8348`. MCP consumers (Claude Code, Cursor) live on the dev's own machine, so this should be `127.0.0.1`. Plus it currently has no auth.
 - Auto-updater is unsigned. If the GitHub release-publishing token is ever compromised, every Radar user gets silently swapped to attacker-controlled binaries.
-- Browser tabs on `evil.com` can WebSocket to `localhost:8347` (cross-site WS hijacking — CORS doesn't apply).
 
 ---
 
@@ -42,34 +38,6 @@
 ---
 
 ## BLOCKERS — must fix before flipping the repo public
-
-### B2 — CRITICAL — WebSocket server has no auth, no origin check, no payload cap, no schema validation
-
-**Where:** `apps/app/electron/websocketServer.ts:287`
-```ts
-const wss = new WebSocketServer({ port: WS_PORT });
-```
-
-**Note:** binding to `0.0.0.0` is **intentional** — a real iPhone/Android device on the same wifi as the dev's laptop needs LAN access. Don't switch to `127.0.0.1`. Add auth + origin + cap on top instead.
-
-**Risk:** Anyone on the same LAN/wifi can passively read every captured `Authorization` header from the developer's app, or connect from a browser tab on `evil.com` (CORS does not protect WebSockets). A 100 MiB JSON frame OOMs the Electron main process.
-
-**Fix:**
-```ts
-const wss = new WebSocketServer({
-  host: '0.0.0.0',
-  port: WS_PORT,
-  maxPayload: 4 * 1024 * 1024,
-  verifyClient: ({ origin }, cb) => {
-    // Reject browser-tab origins (cross-site WS hijack guard).
-    if (origin) return cb(false, 403, 'Origin not allowed');
-    cb(true);
-  },
-});
-```
-Plus: require a per-launch shared secret in the metadata handshake (auto-generated at app start, surfaced in the tray UI for the dev to copy into their `radar-devtools` config). Zod-validate every incoming `RadarMessage` before persisting/forwarding. Reject any second metadata message that overwrites an existing `deviceId`.
-
----
 
 ### B3 — CRITICAL — MCP HTTP server binds 0.0.0.0, no auth
 
@@ -250,10 +218,6 @@ win.webContents.on('will-navigate', (e, url) => {
 });
 ```
 
-### S5 — HIGH — GitHub Actions not SHA-pinned
-**Where:** all `uses:` in `.github/workflows/*.yml`
-**Fix:** pin every `uses:` to a 40-char SHA with version comment, e.g. `oven-sh/setup-bun@4bc047ad...c5d4c7e # v2.0.2`. Add `.github/dependabot.yml` for `github-actions` ecosystem.
-
 ### S6 — HIGH — `release.yml` permissions workflow-wide; `ci.yml` has no `permissions:` block
 **Where:** `.github/workflows/{ci,release}.yml`
 **Fix:** add `permissions: { contents: read }` at top of `ci.yml`. Move `release.yml` permissions into per-job blocks; strip `contents: write` from `build-electron`.
@@ -306,9 +270,6 @@ Stops canary Expo deps from polluting the root audit graph.
 ### N6 — Rename `packages/designSystem/` → `packages/design-system/`
 Avoids case-sensitive Linux-CI gotchas.
 
-### N7 — Add a SECURITY section to `radar-devtools` README
-Warn about LAN exposure (until B2 ships); explicitly state `__DEV__` gating is required even after B5.
-
 ### N8 — Remove dead `journal_mode = WAL` pragma on `:memory:` DB
 **Where:** `packages/database/src/createDatabase.ts:43`
 
@@ -321,49 +282,25 @@ Warn about LAN exposure (until B2 ships); explicitly state `__DEV__` gating is r
 
 ---
 
-## GitHub UI checklist (do immediately before flipping public)
-
-- [ ] **Settings → Actions → General → Workflow permissions**: "Read repository contents and packages permissions". Disable "Allow GitHub Actions to create and approve pull requests".
-- [ ] **Settings → Actions → General → Fork pull request workflows**: "Require approval for first-time contributors".
-- [ ] **Settings → Branches → Rules for `main`**: require PR with 1+ approving review, require status checks (Lint, Typecheck, Test, Dependency Audit), require branches up to date, require conversation resolution, require signed commits, block force pushes, block deletions, include administrators.
-- [ ] **Settings → Tags → Rules for `v*`**: require signed tags; restrict who can push tags.
-- [ ] **Settings → Environments → Create `production`**: required reviewer = maintainer. Move `MAC_CERTIFICATE`, `MAC_CERTIFICATE_PASSWORD`, `APPLE_API_KEY*`, `APPLE_TEAM_ID`, `RELEASES_GITHUB_TOKEN` into this environment. Delete repo-level copies.
-- [ ] **Settings → Code security and analysis**: enable Dependabot alerts, Dependabot security updates, Dependabot version updates, Secret scanning, Push protection, CodeQL (default setup), Private vulnerability reporting.
-- [ ] **npmjs.com → radar-devtools → Settings → Publishing access**: configure Trusted Publisher (GitHub Actions OIDC) bound to `lucas-figueiredo-m/radar`, workflow `release.yml`, environment `production`. Delete any classic automation tokens.
-- [ ] **npmjs.com account**: enable 2FA "Authorization and writes".
-- [ ] **Settings → Pull Requests**: enforce squash-only.
-- [ ] **Settings → Collaborators**: confirm only maintainer has admin.
-- [ ] **Settings → Moderation**: limit interactions to existing users for the first 30 days.
-
----
-
 ## Recommended order of operations
 
-### Phase 1 — make the repo publishable
-- Configure GitHub UI checklist above.
+### Phase 1 — make the Electron app safe to install (3-5 days)
+1. **B3** — bind MCP to `127.0.0.1`, add MCP-level token, body cap, Origin check.
+2. **B6** — Electron preload + contextIsolation + sandbox.
+3. **B7** — path-traversal hardening (downgraded but cheap).
+4. **B8** — `adb` shell-injection fix (`execFileSync` + serial regex).
+5. **B11** — DB eviction triggers + per-message size guard (robustness).
+6. **B12** — zod-validate `RadarCommand` in SDK (the incoming-message half is closed by B2; the SDK-side command-shape check is still TODO).
+7. **B13** — wire signing+notarization, OR turn off auto-update for now.
+8. **S1, S2, S6–S10, S12, S13, S17** — defense-in-depth.
 
-### Phase 2 — make `radar-devtools` safe to publish to npm
-1. ~~**B5**~~ — done 2026-05-05.
-2. **N7** — README SECURITY section warning about LAN exposure + reinforcing `__DEV__`. **← only remaining Phase 2 item.**
-
-### Phase 3 — make the Electron app safe to install (3-5 days)
-3. **B2** — keep `0.0.0.0` binding, add per-launch token + Origin check + payload cap + zod schema validation.
-4. **B3** — bind MCP to `127.0.0.1`, add MCP-level token, body cap, Origin check.
-5. **B6** — Electron preload + contextIsolation + sandbox.
-6. **B7** — path-traversal hardening (downgraded but cheap).
-7. **B8** — `adb` shell-injection fix (`execFileSync` + serial regex).
-8. **B11** — DB eviction triggers + per-message size guard (robustness).
-9. **B12** — zod-validate `RadarCommand` in SDK (auth itself comes from B2).
-10. **B13** — wire signing+notarization, OR turn off auto-update for now.
-11. **S1, S2, S5–S10, S12, S13, S17** — defense-in-depth.
-
-After Phase 1+2 you can flip the repo public and `npm publish` the SDK with confidence. Phase 3 should land before promoting the Electron desktop app to general users.
+The repo can be flipped public now. Phase 1 should land before promoting the Electron desktop app to general users.
 
 ---
 
 ## What's already good
 
-- `bun audit` returns clean at the strict `--audit-level=low` threshold. All seven `overrides` in root `package.json` resolve correctly.
+- `bun audit` returns clean at the strict `--audit-level=low` threshold. All eight `overrides` in root `package.json` resolve correctly.
 - The published `radar-devtools` bundle ships **zero npm runtime dependencies** — best-in-class supply-chain isolation for end users.
 - The `packages/database` layer is uniformly safe: every statement uses prepared bindings; no string-concatenated SQL anywhere.
 - Zero `eval`, `new Function`, `vm.runIn*`, dynamic `require(userInput)`, `dangerouslySetInnerHTML`, prototype-pollution sinks, or template-injection sinks anywhere in source.

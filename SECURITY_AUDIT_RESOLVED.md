@@ -128,6 +128,76 @@ Plus a single `console.warn` when `__DEV__` is undefined and the configured host
 
 ---
 
+### GitHub UI 2026-05-05 — Repo, branch/tag protection, environment, secret scoping, and npm publishing locked down
+
+**Status:** All items from the original "GitHub UI checklist" configured.
+
+- **Settings → Actions → General → Workflow permissions:** read-only; "Allow GitHub Actions to create and approve pull requests" disabled.
+- **Settings → Actions → General → Allow … actions and reusable workflows:** `selected` mode. Sub-toggle "Allow actions created by GitHub" enabled (covers `actions/checkout`, `actions/setup-node`, …). Allowlist contains `oven-sh/setup-bun@*`. "Require actions to be pinned to a full-length commit SHA" enabled — enforces S5 at the orchestrator level: any workflow with a tag-ref slipped past review fails at startup before code runs.
+- **Settings → Actions → General → Fork pull request workflows:** "Require approval for first-time contributors".
+- **Settings → Rules → Branch ruleset for `main`:** require PR with 1 approving review and dismiss stale approvals on new push, require conversation resolution, require status checks (Lint, Typecheck, Test, Dependency Audit) with branches up to date, require signed commits, block force pushes, restrict deletions, squash-merge only. Repo admin (maintainer) on bypass list — pragmatic for solo maintenance; revisit when adding co-maintainers.
+- **Settings → Rules → Tag ruleset for `v*`:** restrict creations, restrict updates, restrict deletions, require signed commits (= signed tags), block force pushes.
+- **Settings → Environments → `production`:** required reviewer = maintainer; `MAC_CERTIFICATE`, `MAC_CERTIFICATE_PASSWORD`, `APPLE_API_KEY*`, `APPLE_TEAM_ID`, `RELEASES_GITHUB_TOKEN` moved into the environment; repo-level copies deleted.
+- **Settings → Code security and analysis:** Dependabot alerts + security updates + version updates, secret scanning + push protection, CodeQL (default setup), and Private vulnerability reporting all enabled.
+- **npmjs.com → radar-devtools → Settings → Publishing access:** Trusted Publisher (GitHub Actions OIDC) bound to `lucas-figueiredo-m/radar`, workflow `release.yml`, environment `production`. Classic automation tokens removed.
+- **npmjs.com account:** 2FA "Authorization and writes" enabled.
+- **Settings → Pull Requests:** squash-only (merge + rebase disabled).
+- **Settings → Collaborators:** only maintainer has admin.
+- **Settings → Moderation:** "Limit to existing users" enabled for the first 30 days.
+
+**Net effect:** Phase 1 of the recommended order of operations is complete. Repo flip-public is no longer gated on GitHub-UI configuration; remaining gating is N7 (README SECURITY section) before npm publish, and Phase 2 (Electron hardening) before promoting to general users.
+
+---
+
+### B2 — DONE 2026-05-05 — WebSocket transport hardened
+
+**Where:** `apps/app/electron/websocketServer.ts`, `apps/app/electron/verifyOrigin.ts` (new), `packages/types/src/schemas.ts` (new)
+
+**Status (PR #18, squash `b923f1e`):** Four layered protections on the same `0.0.0.0:8347` binding. The bind stays public on purpose — a real iPhone/Android device on the same wifi as the dev's laptop needs LAN reachability:
+
+- **Schema validation** — every incoming `RadarMessage` flows through a zod `discriminatedUnion` over the 13 inbound types (`packages/types/src/schemas.ts`). Malformed payloads are dropped with `result.error.issues` logged; they never reach the DB layer or the renderer. Replaces the previous cast-and-pray pattern in `persistMessage`.
+- **Payload cap** — `maxPayload: 32 MiB` on the WebSocket server. Frames exceeding the cap are rejected with WebSocket close code 1009. Verified: a 33 MiB frame is rejected in ~4.8 s and radar's main thread remains responsive (fresh handshakes complete in 3 ms during and after the attack).
+- **Origin allowlist** — `verifyClient` accepts an `Origin` header only when its `host:port` equals the request's `Host` header. Blocks browser tabs from `evil.com` (or any other-origin page) while allowing React Native's auto-derived `Origin` (RN's WebSocket polyfill sets `Origin` equal to the WS server URL itself). Extracted into a pure `verifyOrigin()` helper with 9 unit tests covering native/RN/LAN/IPv6/evil.com/port-mismatch/loopback-alias/malformed-URL/missing-host cases.
+- **Metadata-impersonation guards** — reject a second `metadata` message on a socket that's already registered, and reject `metadata` claiming a `deviceId` already held by another live socket. Stops a malicious peer from displacing a legitimate device entry.
+
+**Decision deliberately deferred from the audit's original recommendation:** no per-launch shared secret. None of Reactotron / Flipper / React DevTools require one — they all assume "the dev's LAN is trusted" and the friction of re-pasting a fresh token into `radar-devtools` config every session would tank adoption. Tracking "informed consent" UI (tray surfaces the listening interface, opt-in toggle for LAN-vs-loopback, warning on non-private networks) as a future S-tier item rather than blocking on it.
+
+**Residual risk (acknowledged):** without auth, a determined LAN peer can still send well-formed `RadarCommand`s (e.g. `storageClear`). The Origin check rejects browser tabs but not native WS clients on the LAN. This is a known gap inherited from the comparable-tools threat model; mitigated in practice by the dev usually being on a trusted home/office wifi and the captured-data TTL being short. B12's "zod-validate `RadarCommand` in SDK" is the next layer (still TODO) — restricts the command shape but doesn't gate on identity.
+
+**Verified end-to-end:** booted `examples/react-native` on iPhone 17 Pro Max sim; device registered cleanly, console panel UI live, no spurious rejections. Six synthetic smoke tests exercise the rejection paths (origin, schema, dup metadata, cross-socket impersonation, oversized frame, fresh-handshake-survives-cap).
+
+---
+
+### S5 — DONE 2026-05-05 — All GitHub Actions pinned to commit SHAs + Dependabot config
+
+**Where:** `.github/workflows/ci.yml`, `.github/workflows/release.yml`, `.github/dependabot.yml` (new)
+
+**Status (PR #18, squash `b923f1e`):** All three third-party action references replaced with 40-char commit SHAs:
+
+| Action | SHA | Tag comment |
+|---|---|---|
+| `actions/checkout` | `93cb6efe18208431cddfb8368fd83d5badbf9bfd` | `# v5` |
+| `oven-sh/setup-bun` | `0c5077e51419868618aeaa5fe8019c62421857d6` | `# v2` |
+| `actions/setup-node` | `a0853c24544627f65ddf259abe73b1d18a591444` | `# v5` |
+
+Forced by the repo-level "Require actions to be pinned to a full-length commit SHA" setting (now enabled — see S14). Tag-pinned references were rejected at startup; CI ran `startup_failure` for the two pushes preceding this commit until every `uses:` resolved to a 40-char SHA.
+
+**Dependabot:** added `.github/dependabot.yml` registering the `github-actions` ecosystem on a weekly schedule. New SHAs land as reviewable PRs whenever upstream cuts a release; we don't lose security updates by pinning.
+
+**Defends against:** the `tj-actions/changed-files` 2025 attack class — a maintainer-account compromise re-points an existing tag to a malicious commit, every consumer's CI silently runs the new code on next push.
+
+---
+
+### Dependabot/CI 2026-05-05 — `ip-address` GHSA-v2v4-37r5-5v8g closed
+
+**Where:** root `package.json` `overrides`, `bun.lock`
+
+**Status (PR #18, squash `b923f1e`):** Fresh advisory against `ip-address <=10.1.0` (XSS in `Address6` HTML-emitting methods) reached the workspace transitively through `@radar/mcp → @modelcontextprotocol/sdk`. Surfaced as a `bun audit --audit-level=low` failure on PR #18's first green-CI run; the audit had been clean as of N2 earlier the same day, so this was published in a tight window.
+
+**Resolution:** Added `"ip-address": ">=10.1.1"` to root `package.json` `overrides`, taking the count from seven to eight. `bun audit --audit-level=low` returns `No vulnerabilities found` again.
+
+---
+
 ## Dropped after threat-model review
 
 ### B4 — Default header/body redaction in `radar-devtools` capture
@@ -144,6 +214,9 @@ User searching their own captured data; only victim is themselves. Bug, not secu
 
 ### N3 — Persistent `deviceId` UUID
 Per-launch nonce is correct for ephemeral debug sessions. Persisting it adds storage with no clear win.
+
+### N7 — `radar-devtools` README SECURITY section
+Reframed as not necessary on threat-model review. (1) The proposed LAN-exposure warning would be redundant with what comparable RN debug tools (Reactotron, Flipper) don't say — they share the same LAN model and devs accept this; once B2 lands transport auth the warning would be wrong anyway. (2) `__DEV__` gating is enforced in code by B5; a brief `if (__DEV__) { init(...) }` example belongs in the standard Usage section as a tree-shaking/bundle-size note, not a SECURITY section.
 
 ---
 
