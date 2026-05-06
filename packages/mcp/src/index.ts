@@ -16,7 +16,7 @@ type SessionEntry = {
 
 type ParseBodyResult =
   | { ok: true; body: Record<string, unknown> }
-  | { ok: false; reason: 'too_large' };
+  | { ok: false; reason: 'too_large' | 'invalid_json' };
 
 export const startMcpServer = (
   ctx: McpContext & { port?: number; token: string },
@@ -50,7 +50,7 @@ export const startMcpServer = (
             body: JSON.parse(Buffer.concat(chunks).toString()),
           });
         } catch {
-          resolve({ ok: true, body: {} });
+          resolve({ ok: false, reason: 'invalid_json' });
         }
       });
       req.on('error', reject);
@@ -79,8 +79,13 @@ export const startMcpServer = (
       if (req.method === 'POST') {
         const parsed = await parseBody(req);
         if (!parsed.ok) {
-          res.writeHead(413, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Payload too large' }));
+          if (parsed.reason === 'too_large') {
+            res.writeHead(413, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Payload too large' }));
+          } else {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Invalid JSON body' }));
+          }
           return;
         }
         const body = parsed.body;
