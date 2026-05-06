@@ -16,7 +16,7 @@
     "start:test-app": "bun run --filter=RadarTestApp start",
     "lint": "bun run --filter=radar-app lint && bun run --filter=radar-devtools lint && bun run --filter=@radar/database lint && bun run --filter=@radar/mcp lint && bun run --filter=@radar/types lint",
     "typecheck": "bun run --filter=radar-app typecheck && bun run --filter=radar-devtools typecheck && bun run --filter=@radar/types typecheck",
-    "test": "bun run --filter=radar-app test:run && bun run --filter=radar-devtools test:run",
+    "test": "bun run --filter=radar-app test:run && bun run --filter=radar-devtools test:run && bun run --filter=@radar/mcp test:run",
     "prepare": "husky"
   },
   "packageManager": "bun@1.3.3",

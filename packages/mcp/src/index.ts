@@ -1,33 +1,56 @@
 import http from 'node:http';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createMcpServer } from './server';
+import { verifyMcpOrigin } from './verifyMcpOrigin';
+import { verifyMcpToken } from './verifyMcpToken';
 import type { McpContext, McpServerHandle } from './types';
 
 const MCP_PORT = 8348;
+const MCP_HOST = '127.0.0.1';
+const MAX_BODY_BYTES = 1 * 1024 * 1024;
 
 type SessionEntry = {
   transport: StreamableHTTPServerTransport;
   server: ReturnType<typeof createMcpServer>;
 };
 
+type ParseBodyResult =
+  | { ok: true; body: Record<string, unknown> }
+  | { ok: false; reason: 'too_large' };
+
 export const startMcpServer = (
-  ctx: McpContext & { port?: number },
+  ctx: McpContext & { port?: number; token: string },
 ): McpServerHandle => {
   const port = ctx.port ?? MCP_PORT;
+  const { token } = ctx;
 
   const sessions = new Map<string, SessionEntry>();
 
-  const parseBody = (
-    req: http.IncomingMessage,
-  ): Promise<Record<string, unknown>> =>
+  const parseBody = (req: http.IncomingMessage): Promise<ParseBodyResult> =>
     new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
-      req.on('data', (chunk: Buffer) => chunks.push(chunk));
+      let total = 0;
+      let aborted = false;
+      req.on('data', (chunk: Buffer) => {
+        if (aborted) return;
+        total += chunk.length;
+        if (total > MAX_BODY_BYTES) {
+          aborted = true;
+          resolve({ ok: false, reason: 'too_large' });
+          req.destroy();
+          return;
+        }
+        chunks.push(chunk);
+      });
       req.on('end', () => {
+        if (aborted) return;
         try {
-          resolve(JSON.parse(Buffer.concat(chunks).toString()));
+          resolve({
+            ok: true,
+            body: JSON.parse(Buffer.concat(chunks).toString()),
+          });
         } catch {
-          resolve({});
+          resolve({ ok: true, body: {} });
         }
       });
       req.on('error', reject);
@@ -40,9 +63,27 @@ export const startMcpServer = (
       return;
     }
 
+    if (!verifyMcpOrigin(req.headers.origin)) {
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Origin not allowed' }));
+      return;
+    }
+
+    if (!verifyMcpToken(req.headers.authorization, token)) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Unauthorized' }));
+      return;
+    }
+
     try {
       if (req.method === 'POST') {
-        const body = await parseBody(req);
+        const parsed = await parseBody(req);
+        if (!parsed.ok) {
+          res.writeHead(413, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Payload too large' }));
+          return;
+        }
+        const body = parsed.body;
         const sessionId = req.headers['mcp-session-id'] as string | undefined;
 
         if (sessionId && sessions.has(sessionId)) {
@@ -101,8 +142,10 @@ export const startMcpServer = (
     }
   });
 
-  httpServer.listen(port, () => {
-    console.log(`[radar] MCP server listening on http://localhost:${port}/mcp`);
+  httpServer.listen(port, MCP_HOST, () => {
+    console.log(
+      `[radar] MCP server listening on http://${MCP_HOST}:${port}/mcp (loopback only, bearer-token gated)`,
+    );
   });
 
   return {

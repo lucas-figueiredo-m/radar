@@ -1,5 +1,14 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Tray,
+  Menu,
+  nativeImage,
+  clipboard,
+} from 'electron';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import {
   detectEditors,
   getPreferredEditor,
@@ -35,6 +44,7 @@ let cleanupDeviceDetection: (() => void) | null = null;
 let isQuitting = false;
 
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
+const MCP_TOKEN = process.env.RADAR_MCP_TOKEN || crypto.randomUUID();
 
 const createWindow = () => {
   win = new BrowserWindow({
@@ -88,8 +98,12 @@ const createTray = () => {
       },
     },
     {
-      label: 'MCP Server: Running (port 8348)',
+      label: 'MCP Server: Running (127.0.0.1:8348)',
       enabled: false,
+    },
+    {
+      label: 'Copy MCP Token',
+      click: () => clipboard.writeText(MCP_TOKEN),
     },
     { type: 'separator' },
     {
@@ -353,7 +367,7 @@ app.whenReady().then(() => {
     const db = getDatabase();
     wsHandle = startWebSocketServer(win, detection.getDetectedDevices, db);
 
-    mcpHandle = startMcpServer({ db, wsHandle });
+    mcpHandle = startMcpServer({ db, wsHandle, token: MCP_TOKEN });
   }
 
   if (app.isPackaged) {
