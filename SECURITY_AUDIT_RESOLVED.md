@@ -198,6 +198,25 @@ Forced by the repo-level "Require actions to be pinned to a full-length commit S
 
 ---
 
+### B3 — DONE 2026-05-05 — MCP transport hardened (loopback + bearer token)
+
+**Where:** `packages/mcp/src/index.ts`, `packages/mcp/src/verifyMcpOrigin.ts` (new), `packages/mcp/src/verifyMcpToken.ts` (new), `apps/app/electron/main.ts`
+
+**Status (PR #23, squash `28f680d`):** Four protections layered on the MCP HTTP server. Unlike B2's WebSocket binding, the MCP doesn't need LAN reachability — its consumers (Claude Code, Cursor, etc.) run on the developer's own machine — so loopback is the correct exposure:
+
+- **Loopback bind** — `httpServer.listen(8348, '127.0.0.1', …)`. Removes the LAN-reach that let any peer on the same network call the MCP, read captured network/console/state data, or invoke the destructive write tools (`modify_storage`, `reset_data`, `reload_and_profile`).
+- **Per-launch bearer token** — every `/mcp` request requires `Authorization: Bearer <token>`. Reads from `RADAR_MCP_TOKEN` env var if set, else auto-generates a UUID at process start. Surfaced in the system tray as a "Copy MCP Token" entry. Constant-time comparison via `crypto.timingSafeEqual` on equal-length buffers.
+- **1 MiB body cap** — POST bodies over 1 MiB get a `413 Payload Too Large` and the request is `req.destroy()`-ed so a hostile client can't keep buffering memory.
+- **Origin allowlist** — every method (POST/GET/DELETE) checks `Origin`: undefined / empty / `"null"` / loopback hostnames (`localhost`, `127.0.0.1`, `[::1]`) accepted; everything else gets `403`. Defense-in-depth against browser DNS-rebinding even though the loopback bind already blocks it.
+
+Origin and token checks are extracted into pure helpers (`verifyMcpOrigin`, `verifyMcpToken`) with 18 unit tests covering the cases that matter (undefined/empty/`"null"` Origin, loopback variants, public domains, malformed URLs; missing/empty/wrong-scheme Authorization, off-by-one tokens, prefix/suffix tokens, case-sensitive scheme prefix). Mirrors the B2 `verifyOrigin` pattern. Adds vitest to `@radar/mcp` and wires it into the root `test` script — total 423 passing (radar-app 234 + devtools 171 + mcp 18).
+
+**Verified end-to-end:** Claude Code (the MCP client) successfully authenticated against the new bearer-token gate and pulled live `get_app_overview` data from a connected iPhone 17 Pro Max sim. Manual smokes for the 401 path (no token) and `RADAR_MCP_TOKEN=foo` env override are still pending but trivial.
+
+**Note on B12:** with B3 done, `RadarCommand` dispatch on the Electron side is now identity-gated. The remaining B12 action item — zod-validating the command shape on the SDK side before it dispatches `storageSet`/`storageRemove`/`storageClear` — is still open in the active audit.
+
+---
+
 ## Dropped after threat-model review
 
 ### B4 — Default header/body redaction in `radar-devtools` capture

@@ -20,7 +20,6 @@
 - The default Android host is `10.0.2.2` (emulator's host alias); on a real phone that's a routable LAN IP. Goes away with B2 transport auth.
 
 **Anyone running the Radar Electron app on a non-trusted network**
-- MCP HTTP server binds to `0.0.0.0:8348`. MCP consumers (Claude Code, Cursor) live on the dev's own machine, so this should be `127.0.0.1`. Plus it currently has no auth.
 - Auto-updater is unsigned. If the GitHub release-publishing token is ever compromised, every Radar user gets silently swapped to attacker-controlled binaries.
 
 ---
@@ -38,24 +37,6 @@
 ---
 
 ## BLOCKERS — must fix before flipping the repo public
-
-### B3 — CRITICAL — MCP HTTP server binds 0.0.0.0, no auth
-
-**Where:** `packages/mcp/src/index.ts:104`
-
-**Note:** Unlike B2, MCP consumers (Claude Code, Cursor, etc.) live on the developer's own machine. Loopback is correct here.
-
-**Risk:** Anyone on the same LAN can call the MCP and read captured network/console/state data, or invoke `modify_storage` / `reset_data` / `reload_and_profile` to wipe MMKV/AsyncStorage on the device-under-test.
-
-**Fix:**
-```ts
-httpServer.listen(port, '127.0.0.1', () => { ... });
-```
-Plus in `parseBody`: cap total body size at 1 MiB and abort with 413. Add an Origin allowlist check on `POST /mcp`. Require a per-launch token (env var or auto-generated, surfaced in the tray) — gates the entire MCP, not per-call.
-
-The write tools (`modify_storage`, `reset_data`, `reload_and_profile`) are *features* for LLM-driven debugging; one MCP-level token is sufficient, no per-call user confirmation needed (the original B12's confirmation requirement was reframed for the same reason).
-
----
 
 ### B6 — CRITICAL — Electron renderer has Node integration on, contextIsolation off, no preload, no sandbox
 
@@ -285,14 +266,13 @@ Avoids case-sensitive Linux-CI gotchas.
 ## Recommended order of operations
 
 ### Phase 1 — make the Electron app safe to install (3-5 days)
-1. **B3** — bind MCP to `127.0.0.1`, add MCP-level token, body cap, Origin check.
-2. **B6** — Electron preload + contextIsolation + sandbox.
-3. **B7** — path-traversal hardening (downgraded but cheap).
-4. **B8** — `adb` shell-injection fix (`execFileSync` + serial regex).
-5. **B11** — DB eviction triggers + per-message size guard (robustness).
-6. **B12** — zod-validate `RadarCommand` in SDK (the incoming-message half is closed by B2; the SDK-side command-shape check is still TODO).
-7. **B13** — wire signing+notarization, OR turn off auto-update for now.
-8. **S1, S2, S6–S10, S12, S13, S17** — defense-in-depth.
+1. **B6** — Electron preload + contextIsolation + sandbox.
+2. **B7** — path-traversal hardening (downgraded but cheap).
+3. **B8** — `adb` shell-injection fix (`execFileSync` + serial regex).
+4. **B11** — DB eviction triggers + per-message size guard (robustness).
+5. **B12** — zod-validate `RadarCommand` in SDK (the incoming-message half is closed by B2; the SDK-side command-shape check is still TODO).
+6. **B13** — wire signing+notarization, OR turn off auto-update for now.
+7. **S1, S2, S6–S10, S12, S13, S17** — defense-in-depth.
 
 The repo can be flipped public now. Phase 1 should land before promoting the Electron desktop app to general users.
 
