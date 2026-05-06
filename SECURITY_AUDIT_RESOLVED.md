@@ -217,6 +217,23 @@ Origin and token checks are extracted into pure helpers (`verifyMcpOrigin`, `ver
 
 ---
 
+### S2/S6 (ci half)/S8/S13/N8/N10 — DONE 2026-05-06 — Defense-in-depth sweep landed (PR #24)
+
+**Where:** `apps/app/electron/main.ts`, `packages/database/src/createDatabase.ts`, `packages/mcp/src/index.ts`, `.github/workflows/ci.yml`, `.github/workflows/release.yml`
+
+**Status (PR #24):** Six cheap defense-in-depth items from the trivial bucket landed as a single sweep:
+
+- **S2** — Electron renderer navigation locked down. `setWindowOpenHandler` denies all popups; `will-navigate` blocks anything outside the Vite dev server / `file://`. A future XSS-equivalent gadget in the renderer can no longer `window.open` or navigate to an attacker URL.
+- **S13** — `radar:toggle-devtools` IPC only registers when `!app.isPackaged`. Packaged users no longer have a path to the renderer devtools.
+- **S6 (ci.yml half)** — top-level `permissions: { contents: read }` on `ci.yml`. The reusable workflow now starts read-only by default. The `release.yml` per-job restructure remains open in the active audit under the same ID.
+- **S8** — `npm publish --access public --provenance`. The published `radar-devtools` tarball now carries a Sigstore attestation tied to the exact workflow run that built it. A leaked publish credential can't forge the attestation; consumers can verify with `npm audit signatures`.
+- **N8** — dropped the `journal_mode = WAL` pragma — no-op on `:memory:` SQLite databases.
+- **N10** — MCP `parseBody` now distinguishes `too_large` (413) from `invalid_json` (400). A malformed body is no longer silently coerced to `{}` and routed into the MCP transport.
+
+**Verified:** typecheck + lint clean across `apps/app`, `packages/database`, `packages/mcp`; pre-push hook ran the full test suite (`apps/app` 234 passed, `radar-devtools` 171 passed).
+
+---
+
 ## Dropped after threat-model review
 
 ### B4 — Default header/body redaction in `radar-devtools` capture

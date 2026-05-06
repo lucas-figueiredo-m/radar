@@ -189,27 +189,14 @@ Migrate to App Store Connect API key (`APPLE_API_KEY`, `APPLE_API_KEY_ID`, `APPL
 ```
 Also enforce via `session.defaultSession.webRequest.onHeadersReceived` so it covers the dev server.
 
-### S2 — HIGH — No `setWindowOpenHandler` / `will-navigate` lockdown
-**Where:** `apps/app/electron/main.ts:39-62`
-**Fix:**
-```ts
-win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
-win.webContents.on('will-navigate', (e, url) => {
-  if (url !== VITE_DEV_SERVER_URL && !url.startsWith('file://')) e.preventDefault();
-});
-```
-
-### S6 — HIGH — `release.yml` permissions workflow-wide; `ci.yml` has no `permissions:` block
-**Where:** `.github/workflows/{ci,release}.yml`
-**Fix:** add `permissions: { contents: read }` at top of `ci.yml`. Move `release.yml` permissions into per-job blocks; strip `contents: write` from `build-electron`.
+### S6 — HIGH — `release.yml` permissions workflow-wide; tighten to per-job
+**Where:** `.github/workflows/release.yml`
+**Note:** `ci.yml` top-level read-only landed in PR #24; see SECURITY_AUDIT_RESOLVED.md.
+**Fix:** Move `release.yml` permissions into per-job blocks; strip `contents: write` from `build-electron`.
 
 ### S7 — HIGH — Self-push of version bump to `main` from a tag-triggered job
 **Where:** `.github/workflows/release.yml:72-82`
 **Fix:** stop pushing to `main` from CI. Either compute version in-memory for the release artifact, or use `peter-evans/create-pull-request` to open a PR. Remove `[skip ci]`.
-
-### S8 — MEDIUM — `npm publish` missing `--provenance`
-**Where:** `.github/workflows/release.yml:59`
-**Fix:** `npm publish --access public --provenance` (you already have `id-token: write`).
 
 ### S9 — MEDIUM — CI installs without `--ignore-scripts`
 **Where:** `.github/workflows/{ci,release}.yml` `bun install` steps
@@ -230,10 +217,6 @@ win.webContents.on('will-navigate', (e, url) => {
 ```
 Prepend a one-line LLM warning in tool results. Truncate each field to a fixed cap before returning.
 
-### S13 — MEDIUM — DevTools toggle reachable in packaged build
-**Where:** `apps/app/electron/main.ts:118-124`
-**Fix:** `if (!app.isPackaged) ipcMain.on('radar:toggle-devtools', ...)`.
-
 ### S17 — LOW (downgraded from MEDIUM) — No cap on concurrent WS clients, no idle timeout
 **Where:** `apps/app/electron/websocketServer.ts:293-356`
 **Note:** With B2 auth in place, untrusted peers can't connect, so this is defense-in-depth.
@@ -251,13 +234,6 @@ Stops canary Expo deps from polluting the root audit graph.
 ### N6 — Rename `packages/designSystem/` → `packages/design-system/`
 Avoids case-sensitive Linux-CI gotchas.
 
-### N8 — Remove dead `journal_mode = WAL` pragma on `:memory:` DB
-**Where:** `packages/database/src/createDatabase.ts:43`
-
-### N10 — `parseBody` swallows JSON parse errors silently
-**Where:** `packages/mcp/src/index.ts:29-31`
-**Fix:** reject with `400 Bad Request` on `JSON.parse` failure.
-
 ### N11 — Local `git stash` could be pushed accidentally before publishing
 **Fix:** `git stash drop` before flipping public.
 
@@ -272,7 +248,7 @@ Avoids case-sensitive Linux-CI gotchas.
 4. **B11** — DB eviction triggers + per-message size guard (robustness).
 5. **B12** — zod-validate `RadarCommand` in SDK (the incoming-message half is closed by B2; the SDK-side command-shape check is still TODO).
 6. **B13** — wire signing+notarization, OR turn off auto-update for now.
-7. **S1, S2, S6–S10, S12, S13, S17** — defense-in-depth.
+7. **S1, S6, S7, S9, S10, S12, S17** — defense-in-depth.
 
 The repo can be flipped public now. Phase 1 should land before promoting the Electron desktop app to general users.
 
