@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpContext } from '../types';
+import { fenceUntrusted } from './fenceUntrusted';
+import { UNTRUSTED_DATA_WARNING } from './untrustedDataWarning';
 
 export const registerGetStateActions = (
   server: McpServer,
@@ -40,9 +42,18 @@ export const registerGetStateActions = (
         id: a.id,
         deviceId: a.device_id,
         storeName: a.store_name,
-        actionType: a.action_type,
-        payload: JSON.parse(a.payload),
-        state: JSON.parse(a.state),
+        actionType: fenceUntrusted(
+          a.action_type,
+          `state.action[${a.id}].actionType`,
+        ),
+        payload: fenceUntrusted(
+          JSON.parse(a.payload),
+          `state.action[${a.id}].payload`,
+        ),
+        state: fenceUntrusted(
+          JSON.parse(a.state),
+          `state.action[${a.id}].state`,
+        ),
         timestamp: a.timestamp,
       }));
 
@@ -50,7 +61,7 @@ export const registerGetStateActions = (
         content: [
           {
             type: 'text' as const,
-            text: JSON.stringify(
+            text: `${UNTRUSTED_DATA_WARNING}\n${JSON.stringify(
               {
                 storeName: storeName ?? 'all',
                 sliceName: sliceName ?? 'all',
@@ -59,7 +70,7 @@ export const registerGetStateActions = (
               },
               null,
               2,
-            ),
+            )}`,
           },
         ],
       };

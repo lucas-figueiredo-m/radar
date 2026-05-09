@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpContext } from '../types';
+import { fenceUntrusted } from './fenceUntrusted';
+import { UNTRUSTED_DATA_WARNING } from './untrustedDataWarning';
 
 export const registerGetStorageEntries = (
   server: McpServer,
@@ -67,8 +69,11 @@ export const registerGetStorageEntries = (
 
       const parsed = entries.map(e => ({
         deviceId: e.device_id,
-        key: e.key,
-        value: e.value,
+        key: fenceUntrusted(e.key, `storage.${selectedBackend}.entry.key`),
+        value: fenceUntrusted(
+          e.value,
+          `storage.${selectedBackend}.entry.value`,
+        ),
         valueType: e.value_type,
       }));
 
@@ -76,7 +81,7 @@ export const registerGetStorageEntries = (
         content: [
           {
             type: 'text' as const,
-            text: JSON.stringify(
+            text: `${UNTRUSTED_DATA_WARNING}\n${JSON.stringify(
               {
                 availableBackends,
                 backend: selectedBackend,
@@ -86,7 +91,7 @@ export const registerGetStorageEntries = (
               },
               null,
               2,
-            ),
+            )}`,
           },
         ],
       };
