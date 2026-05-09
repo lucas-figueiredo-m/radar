@@ -271,3 +271,76 @@ export const radarMessageSchema = z.discriminatedUnion('type', [
   stateSnapshotMessageSchema,
   stateActionMessageSchema,
 ]);
+
+const inspectComponentRequestSchema = z.object({
+  type: z.literal('inspectComponent'),
+  direction: z.literal('request'),
+  componentId: z.string(),
+});
+
+const startProfilingCommandSchema = z.object({
+  type: z.literal('startProfiling'),
+});
+
+const stopProfilingCommandSchema = z.object({
+  type: z.literal('stopProfiling'),
+});
+
+const reloadAndProfileCommandSchema = z.object({
+  type: z.literal('reloadAndProfile'),
+});
+
+const profilingStatusCommandSchema = z.object({
+  type: z.literal('profilingStatus'),
+  isProfiling: z.boolean(),
+});
+
+const storageGetAllCommandSchema = z.object({
+  type: z.literal('storageGetAll'),
+  requestId: z.string(),
+  backend: storageBackendSchema,
+  instanceId: z.string().optional(),
+});
+
+const storageSetCommandSchema = z.object({
+  type: z.literal('storageSet'),
+  requestId: z.string(),
+  backend: storageBackendSchema,
+  instanceId: z.string().optional(),
+  key: z.string(),
+  value: z.string(),
+  valueType: storageValueTypeSchema,
+});
+
+const storageRemoveCommandSchema = z.object({
+  type: z.literal('storageRemove'),
+  requestId: z.string(),
+  backend: storageBackendSchema,
+  instanceId: z.string().optional(),
+  key: z.string(),
+});
+
+const storageClearCommandSchema = z.object({
+  type: z.literal('storageClear'),
+  requestId: z.string(),
+  backend: storageBackendSchema,
+  instanceId: z.string().optional(),
+});
+
+const stateGetCommandSchema = z.object({
+  type: z.literal('stateGet'),
+  storeName: z.string(),
+});
+
+export const radarCommandSchema = z.discriminatedUnion('type', [
+  inspectComponentRequestSchema,
+  startProfilingCommandSchema,
+  stopProfilingCommandSchema,
+  reloadAndProfileCommandSchema,
+  profilingStatusCommandSchema,
+  storageGetAllCommandSchema,
+  storageSetCommandSchema,
+  storageRemoveCommandSchema,
+  storageClearCommandSchema,
+  stateGetCommandSchema,
+]);
