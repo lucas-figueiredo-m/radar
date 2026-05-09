@@ -30,6 +30,11 @@ export type WebSocketServerHandle = {
 const WS_PORT = 8347;
 const WS_HOST = '0.0.0.0';
 const WS_MAX_PAYLOAD_BYTES = 32 * 1024 * 1024;
+const WS_MAX_PERSIST_BYTES = 256 * 1024;
+const WS_MAX_CONNECTIONS = 16;
+const WS_METADATA_DEADLINE_MS = 5_000;
+const WS_HEARTBEAT_INTERVAL_MS = 30_000;
+const WS_TRY_AGAIN_LATER_CODE = 1013;
 
 const NOTIFICATION_CHANNELS: Record<string, string> = {
   console: 'radar:db:console:changed',
@@ -68,6 +73,12 @@ const persistMessage = (
   message: RadarMessage,
 ): void => {
   try {
+    if (JSON.stringify(message).length > WS_MAX_PERSIST_BYTES) {
+      console.warn(
+        `[radar] Dropping oversized ${message.type} message from device ${deviceId} (>${WS_MAX_PERSIST_BYTES} bytes)`,
+      );
+      return;
+    }
     switch (message.type) {
       case 'console': {
         db.console.insert({
@@ -275,8 +286,53 @@ export const startWebSocketServer = (
     console.log(`[radar] WebSocket server listening on port ${WS_PORT}`);
   });
 
+  const metadataDeadlines = new WeakMap<WsWebSocket, NodeJS.Timeout>();
+  const aliveSockets = new WeakSet<WsWebSocket>();
+
+  const heartbeatInterval = setInterval(() => {
+    for (const client of wss.clients) {
+      if (!aliveSockets.has(client)) {
+        client.terminate();
+        continue;
+      }
+      aliveSockets.delete(client);
+      try {
+        client.ping();
+      } catch {
+        // ignore — socket may already be closing
+      }
+    }
+  }, WS_HEARTBEAT_INTERVAL_MS);
+
   wss.on('connection', socket => {
+    if (wss.clients.size > WS_MAX_CONNECTIONS) {
+      console.warn(
+        `[radar] Rejected WebSocket: connection cap reached (${WS_MAX_CONNECTIONS})`,
+      );
+      socket.close(WS_TRY_AGAIN_LATER_CODE, 'try again later');
+      return;
+    }
+
     console.log('[radar] Client connected, waiting for metadata...');
+
+    aliveSockets.add(socket);
+    socket.on('pong', () => {
+      aliveSockets.add(socket);
+    });
+
+    const deadline = setTimeout(() => {
+      if (!socketToDeviceId.has(socket)) {
+        console.warn(
+          '[radar] Closing socket: no metadata received within deadline',
+        );
+        try {
+          socket.close(WS_TRY_AGAIN_LATER_CODE, 'metadata deadline');
+        } catch {
+          // ignore — socket may already be closing
+        }
+      }
+    }, WS_METADATA_DEADLINE_MS);
+    metadataDeadlines.set(socket, deadline);
 
     socket.on('message', data => {
       const result = (() => {
@@ -305,6 +361,12 @@ export const startWebSocketServer = (
             '[radar] Rejected duplicate metadata from already-registered socket',
           );
           return;
+        }
+
+        const pending = metadataDeadlines.get(socket);
+        if (pending) {
+          clearTimeout(pending);
+          metadataDeadlines.delete(socket);
         }
 
         const detected = getDetectedDevices();
@@ -366,6 +428,12 @@ export const startWebSocketServer = (
     });
 
     socket.on('close', () => {
+      const pending = metadataDeadlines.get(socket);
+      if (pending) {
+        clearTimeout(pending);
+        metadataDeadlines.delete(socket);
+      }
+
       const deviceId = socketToDeviceId.get(socket);
       if (!deviceId) {
         console.log('[radar] Unregistered client disconnected');
@@ -403,6 +471,7 @@ export const startWebSocketServer = (
       device?.socket.send(data);
     },
     close: () => {
+      clearInterval(heartbeatInterval);
       wss.close();
     },
   };
