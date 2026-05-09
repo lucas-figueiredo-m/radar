@@ -38,34 +38,6 @@
 
 ## BLOCKERS — must fix before flipping the repo public
 
-### B6 — CRITICAL — Electron renderer has Node integration on, contextIsolation off, no preload, no sandbox
-
-**Where:** `apps/app/electron/main.ts:44-47`
-```ts
-webPreferences: {
-  nodeIntegration: true,
-  contextIsolation: false,
-},
-```
-
-**Risk:** Any XSS-equivalent gadget anywhere in the renderer (a future markdown viewer, a JSON viewer that uses `eval`, a captured URL in an `<a href>`, or a renderer-side dependency compromise) becomes RCE on the developer's machine via `window.require('child_process').exec(...)`. Captured data is *untrusted* — a malicious dep in the dev's RN app could send poisoned payloads.
-
-**Fix:**
-```ts
-webPreferences: {
-  nodeIntegration: false,
-  contextIsolation: true,
-  sandbox: true,
-  webSecurity: true,
-  allowRunningInsecureContent: false,
-  experimentalFeatures: false,
-  preload: path.join(__dirname, 'preload.js'),
-},
-```
-Write a preload that exposes a typed surface via `contextBridge.exposeInMainWorld('radar', { invoke, on, off, send })`. Convert `apps/app/src/services/ipc.ts:1-4`'s `(window as any).require('electron').ipcRenderer` to `window.radar.*`.
-
----
-
 ### B7 — MEDIUM (downgraded from CRITICAL) — Path traversal in `radar:open-in-editor`
 
 **Where:** `apps/app/electron/main.ts:316-343`
@@ -242,13 +214,12 @@ Avoids case-sensitive Linux-CI gotchas.
 ## Recommended order of operations
 
 ### Phase 1 — make the Electron app safe to install (3-5 days)
-1. **B6** — Electron preload + contextIsolation + sandbox.
-2. **B7** — path-traversal hardening (downgraded but cheap).
-3. **B8** — `adb` shell-injection fix (`execFileSync` + serial regex).
-4. **B11** — DB eviction triggers + per-message size guard (robustness).
-5. **B12** — zod-validate `RadarCommand` in SDK (the incoming-message half is closed by B2; the SDK-side command-shape check is still TODO).
-6. **B13** — wire signing+notarization, OR turn off auto-update for now.
-7. **S1, S6, S7, S9, S10, S12, S17** — defense-in-depth.
+1. **B7** — path-traversal hardening (downgraded but cheap).
+2. **B8** — `adb` shell-injection fix (`execFileSync` + serial regex).
+3. **B11** — DB eviction triggers + per-message size guard (robustness).
+4. **B12** — zod-validate `RadarCommand` in SDK (the incoming-message half is closed by B2; the SDK-side command-shape check is still TODO).
+5. **B13** — wire signing+notarization, OR turn off auto-update for now.
+6. **S1, S6, S7, S9, S10, S12, S17** — defense-in-depth.
 
 The repo can be flipped public now. Phase 1 should land before promoting the Electron desktop app to general users.
 

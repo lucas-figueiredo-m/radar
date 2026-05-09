@@ -234,6 +234,34 @@ Origin and token checks are extracted into pure helpers (`verifyMcpOrigin`, `ver
 
 ---
 
+### B6 — DONE 2026-05-09 — Electron renderer hardened (preload + contextIsolation + sandbox)
+
+**Where:** `apps/app/electron/main.ts`, `apps/app/electron/preload.ts` (new), `apps/app/src/services/ipc.ts`, `apps/app/vite.config.ts`
+
+**Status:** `BrowserWindow.webPreferences` flipped from the legacy `nodeIntegration: true` / `contextIsolation: false` configuration to the modern hardened defaults:
+
+```ts
+webPreferences: {
+  nodeIntegration: false,
+  contextIsolation: true,
+  sandbox: true,
+  webSecurity: true,
+  allowRunningInsecureContent: false,
+  experimentalFeatures: false,
+  preload: path.join(__dirname, 'preload.js'),
+},
+```
+
+The new `electron/preload.ts` exposes a narrow typed surface via `contextBridge.exposeInMainWorld('radar', { invoke, send, on })`. Channel names are allowlisted to the `radar:` prefix — any attempt to invoke/send/listen on a non-allowed channel is rejected (invoke rejects, send/on become no-ops). Listeners are wrapped to strip the raw `IpcRendererEvent` before crossing the bridge — only the payload args reach renderer code, so the renderer can never reach back into `event.sender` or other Electron internals. `on(channel, listener)` returns an unsubscribe function; the renderer-side `ipcRenderer` shim in `services/ipc.ts` keeps the `(channel, listener)` / `removeListener` API the existing hooks depend on by holding the listener-to-unsubscribe mapping in a renderer-local `Map`.
+
+`vite-plugin-electron-renderer` was removed from `vite.config.ts` (it was the plugin that previously made `(window as any).require('electron')` work in the renderer — no longer needed once Node integration is off). A second `vite-plugin-electron` entry was added so `electron/preload.ts` is bundled to `dist-electron/preload.js` alongside the main process bundle.
+
+**Why this matters:** Before this change, any XSS-equivalent gadget anywhere in the renderer (a future markdown viewer, a JSON viewer that uses `eval`, a captured URL in an `<a href>`, or a renderer-side dependency compromise) became RCE on the developer's machine via `window.require('child_process').exec(...)`. Captured data from a debugged React Native app is *untrusted* — a malicious dep in the dev's RN app could send poisoned payloads through the WebSocket and into the renderer. With Node integration off and contextIsolation on, the renderer has no `require`, no Node globals, and no path to spawn processes; `sandbox: true` additionally drops the renderer process to the OS sandbox so even native code execution within the renderer is contained.
+
+**Verified:** `bun run typecheck` clean; `bun run lint` clean; `bun run build` produces `dist-electron/preload.js` (0.43 kB) alongside `dist-electron/main.js`; full workspace test suite green (radar-app 234 + radar-devtools 171 + @radar/mcp 18 = 423 tests). End-to-end manual smoke pending the maintainer's local boot.
+
+---
+
 ## Dropped after threat-model review
 
 ### B4 — Default header/body redaction in `radar-devtools` capture

@@ -41,8 +41,8 @@ export const useDeviceManager = () => {
     ipcRenderer.on('radar:cli-status', onCliStatus);
 
     ipcRenderer
-      ?.invoke('radar:get-initial-state')
-      .then((state: { connectedDeviceIds: string[] }) => {
+      .invoke<{ connectedDeviceIds: string[] }>('radar:get-initial-state')
+      .then(state => {
         setConnectedDeviceIds(state.connectedDeviceIds);
       })
       .catch((err: unknown) => {

@@ -21,8 +21,10 @@ export const useEditorPreference = (
 
   useEffect(() => {
     ipcRenderer
-      ?.invoke('radar:get-editor-info')
-      .then((info: { editors: EditorInfo[]; preferred: string | null }) => {
+      .invoke<{ editors: EditorInfo[]; preferred: string | null }>(
+        'radar:get-editor-info',
+      )
+      .then(info => {
         setEditors(info.editors);
         setPreferred(info.preferred);
       })
@@ -34,8 +36,11 @@ export const useEditorPreference = (
   const setPreferredEditor = useCallback(
     (id: string) => {
       ipcRenderer
-        ?.invoke('radar:set-editor-preference', id)
-        .then((info: { editors: EditorInfo[]; preferred: string }) => {
+        .invoke<{ editors: EditorInfo[]; preferred: string }>(
+          'radar:set-editor-preference',
+          id,
+        )
+        .then(info => {
           setEditors(info.editors);
           setPreferred(info.preferred);
         })

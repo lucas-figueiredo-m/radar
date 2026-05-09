@@ -52,8 +52,13 @@ const createWindow = () => {
     height: 800,
     title: 'Radar',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+      experimentalFeatures: false,
+      preload: path.join(__dirname, 'preload.js'),
     },
   });
 
