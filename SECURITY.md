@@ -4,6 +4,8 @@
 
 Only the latest published version of `radar-devtools` and the desktop app receives security updates.
 
+> Pre-1.0 desktop builds are unsigned and the in-app auto-updater is disabled. Verify checksums on the GitHub Releases page before installing; do not trust silent updates.
+
 | Version | Supported          |
 | ------- | ------------------ |
 | Latest  | :white_check_mark: |
