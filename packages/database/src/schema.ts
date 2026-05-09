@@ -11,6 +11,18 @@ export const CREATE_TABLES_SQL = `
   CREATE INDEX IF NOT EXISTS idx_console_device_ts ON console_logs(device_id, timestamp);
   CREATE INDEX IF NOT EXISTS idx_console_level ON console_logs(device_id, level);
 
+  CREATE TRIGGER IF NOT EXISTS trim_console_logs
+  AFTER INSERT ON console_logs
+  WHEN (SELECT count(*) FROM console_logs WHERE device_id = NEW.device_id) > 10000
+  BEGIN
+    DELETE FROM console_logs WHERE id IN (
+      SELECT id FROM console_logs
+      WHERE device_id = NEW.device_id
+      ORDER BY id ASC
+      LIMIT 1000
+    );
+  END;
+
   CREATE TABLE IF NOT EXISTS network_requests (
     id                  TEXT PRIMARY KEY,
     device_id           TEXT NOT NULL,
@@ -36,6 +48,18 @@ export const CREATE_TABLES_SQL = `
   CREATE INDEX IF NOT EXISTS idx_network_method ON network_requests(device_id, method);
   CREATE INDEX IF NOT EXISTS idx_network_status ON network_requests(device_id, status);
   CREATE INDEX IF NOT EXISTS idx_network_graphql ON network_requests(device_id, graphql_type);
+
+  CREATE TRIGGER IF NOT EXISTS trim_network_requests
+  AFTER INSERT ON network_requests
+  WHEN (SELECT count(*) FROM network_requests WHERE device_id = NEW.device_id) > 10000
+  BEGIN
+    DELETE FROM network_requests WHERE id IN (
+      SELECT id FROM network_requests
+      WHERE device_id = NEW.device_id
+      ORDER BY db_created_at ASC, id ASC
+      LIMIT 1000
+    );
+  END;
 
   CREATE TABLE IF NOT EXISTS component_trees (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -85,6 +109,18 @@ export const CREATE_TABLES_SQL = `
   CREATE INDEX IF NOT EXISTS idx_commit_session ON profiler_commits(profiler_session_id);
   CREATE INDEX IF NOT EXISTS idx_commit_device_ts ON profiler_commits(device_id, timestamp);
 
+  CREATE TRIGGER IF NOT EXISTS trim_profiler_commits
+  AFTER INSERT ON profiler_commits
+  WHEN (SELECT count(*) FROM profiler_commits WHERE device_id = NEW.device_id) > 5000
+  BEGIN
+    DELETE FROM profiler_commits WHERE id IN (
+      SELECT id FROM profiler_commits
+      WHERE device_id = NEW.device_id
+      ORDER BY id ASC
+      LIMIT 500
+    );
+  END;
+
   CREATE TABLE IF NOT EXISTS performance_metrics (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     device_id       TEXT NOT NULL,
@@ -101,6 +137,18 @@ export const CREATE_TABLES_SQL = `
   );
 
   CREATE INDEX IF NOT EXISTS idx_perf_device_ts ON performance_metrics(device_id, timestamp);
+
+  CREATE TRIGGER IF NOT EXISTS trim_performance_metrics
+  AFTER INSERT ON performance_metrics
+  WHEN (SELECT count(*) FROM performance_metrics WHERE device_id = NEW.device_id) > 10000
+  BEGIN
+    DELETE FROM performance_metrics WHERE id IN (
+      SELECT id FROM performance_metrics
+      WHERE device_id = NEW.device_id
+      ORDER BY id ASC
+      LIMIT 1000
+    );
+  END;
 
   CREATE TABLE IF NOT EXISTS storage_capabilities (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -168,6 +216,18 @@ export const CREATE_TABLES_SQL = `
 
   CREATE INDEX IF NOT EXISTS idx_state_actions_device_store
     ON state_actions(device_id, store_name, timestamp);
+
+  CREATE TRIGGER IF NOT EXISTS trim_state_actions
+  AFTER INSERT ON state_actions
+  WHEN (SELECT count(*) FROM state_actions WHERE device_id = NEW.device_id) > 10000
+  BEGIN
+    DELETE FROM state_actions WHERE id IN (
+      SELECT id FROM state_actions
+      WHERE device_id = NEW.device_id
+      ORDER BY id ASC
+      LIMIT 1000
+    );
+  END;
 
   CREATE TABLE IF NOT EXISTS startup_metrics (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
