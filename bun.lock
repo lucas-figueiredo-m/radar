@@ -157,7 +157,7 @@
         "vitest": "^4.0.18",
       },
     },
-    "packages/designSystem": {
+    "packages/design-system": {
       "name": "@radar/design-system",
       "version": "0.1.0",
     },
@@ -785,7 +785,7 @@
 
     "@radar/database": ["@radar/database@workspace:packages/database"],
 
-    "@radar/design-system": ["@radar/design-system@workspace:packages/designSystem"],
+    "@radar/design-system": ["@radar/design-system@workspace:packages/design-system"],
 
     "@radar/mcp": ["@radar/mcp@workspace:packages/mcp"],
 
