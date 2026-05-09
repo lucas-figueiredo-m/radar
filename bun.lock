@@ -230,6 +230,12 @@
       },
     },
   },
+  "trustedDependencies": [
+    "electron",
+    "better-sqlite3",
+    "esbuild",
+    "fsevents",
+  ],
   "overrides": {
     "@xmldom/xmldom": "~0.8.13",
     "fast-xml-parser": ">=5.7.0",

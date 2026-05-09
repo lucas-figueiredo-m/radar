@@ -33,6 +33,13 @@
     "uuid": ">=14.0.0",
     "ip-address": ">=10.1.1"
   },
+  "trustedDependencies": [
+    "electron",
+    "better-sqlite3",
+    "fsevents",
+    "@parcel/watcher",
+    "esbuild"
+  ],
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",
     "@commitlint/config-conventional": "^20.4.2",
