@@ -40,7 +40,6 @@ export type RadarDatabase = {
 export const createDatabase = (): RadarDatabase => {
   const db = new Database(':memory:');
 
-  db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
 
   db.exec(CREATE_TABLES_SQL);

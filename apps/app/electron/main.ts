@@ -57,6 +57,13 @@ const createWindow = () => {
     },
   });
 
+  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  win.webContents.on('will-navigate', (event, url) => {
+    if (url !== VITE_DEV_SERVER_URL && !url.startsWith('file://')) {
+      event.preventDefault();
+    }
+  });
+
   win.on('close', e => {
     if (!isQuitting) {
       e.preventDefault();
@@ -129,13 +136,15 @@ const createTray = () => {
   });
 };
 
-ipcMain.on('radar:toggle-devtools', () => {
-  if (win?.webContents.isDevToolsOpened()) {
-    win.webContents.closeDevTools();
-  } else {
-    win?.webContents.openDevTools();
-  }
-});
+if (!app.isPackaged) {
+  ipcMain.on('radar:toggle-devtools', () => {
+    if (win?.webContents.isDevToolsOpened()) {
+      win.webContents.closeDevTools();
+    } else {
+      win?.webContents.openDevTools();
+    }
+  });
+}
 
 ipcMain.on(
   'radar:command',

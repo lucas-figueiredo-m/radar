@@ -60,7 +60,7 @@ jobs:
           if npm view "radar-devtools@$VERSION" version >/dev/null 2>&1; then
             echo "radar-devtools@$VERSION already on npm — skipping publish"
           else
-            npm publish --access public
+            npm publish --access public --provenance
           fi
 
       - name: Create GitHub Release
