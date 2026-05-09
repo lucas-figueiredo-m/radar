@@ -6,9 +6,11 @@ import {
   Menu,
   nativeImage,
   clipboard,
+  session,
 } from 'electron';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { resolveEditorTarget } from './resolveEditorTarget';
 import {
   detectEditors,
   getPreferredEditor,
@@ -359,10 +361,13 @@ ipcMain.handle(
       };
     }
 
-    const absolutePath = path.join(root, payload.file);
+    const resolution = resolveEditorTarget(root, payload.file, payload.line);
+    if (!resolution.ok) {
+      return { success: false, error: resolution.error };
+    }
 
     try {
-      openInEditor(preferred, absolutePath, payload.line);
+      openInEditor(preferred, resolution.absolutePath, resolution.line);
       return { success: true };
     } catch (err) {
       return { success: false, error: String(err) };
@@ -370,7 +375,16 @@ ipcMain.handle(
   },
 );
 
+const CSP_HEADER_VALUE =
+  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none';";
+
 app.whenReady().then(() => {
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const responseHeaders = { ...details.responseHeaders };
+    responseHeaders['Content-Security-Policy'] = [CSP_HEADER_VALUE];
+    callback({ responseHeaders });
+  });
+
   createWindow();
   createTray();
 

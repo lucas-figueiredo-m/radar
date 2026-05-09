@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const {
-  mockExecSync,
+  mockExecFileSync,
   mockSpawn,
   mockReadFileSync,
   mockWriteFileSync,
   mockMkdirSync,
 } = vi.hoisted(() => ({
-  mockExecSync: vi.fn(),
+  mockExecFileSync: vi.fn(),
   mockSpawn: vi.fn(() => ({ unref: vi.fn() })),
   mockReadFileSync: vi.fn(),
   mockWriteFileSync: vi.fn(),
@@ -15,8 +15,8 @@ const {
 }));
 
 vi.mock('node:child_process', () => ({
-  default: { execSync: mockExecSync, spawn: mockSpawn },
-  execSync: mockExecSync,
+  default: { execFileSync: mockExecFileSync, spawn: mockSpawn },
+  execFileSync: mockExecFileSync,
   spawn: mockSpawn,
 }));
 
@@ -49,8 +49,9 @@ describe('editors', () => {
 
   describe('detectEditors', () => {
     it('returns only editors whose CLI is available', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if (cmd === 'which code' || cmd === 'which vim') return '';
+      mockExecFileSync.mockImplementation((command: string, args: string[]) => {
+        if (command === 'which' && (args[0] === 'code' || args[0] === 'vim'))
+          return '';
         throw new Error('not found');
       });
 
@@ -64,7 +65,7 @@ describe('editors', () => {
     });
 
     it('returns empty array when no editors are available', () => {
-      mockExecSync.mockImplementation(() => {
+      mockExecFileSync.mockImplementation(() => {
         throw new Error('not found');
       });
 
@@ -73,8 +74,9 @@ describe('editors', () => {
     });
 
     it('returns editor info with id, name, and cli', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if (cmd === 'which code') return '/usr/local/bin/code';
+      mockExecFileSync.mockImplementation((command: string, args: string[]) => {
+        if (command === 'which' && args[0] === 'code')
+          return '/usr/local/bin/code';
         throw new Error('not found');
       });
 
@@ -85,6 +87,23 @@ describe('editors', () => {
         name: 'VS Code',
         cli: 'code',
       });
+    });
+
+    it('uses execFileSync (no shell) when probing — cli arg passed as separate argv (B8)', () => {
+      mockExecFileSync.mockImplementation((command: string, args: string[]) => {
+        if (command !== 'which') throw new Error('non-which command');
+        if (!Array.isArray(args) || args.length !== 1)
+          throw new Error('multi-arg cli probe');
+        return '';
+      });
+
+      detectEditors();
+
+      for (const call of mockExecFileSync.mock.calls) {
+        expect(call[0]).toBe('which');
+        expect(Array.isArray(call[1])).toBe(true);
+        expect((call[1] as string[]).length).toBe(1);
+      }
     });
   });
 

@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { BrowserWindow } from 'electron';
 import type {
   DetectedDevice,
@@ -8,6 +8,7 @@ import type {
 
 const POLL_INTERVAL_MS = 2000;
 const EXEC_TIMEOUT_MS = 5000;
+const ADB_SERIAL_PATTERN = /^[A-Za-z0-9._:-]+$/;
 
 type SimctlDevice = {
   udid: string;
@@ -21,7 +22,7 @@ type SimctlOutput = {
 
 const checkXcrun = (): CliToolStatus => {
   try {
-    execSync('xcrun simctl list --json', {
+    execFileSync('xcrun', ['simctl', 'list', '--json'], {
       encoding: 'utf-8',
       timeout: EXEC_TIMEOUT_MS,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -36,7 +37,7 @@ const checkXcrun = (): CliToolStatus => {
 
 const checkAdb = (): CliToolStatus => {
   try {
-    execSync('adb version', {
+    execFileSync('adb', ['version'], {
       encoding: 'utf-8',
       timeout: EXEC_TIMEOUT_MS,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -59,11 +60,15 @@ const parseOsVersionFromRuntime = (runtimeKey: string): string => {
 
 const detectIosSimulators = (): DetectedDevice[] => {
   try {
-    const output = execSync('xcrun simctl list devices booted --json', {
-      encoding: 'utf-8',
-      timeout: EXEC_TIMEOUT_MS,
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
+    const output = execFileSync(
+      'xcrun',
+      ['simctl', 'list', 'devices', 'booted', '--json'],
+      {
+        encoding: 'utf-8',
+        timeout: EXEC_TIMEOUT_MS,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      },
+    );
 
     const parsed = JSON.parse(output) as SimctlOutput;
     const devices: DetectedDevice[] = [];
@@ -96,7 +101,7 @@ const detectIosSimulators = (): DetectedDevice[] => {
 
 const detectAndroidEmulators = (): DetectedDevice[] => {
   try {
-    const output = execSync('adb devices -l', {
+    const output = execFileSync('adb', ['devices', '-l'], {
       encoding: 'utf-8',
       timeout: EXEC_TIMEOUT_MS,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -115,14 +120,21 @@ const detectAndroidEmulators = (): DetectedDevice[] => {
       const serial = parts[0];
 
       if (!serial || parts[1] !== 'device') continue;
+      if (!ADB_SERIAL_PATTERN.test(serial)) {
+        console.error(
+          `[radar] Skipping Android device with invalid serial: ${serial}`,
+        );
+        continue;
+      }
 
       const modelMatch = trimmed.match(/model:(\S+)/);
       const name = modelMatch ? modelMatch[1].replace(/_/g, ' ') : serial;
 
       let osVersion = '';
       try {
-        osVersion = execSync(
-          `adb -s ${serial} shell getprop ro.build.version.sdk`,
+        osVersion = execFileSync(
+          'adb',
+          ['-s', serial, 'shell', 'getprop', 'ro.build.version.sdk'],
           {
             encoding: 'utf-8',
             timeout: EXEC_TIMEOUT_MS,

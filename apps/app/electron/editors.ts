@@ -1,4 +1,4 @@
-import { execSync, spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { app } from 'electron';
@@ -81,7 +81,7 @@ const getPreferencePath = (): string =>
 
 const isCliAvailable = (cli: string): boolean => {
   try {
-    execSync(`which ${cli}`, { stdio: 'ignore' });
+    execFileSync('which', [cli], { stdio: 'ignore' });
     return true;
   } catch {
     return false;
