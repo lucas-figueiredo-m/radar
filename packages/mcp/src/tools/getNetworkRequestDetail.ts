@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpContext } from '../types';
+import { fenceUntrusted } from './fenceUntrusted';
+import { UNTRUSTED_DATA_WARNING } from './untrustedDataWarning';
 
 export const registerGetNetworkRequestDetail = (
   server: McpServer,
@@ -30,28 +32,52 @@ export const registerGetNetworkRequestDetail = (
         };
       }
 
+      const detailId = request.id;
       const detail = {
         id: request.id,
         method: request.method,
-        url: request.url,
+        url: fenceUntrusted(request.url, `network.request[${detailId}].url`),
         status: request.status,
-        statusText: request.status_text,
+        statusText: request.status_text
+          ? fenceUntrusted(
+              request.status_text,
+              `network.request[${detailId}].statusText`,
+            )
+          : null,
         duration: request.duration,
         pending: request.pending === 1,
         graphql: request.graphql_type
-          ? { type: request.graphql_type, name: request.graphql_name }
+          ? {
+              type: request.graphql_type,
+              name: fenceUntrusted(
+                request.graphql_name,
+                `network.request[${detailId}].graphql.name`,
+              ),
+            }
           : null,
         requestHeaders: request.request_headers
-          ? JSON.parse(request.request_headers)
+          ? fenceUntrusted(
+              JSON.parse(request.request_headers),
+              `network.request[${detailId}].requestHeaders`,
+            )
           : null,
         requestBody: request.request_body
-          ? JSON.parse(request.request_body)
+          ? fenceUntrusted(
+              JSON.parse(request.request_body),
+              `network.request[${detailId}].requestBody`,
+            )
           : null,
         responseHeaders: request.response_headers
-          ? JSON.parse(request.response_headers)
+          ? fenceUntrusted(
+              JSON.parse(request.response_headers),
+              `network.request[${detailId}].responseHeaders`,
+            )
           : null,
         responseBody: request.response_body
-          ? JSON.parse(request.response_body)
+          ? fenceUntrusted(
+              JSON.parse(request.response_body),
+              `network.request[${detailId}].responseBody`,
+            )
           : null,
         timestamp: request.timestamp,
         responseTimestamp: request.response_timestamp,
@@ -61,7 +87,11 @@ export const registerGetNetworkRequestDetail = (
         content: [
           {
             type: 'text' as const,
-            text: JSON.stringify(detail, null, 2),
+            text: `${UNTRUSTED_DATA_WARNING}\n${JSON.stringify(
+              detail,
+              null,
+              2,
+            )}`,
           },
         ],
       };

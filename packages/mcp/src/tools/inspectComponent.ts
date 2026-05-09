@@ -2,6 +2,8 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpContext } from '../types';
 import { resolveDeviceId } from '../types';
+import { fenceUntrusted } from './fenceUntrusted';
+import { UNTRUSTED_DATA_WARNING } from './untrustedDataWarning';
 
 const sleep = (ms: number): Promise<void> =>
   new Promise(resolve => setTimeout(resolve, ms));
@@ -38,7 +40,10 @@ export const registerInspectComponent = (
           content: [
             {
               type: 'text' as const,
-              text: JSON.stringify(JSON.parse(existing.data), null, 2),
+              text: `${UNTRUSTED_DATA_WARNING}\n${fenceUntrusted(
+                JSON.parse(existing.data),
+                `inspectComponent[${componentId}]`,
+              )}`,
             },
           ],
         };

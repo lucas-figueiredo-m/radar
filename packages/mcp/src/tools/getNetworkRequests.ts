@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpContext } from '../types';
+import { fenceUntrusted } from './fenceUntrusted';
+import { UNTRUSTED_DATA_WARNING } from './untrustedDataWarning';
 
 export const registerGetNetworkRequests = (
   server: McpServer,
@@ -70,12 +72,18 @@ export const registerGetNetworkRequests = (
         id: r.id,
         deviceId: r.device_id,
         method: r.method,
-        url: r.url,
+        url: fenceUntrusted(r.url, `network.requests[${r.id}].url`),
         status: r.status,
         duration: r.duration,
         pending: r.pending === 1,
         graphql: r.graphql_type
-          ? { type: r.graphql_type, name: r.graphql_name }
+          ? {
+              type: r.graphql_type,
+              name: fenceUntrusted(
+                r.graphql_name,
+                `network.requests[${r.id}].graphql.name`,
+              ),
+            }
           : null,
         timestamp: r.timestamp,
       }));
@@ -84,7 +92,11 @@ export const registerGetNetworkRequests = (
         content: [
           {
             type: 'text' as const,
-            text: JSON.stringify({ total, requests: summaries }, null, 2),
+            text: `${UNTRUSTED_DATA_WARNING}\n${JSON.stringify(
+              { total, requests: summaries },
+              null,
+              2,
+            )}`,
           },
         ],
       };

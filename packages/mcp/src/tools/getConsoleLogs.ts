@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpContext } from '../types';
+import { fenceUntrusted } from './fenceUntrusted';
+import { UNTRUSTED_DATA_WARNING } from './untrustedDataWarning';
 
 export const registerGetConsoleLogs = (
   server: McpServer,
@@ -45,7 +47,10 @@ export const registerGetConsoleLogs = (
         id: log.id,
         deviceId: log.device_id,
         level: log.level,
-        args: JSON.parse(log.args),
+        args: fenceUntrusted(
+          JSON.parse(log.args),
+          `console.logs[${log.id}].args`,
+        ),
         timestamp: log.timestamp,
       }));
 
@@ -53,7 +58,11 @@ export const registerGetConsoleLogs = (
         content: [
           {
             type: 'text' as const,
-            text: JSON.stringify({ total, logs: parsed }, null, 2),
+            text: `${UNTRUSTED_DATA_WARNING}\n${JSON.stringify(
+              { total, logs: parsed },
+              null,
+              2,
+            )}`,
           },
         ],
       };
