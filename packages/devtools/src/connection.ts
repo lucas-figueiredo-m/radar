@@ -5,6 +5,7 @@ import type {
   RadarCommand,
   RadarMessage,
 } from '@radar/types';
+import { radarCommandSchema } from '@radar/types';
 import { MAX_QUEUE_SIZE, RECONNECT_DELAY_MS } from './constants';
 
 type Logger = Record<LogLevel, (...args: unknown[]) => void>;
@@ -75,12 +76,22 @@ export const createConnection = (
 
       ws.onmessage = (event: MessageEvent) => {
         if (!onMessage) return;
+        let raw: unknown;
         try {
-          const command = JSON.parse(event.data as string) as RadarCommand;
-          onMessage(command);
+          raw = JSON.parse(event.data as string);
         } catch (err) {
-          logger.error('[radar] Failed to parse incoming command:', err);
+          logger.error('[radar] Failed to parse incoming command JSON:', err);
+          return;
         }
+        const result = radarCommandSchema.safeParse(raw);
+        if (!result.success) {
+          logger.error(
+            '[radar] Rejected malformed command:',
+            result.error.issues,
+          );
+          return;
+        }
+        onMessage(result.data);
       };
 
       ws.onerror = (event: Event) => {
