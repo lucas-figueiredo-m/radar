@@ -26,10 +26,13 @@
   "overrides": {
     "zod": "4.3.6",
     "tar": ">=7.5.7",
-    "hono": ">=4.12.14",
+    "hono": ">=4.12.18",
     "@xmldom/xmldom": "~0.8.13",
     "postcss": ">=8.5.10",
     "fast-xml-parser": ">=5.7.0",
+    "fast-xml-builder": ">=1.1.7",
+    "fast-uri": ">=3.1.2",
+    "@babel/plugin-transform-modules-systemjs": ">=7.29.4",
     "uuid": ">=14.0.0",
     "ip-address": ">=10.1.1",
     "eslint": "9.39.4"
