@@ -34,6 +34,13 @@
     "ip-address": ">=10.1.1",
     "eslint": "9.39.4"
   },
+  "trustedDependencies": [
+    "electron",
+    "better-sqlite3",
+    "fsevents",
+    "@parcel/watcher",
+    "esbuild"
+  ],
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",
     "@commitlint/config-conventional": "^20.4.2",
