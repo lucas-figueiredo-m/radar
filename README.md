@@ -69,6 +69,13 @@ bun run lint && bun run typecheck
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full development guide.
 
+### Examples
+
+The repo ships two example apps:
+
+- `examples/react-native` — vanilla React Native, included in the root workspace and uses the workspace `radar-devtools`.
+- `examples/expo` — Expo canary app, isolated with its own `package.json` + `bun.lock`. Run `cd examples/expo && bun install` separately. It pins the published `radar-devtools` rather than the workspace version so Expo's canary deps don't leak into the root audit graph.
+
 ## Tech Stack
 
 - **App**: Electron 34, React 19, Tailwind CSS v4, better-sqlite3

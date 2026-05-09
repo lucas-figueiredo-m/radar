@@ -6,7 +6,7 @@
   "workspaces": [
     "apps/*",
     "packages/*",
-    "examples/*"
+    "examples/react-native"
   ],
   "scripts": {
     "dev:app": "bun run --filter=radar-app dev",
@@ -31,16 +31,24 @@
     "postcss": ">=8.5.10",
     "fast-xml-parser": ">=5.7.0",
     "uuid": ">=14.0.0",
-    "ip-address": ">=10.1.1"
+    "ip-address": ">=10.1.1",
+    "eslint": "9.39.4"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",
     "@commitlint/config-conventional": "^20.4.2",
-    "eslint": "^8.19.0",
+    "@eslint/js": "9.39.4",
+    "eslint": "9.39.4",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-prettier": "5.5.5",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "5.2.0",
+    "globals": "17.6.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.0",
     "prettier": "2.8.8",
     "radar-devtools": "workspace:*",
-    "tsup": "^8.5.1"
+    "tsup": "^8.5.1",
+    "typescript-eslint": "8.59.2"
   }
 }
