@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpContext } from '../types';
+import { fenceUntrusted } from './fenceUntrusted';
+import { UNTRUSTED_DATA_WARNING } from './untrustedDataWarning';
 
 export const registerGetComponentTree = (
   server: McpServer,
@@ -33,7 +35,10 @@ export const registerGetComponentTree = (
 
       const result = {
         deviceId: tree.device_id,
-        rootNodes: JSON.parse(tree.root_nodes),
+        rootNodes: fenceUntrusted(
+          JSON.parse(tree.root_nodes),
+          `componentTree[${tree.device_id}].rootNodes`,
+        ),
         timestamp: tree.timestamp,
       };
 
@@ -41,7 +46,11 @@ export const registerGetComponentTree = (
         content: [
           {
             type: 'text' as const,
-            text: JSON.stringify(result, null, 2),
+            text: `${UNTRUSTED_DATA_WARNING}\n${JSON.stringify(
+              result,
+              null,
+              2,
+            )}`,
           },
         ],
       };

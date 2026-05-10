@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpContext } from '../types';
+import { fenceUntrusted } from './fenceUntrusted';
+import { UNTRUSTED_DATA_WARNING } from './untrustedDataWarning';
 
 export const registerGetAppOverview = (
   server: McpServer,
@@ -25,10 +27,16 @@ export const registerGetAppOverview = (
         const device = wsHandle.getDevice(id);
         return {
           deviceId: id,
-          deviceName: device?.deviceName ?? 'Unknown',
+          deviceName: fenceUntrusted(
+            device?.deviceName ?? 'Unknown',
+            `device[${id}].deviceName`,
+          ),
           platform: device?.platform ?? 'unknown',
           osVersion: device?.osVersion ?? 'unknown',
-          projectRoot: device?.projectRoot ?? null,
+          projectRoot:
+            device?.projectRoot != null
+              ? fenceUntrusted(device.projectRoot, `device[${id}].projectRoot`)
+              : null,
         };
       });
 
@@ -69,13 +77,22 @@ export const registerGetAppOverview = (
               networkRequests: networkCount,
               performanceSamples: performanceCount,
               stateStores: stateCapabilities.map(c => ({
-                name: c.store_name,
+                name: fenceUntrusted(
+                  c.store_name,
+                  `device[${id}].state.store.name`,
+                ),
                 type: c.store_type,
               })),
               storageBackends: storageCapabilities.map(c => ({
                 backend: c.backend,
                 available: c.available === 1,
-                instanceId: c.instance_id,
+                instanceId:
+                  c.instance_id != null
+                    ? fenceUntrusted(
+                        c.instance_id,
+                        `device[${id}].storage.${c.backend}.instanceId`,
+                      )
+                    : null,
               })),
             },
           };
@@ -115,7 +132,11 @@ export const registerGetAppOverview = (
         content: [
           {
             type: 'text' as const,
-            text: JSON.stringify(overview, null, 2),
+            text: `${UNTRUSTED_DATA_WARNING}\n${JSON.stringify(
+              overview,
+              null,
+              2,
+            )}`,
           },
         ],
       };

@@ -55,4 +55,4 @@ export type {
   StateActionMessage,
   StateGetCommand,
 } from './stateManagement';
-export { radarMessageSchema } from './schemas';
+export { radarMessageSchema, radarCommandSchema } from './schemas';

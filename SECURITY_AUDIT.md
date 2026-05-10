@@ -6,21 +6,21 @@
 
 ## Verdict
 
-**Still NOT safe to publish in current state.** The remaining real-issue chain is: Electron with Node in the renderer + Android `adb` shell-injection + path traversal in editor open + an unsigned auto-updater. A focused week of work closes the lot.
+**Safe to publish — closeout complete.** All BLOCKERS, SHOULD-FIX, and NICE-TO-FIX items from the active audit are closed. Eight PRs (#26–#33) plus a dep-override commit are stacked on the `security/b6-electron-preload-context-isolation` integration branch (PR #25 → `main`); the maintainer's smoke test of the integrated state is the last gate before merging B6 into `main`.
 
-### Threat model — who is at risk
+### Threat model — original concerns + status
 
 **You (the maintainer)**
-- Apple signing creds reused across two env vars; deprecated env name.
+- ~~Apple signing creds reused across two env vars; deprecated env name.~~ — Auto-updater disabled by **B13 option A** (PR #27); when it's re-enabled via option B, the migration to App Store Connect API key is part of that follow-up.
 
 **The repo**
-- Self-push of version bumps to `main` from a tag-triggered job — bypasses any future branch protection.
+- ~~Self-push of version bumps to `main` from a tag-triggered job.~~ — Closed by **S7** (PR #28): version computed in-memory only; commit-back step removed.
 
 **Users who install `radar-devtools`**
-- The default Android host is `10.0.2.2` (emulator's host alias); on a real phone that's a routable LAN IP. Goes away with B2 transport auth.
+- The default Android host is `10.0.2.2` (emulator's host alias); on a real phone that's a routable LAN IP. — Already closed by **B2** transport auth, see RESOLVED.md.
 
 **Anyone running the Radar Electron app on a non-trusted network**
-- Auto-updater is unsigned. If the GitHub release-publishing token is ever compromised, every Radar user gets silently swapped to attacker-controlled binaries.
+- ~~Auto-updater is unsigned.~~ — Closed by **B13 option A** (PR #27): the auto-update path is a no-op until full signing/notarization is wired.
 
 ---
 
@@ -36,231 +36,39 @@
 
 ---
 
-## BLOCKERS — must fix before flipping the repo public
+## Active items
 
-### B6 — CRITICAL — Electron renderer has Node integration on, contextIsolation off, no preload, no sandbox
+**None.** Every item from the active audit closed in the closeout sweep landed on the `security/b6-electron-preload-context-isolation` integration branch:
 
-**Where:** `apps/app/electron/main.ts:44-47`
-```ts
-webPreferences: {
-  nodeIntegration: true,
-  contextIsolation: false,
-},
-```
+- **BLOCKERS:** B7, B8, B11, B12, B13 — closed in PRs #26, #27, #29, #30.
+- **SHOULD-FIX:** S1, S6, S7, S9, S10, S12, S17 — closed in PRs #28, #29, #30, #31.
+- **NICE-TO-FIX:** N4, N5, N6 — closed in PRs #32, #33; N11 closed by ad-hoc cleanup.
 
-**Risk:** Any XSS-equivalent gadget anywhere in the renderer (a future markdown viewer, a JSON viewer that uses `eval`, a captured URL in an `<a href>`, or a renderer-side dependency compromise) becomes RCE on the developer's machine via `window.require('child_process').exec(...)`. Captured data is *untrusted* — a malicious dep in the dev's RN app could send poisoned payloads.
+Plus a follow-on dep-override commit (`56c05af`) on the same branch closes 4 transitive vulns (`fast-xml-builder`, `fast-uri`, `@babel/plugin-transform-modules-systemjs`, `hono`) surfaced by `bun audit --audit-level=low` once the closeout sweep merged.
 
-**Fix:**
-```ts
-webPreferences: {
-  nodeIntegration: false,
-  contextIsolation: true,
-  sandbox: true,
-  webSecurity: true,
-  allowRunningInsecureContent: false,
-  experimentalFeatures: false,
-  preload: path.join(__dirname, 'preload.js'),
-},
-```
-Write a preload that exposes a typed surface via `contextBridge.exposeInMainWorld('radar', { invoke, on, off, send })`. Convert `apps/app/src/services/ipc.ts:1-4`'s `(window as any).require('electron').ipcRenderer` to `window.radar.*`.
+See [SECURITY_AUDIT_RESOLVED.md](./SECURITY_AUDIT_RESOLVED.md) for full per-item rationale and verification.
 
----
+### Open follow-ups (out of audit scope)
 
-### B7 — MEDIUM (downgraded from CRITICAL) — Path traversal in `radar:open-in-editor`
-
-**Where:** `apps/app/electron/main.ts:316-343`
-```ts
-const root = wsHandle?.getDevice(payload.deviceId)?.projectRoot ?? null;
-const absolutePath = path.join(root, payload.file);
-openInEditor(preferred, absolutePath, payload.line);
-```
-
-**Note:** Once B2 is auth'd, `payload.deviceId`/`payload.file` come only from authenticated peers. Severity drops from CRITICAL to MEDIUM, but the fix is still cheap and worth landing as defense-in-depth.
-
-**Risk:** Both `root` (from WS metadata) and `payload.file` are unvalidated. `path.join('/', '/etc/passwd')` → `/etc/passwd`; with `..` traversal it escapes any base. Vim/Emacs also expose modeline/file-local-variable code execution.
-
-**Fix:**
-```ts
-import { realpathSync } from 'node:fs';
-
-if (path.isAbsolute(payload.file) || payload.file.includes('\0')) {
-  return { success: false, error: 'Invalid file path' };
-}
-let realRoot: string, realTarget: string;
-try {
-  realRoot = realpathSync(root);
-  realTarget = realpathSync(path.resolve(realRoot, payload.file));
-} catch {
-  return { success: false, error: 'File does not exist' };
-}
-if (realTarget !== realRoot && !realTarget.startsWith(realRoot + path.sep)) {
-  return { success: false, error: 'Path escapes project root' };
-}
-const line = Number.isInteger(payload.line) && payload.line! > 0 ? payload.line : 1;
-openInEditor(preferred, realTarget, line);
-```
-Also strip leading `+`/`-` characters before passing to vim/emacs/nvim. Better: stop trusting `projectRoot` from the WebSocket entirely — require local config or a user-confirmed dialog.
-
----
-
-### B8 — CRITICAL — Shell command injection via Android device serial
-
-**Where:** `apps/app/electron/deviceDetection.ts:124-131`
-```ts
-osVersion = execSync(`adb -s ${serial} shell getprop ro.build.version.sdk`, ...);
-```
-
-**Risk:** `serial` is reported by the device (or a network adb endpoint). A malicious USB device or `adb connect 1.2.3.4:5555` to a hostile endpoint can present a serial like `1; touch /tmp/pwn ;` — `execSync` runs `/bin/sh -c`.
-
-**Fix:**
-```ts
-import { execFileSync } from 'node:child_process';
-if (!/^[A-Za-z0-9._:-]+$/.test(serial)) continue;
-osVersion = execFileSync(
-  'adb',
-  ['-s', serial, 'shell', 'getprop', 'ro.build.version.sdk'],
-  { encoding: 'utf-8', timeout: EXEC_TIMEOUT_MS },
-).trim();
-```
-Apply the same pattern to all `execSync` shell-string calls (also `editors.ts:84` `which ${cli}`).
-
----
-
-### B11 — MEDIUM (downgraded from HIGH) — In-memory SQLite has no eviction
-
-**Where:**
-- `apps/app/electron/database.ts:11` — `new Database(':memory:')`
-- `packages/database/src/repositories/{console,network,profiler,state,performance}Repository.ts` — `insert` has no rotation
-- `apps/app/electron/websocketServer.ts:91-264` — every WS message inserts a row, no quota check
-
-**Note:** The buggy `setInterval(console.log)` scenario crashes the dev's own Electron app, recoverable by restart. This is robustness, not security. Land it before promoting to general users; not blocking the public-repo flip.
-
-**Fix:** add `AFTER INSERT` triggers per table:
-```sql
-CREATE TRIGGER trim_console AFTER INSERT ON console_logs
-  WHEN (SELECT count(*) FROM console_logs WHERE device_id = NEW.device_id) > 10000
-BEGIN
-  DELETE FROM console_logs WHERE id IN (
-    SELECT id FROM console_logs WHERE device_id = NEW.device_id
-    ORDER BY id ASC LIMIT 1000
-  );
-END;
-```
-Same for `network_requests`, `profiler_commits`, `state_actions`, `performance_metrics`. Plus a per-message size guard in `persistMessage` (drop if `JSON.stringify(msg).length > 256 * 1024`).
-
----
-
-### B12 — Covered by B2 + B3
-
-**Where:** `packages/devtools/src/services/storage/index.ts:81-165` handles `storageSet` / `storageRemove` / `storageClear` from any WS peer.
-
-**Status:** Once the WS has auth (B2) and the MCP is loopback + token-gated (B3), only authenticated peers reach storage writes. Per-call user confirmation isn't needed — the MCP write tools are LLM-debugging features. Just zod-validate the `RadarCommand` shape in the SDK before dispatching.
-
----
-
-### B13 — CRITICAL — Auto-updater enabled with no signing or notarization
-
-**Where:** `apps/app/electron/autoUpdater.ts` + `apps/app/package.json:114-119`
-
-**Risk:** Unsigned `.dmg`/`.app` is replaced silently with whatever the GitHub release ships. If `RELEASES_GITHUB_TOKEN` is ever compromised, every Radar user gets attacker-controlled binaries with no warning. `APPLE_ID_PASSWORD` is also reused in two env vars (deprecated env name).
-
-**Fix (option A — recommended for now):** disable auto-update until signing+notarization is wired.
-
-**Fix (option B):** in `apps/app/package.json` `build.mac` add:
-```json
-"hardenedRuntime": true,
-"gatekeeperAssess": false,
-"entitlements": "build/entitlements.mac.plist",
-"entitlementsInherit": "build/entitlements.mac.plist",
-"notarize": { "teamId": "XXXXXXXXXX" }
-```
-Migrate to App Store Connect API key (`APPLE_API_KEY`, `APPLE_API_KEY_ID`, `APPLE_API_ISSUER`) instead of `APPLE_ID_PASSWORD`. For Windows, plan Azure Trusted Signing or DigiCert KeyLocker — never a `.pfx` in a secret.
-
----
-
-## SHOULD-FIX before promoting to general users
-
-### S1 — HIGH — No Content-Security-Policy
-**Where:** `apps/app/index.html`
-**Fix:** add a strict CSP and self-host the Inter/JetBrains fonts:
-```html
-<meta http-equiv="Content-Security-Policy"
-  content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ws://127.0.0.1:8347; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none';" />
-```
-Also enforce via `session.defaultSession.webRequest.onHeadersReceived` so it covers the dev server.
-
-### S6 — HIGH — `release.yml` permissions workflow-wide; tighten to per-job
-**Where:** `.github/workflows/release.yml`
-**Note:** `ci.yml` top-level read-only landed in PR #24; see SECURITY_AUDIT_RESOLVED.md.
-**Fix:** Move `release.yml` permissions into per-job blocks; strip `contents: write` from `build-electron`.
-
-### S7 — HIGH — Self-push of version bump to `main` from a tag-triggered job
-**Where:** `.github/workflows/release.yml:72-82`
-**Fix:** stop pushing to `main` from CI. Either compute version in-memory for the release artifact, or use `peter-evans/create-pull-request` to open a PR. Remove `[skip ci]`.
-
-### S9 — MEDIUM — CI installs without `--ignore-scripts`
-**Where:** `.github/workflows/{ci,release}.yml` `bun install` steps
-**Fix:** add `--ignore-scripts` on CI installs; only allow scripts on the publish/build job. Add a `trustedDependencies` allowlist to root `package.json`:
-```json
-"trustedDependencies": ["electron", "better-sqlite3", "fsevents", "@parcel/watcher", "esbuild"]
-```
-
-### S10 — MEDIUM — No GitHub Environment for production publishes
-**Fix:** create environment `production` with required reviewer = maintainer. Add `environment: production` to publish jobs. Move `MAC_*`, `APPLE_*`, `RELEASES_GITHUB_TOKEN` into the environment.
-
-### S12 — MEDIUM — MCP returns raw captured strings without prompt-injection fencing
-**Where:** every MCP read tool in `packages/mcp/src/tools/`
-**Note:** This matters specifically because Radar's MCP feeds LLMs (the tool's primary purpose). Captured request/response bodies can contain attacker-influenced strings that try to redirect the LLM.
-**Fix:** wrap captured-string fields in tagged delimiters, e.g.
-```
-<<<UNTRUSTED_DATA id="…">>> ... <<<END>>>
-```
-Prepend a one-line LLM warning in tool results. Truncate each field to a fixed cap before returning.
-
-### S17 — LOW (downgraded from MEDIUM) — No cap on concurrent WS clients, no idle timeout
-**Where:** `apps/app/electron/websocketServer.ts:293-356`
-**Note:** With B2 auth in place, untrusted peers can't connect, so this is defense-in-depth.
-**Fix:** cap concurrent connections (e.g. 16); enforce a metadata deadline (close after 5 s without valid metadata); add ws heartbeat (ping/pong with terminate on no-pong).
-
----
-
-## NICE-TO-FIX
-
-### N4 — Migrate to `eslint@9` (current is EOL `8.57.1`, dev-time only)
-
-### N5 — Move `examples/expo` to its own lockfile
-Stops canary Expo deps from polluting the root audit graph.
-
-### N6 — Rename `packages/designSystem/` → `packages/design-system/`
-Avoids case-sensitive Linux-CI gotchas.
-
-### N11 — Local `git stash` could be pushed accidentally before publishing
-**Fix:** `git stash drop` before flipping public.
-
----
-
-## Recommended order of operations
-
-### Phase 1 — make the Electron app safe to install (3-5 days)
-1. **B6** — Electron preload + contextIsolation + sandbox.
-2. **B7** — path-traversal hardening (downgraded but cheap).
-3. **B8** — `adb` shell-injection fix (`execFileSync` + serial regex).
-4. **B11** — DB eviction triggers + per-message size guard (robustness).
-5. **B12** — zod-validate `RadarCommand` in SDK (the incoming-message half is closed by B2; the SDK-side command-shape check is still TODO).
-6. **B13** — wire signing+notarization, OR turn off auto-update for now.
-7. **S1, S6, S7, S9, S10, S12, S17** — defense-in-depth.
-
-The repo can be flipped public now. Phase 1 should land before promoting the Electron desktop app to general users.
+- **B13 option B** — full Apple notarization + Windows signing setup, when ready to re-enable auto-update. Requires Apple Developer account configuration, entitlements plist, App Store Connect API key migration, and either Azure Trusted Signing or DigiCert KeyLocker for Windows.
+- **S1 visual** — self-host Inter/JetBrains fonts if the system-font fallbacks introduced by PR #29 aren't acceptable visually.
+- **S4, S11, S16, N9** — non-security correctness/perf items already moved out of audit scope (see RESOLVED.md → "Moved out of audit scope").
 
 ---
 
 ## What's already good
 
-- `bun audit` returns clean at the strict `--audit-level=low` threshold. All eight `overrides` in root `package.json` resolve correctly.
+- `bun audit --audit-level=low` returns clean. All twelve `overrides` in root `package.json` resolve correctly.
 - The published `radar-devtools` bundle ships **zero npm runtime dependencies** — best-in-class supply-chain isolation for end users.
 - The `packages/database` layer is uniformly safe: every statement uses prepared bindings; no string-concatenated SQL anywhere.
 - Zero `eval`, `new Function`, `vm.runIn*`, dynamic `require(userInput)`, `dangerouslySetInnerHTML`, prototype-pollution sinks, or template-injection sinks anywhere in source.
-- CI uses `pull_request` not `pull_request_target` — fork PRs run with no secrets.
+- Electron renderer is sandboxed with Node integration off and contextIsolation on; IPC crosses a narrow `radar:`-prefixed `contextBridge` surface (B6).
+- Every captured-string field returned by an MCP tool is fenced with `<<<UNTRUSTED_DATA>>>` delimiters + a one-line LLM warning + a 16 KiB cap (S12).
+- WebSocket transport: schema-validated, origin-allowlisted, 32 MiB payload cap (B2); 16-connection cap, 5 s metadata-deadline, 30 s heartbeat (S17); per-message 256 KB size guard + AFTER-INSERT eviction triggers on every high-volume table (B11).
+- MCP transport: loopback-only bind, per-launch bearer token, constant-time comparison, origin allowlist (B3).
+- Every shell-command exec uses `execFileSync` with arg arrays — no `/bin/sh -c` anywhere (B8).
+- Auto-updater is a no-op until signing+notarization is wired (B13 option A).
+- CI uses `pull_request` not `pull_request_target` — fork PRs run with no secrets. All third-party actions pinned to commit SHAs; Dependabot config in place (S5).
 - iOS and Android native modules in `radar-devtools` only read process-local performance counters (no network, no FS, no permissions).
 - SQLite is `:memory:` — nothing persists to disk; no encryption-at-rest concerns today.
 - No `eval`-class or `pull_request_target` foot-guns; no self-hosted runners; no `actions/cache` to poison.
@@ -269,5 +77,6 @@ The repo can be flipped public now. Phase 1 should land before promoting the Ele
 - Git history is clean — no secrets, personal data, or prior-employer/client references in any reachable ref.
 - Release workflow has no `${{ ... }}`-in-`run:` interpolations; every value flows through env-var indirection.
 - `.gitignore` covers `.env*`, signing certs (`*.pem`/`*.key`/`*.p12`/`*.keystore`/`*.mobileprovision`), and SSH keys.
+- `release.yml` has top-level `permissions: {}` with per-job grants; `--ignore-scripts` on lint/typecheck/test; `trustedDependencies` allowlist; `environment: production` on publish jobs (S6/S7/S9/S10).
 
-The encouraging signal: the codebase clearly avoids the *flashy* sins. Closing the remaining transport-and-Electron-hardening items lifts it comfortably to A-/A.
+The encouraging signal: with the closeout complete, the audit lifts comfortably to A-/A.

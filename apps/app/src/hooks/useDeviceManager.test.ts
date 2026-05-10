@@ -12,7 +12,7 @@ vi.mock('../services', () => ({
   sendCommand: vi.fn(),
 }));
 
-const mockedIpc = ipcRenderer as {
+const mockedIpc = ipcRenderer as unknown as {
   on: ReturnType<typeof vi.fn>;
   removeListener: ReturnType<typeof vi.fn>;
 };

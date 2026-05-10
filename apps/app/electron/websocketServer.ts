@@ -30,6 +30,24 @@ export type WebSocketServerHandle = {
 const WS_PORT = 8347;
 const WS_HOST = '0.0.0.0';
 const WS_MAX_PAYLOAD_BYTES = 32 * 1024 * 1024;
+const WS_MAX_PERSIST_BYTES = 256 * 1024;
+// profilerSession is a one-shot batched payload at Stop-Profiling time —
+// bounded by user action, not by adversarial streaming. Long sessions
+// routinely exceed 256 KB; cap at 8 MB so the Stop button works.
+const WS_MAX_PERSIST_BYTES_PROFILER = 8 * 1024 * 1024;
+const WS_MAX_CONNECTIONS = 16;
+const WS_METADATA_DEADLINE_MS = 5_000;
+// Periodic sweep that closes connections with no inbound traffic in the
+// last LIVENESS_TIMEOUT window. No pings sent — RN's WebSocket polyfill
+// on iOS doesn't reliably surface pong events, and active RN clients
+// stream performanceMetric every 500ms so they keep refreshing liveness
+// on data alone. The timeout is generous enough that a legit idle
+// developer (rare) won't be cut, but still reclaims slots from crashed
+// or network-partitioned clients before they pile up against the 16-
+// connection cap.
+const WS_LIVENESS_CHECK_INTERVAL_MS = 30_000;
+const WS_LIVENESS_TIMEOUT_MS = 5 * 60_000;
+const WS_TRY_AGAIN_LATER_CODE = 1013;
 
 const NOTIFICATION_CHANNELS: Record<string, string> = {
   console: 'radar:db:console:changed',
@@ -68,6 +86,17 @@ const persistMessage = (
   message: RadarMessage,
 ): void => {
   try {
+    const maxBytes =
+      message.type === 'profilerSession'
+        ? WS_MAX_PERSIST_BYTES_PROFILER
+        : WS_MAX_PERSIST_BYTES;
+    const messageBytes = JSON.stringify(message).length;
+    if (messageBytes > maxBytes) {
+      console.warn(
+        `[radar] Dropping oversized ${message.type} message from device ${deviceId} (${messageBytes} > ${maxBytes} bytes)`,
+      );
+      return;
+    }
     switch (message.type) {
       case 'console': {
         db.console.insert({
@@ -275,10 +304,51 @@ export const startWebSocketServer = (
     console.log(`[radar] WebSocket server listening on port ${WS_PORT}`);
   });
 
+  const metadataDeadlines = new WeakMap<WsWebSocket, NodeJS.Timeout>();
+  const lastSeen = new WeakMap<WsWebSocket, number>();
+
+  const livenessCheckInterval = setInterval(() => {
+    const now = Date.now();
+    for (const client of wss.clients) {
+      const last = lastSeen.get(client) ?? now;
+      if (now - last > WS_LIVENESS_TIMEOUT_MS) {
+        console.warn(
+          `[radar] Terminating idle WebSocket: no frames received in ${WS_LIVENESS_TIMEOUT_MS}ms`,
+        );
+        client.terminate();
+      }
+    }
+  }, WS_LIVENESS_CHECK_INTERVAL_MS);
+
   wss.on('connection', socket => {
+    if (wss.clients.size > WS_MAX_CONNECTIONS) {
+      console.warn(
+        `[radar] Rejected WebSocket: connection cap reached (${WS_MAX_CONNECTIONS})`,
+      );
+      socket.close(WS_TRY_AGAIN_LATER_CODE, 'try again later');
+      return;
+    }
+
     console.log('[radar] Client connected, waiting for metadata...');
 
+    lastSeen.set(socket, Date.now());
+
+    const deadline = setTimeout(() => {
+      if (!socketToDeviceId.has(socket)) {
+        console.warn(
+          '[radar] Closing socket: no metadata received within deadline',
+        );
+        try {
+          socket.close(WS_TRY_AGAIN_LATER_CODE, 'metadata deadline');
+        } catch {
+          // ignore — socket may already be closing
+        }
+      }
+    }, WS_METADATA_DEADLINE_MS);
+    metadataDeadlines.set(socket, deadline);
+
     socket.on('message', data => {
+      lastSeen.set(socket, Date.now());
       const result = (() => {
         try {
           return radarMessageSchema.safeParse(JSON.parse(data.toString()));
@@ -305,6 +375,12 @@ export const startWebSocketServer = (
             '[radar] Rejected duplicate metadata from already-registered socket',
           );
           return;
+        }
+
+        const pending = metadataDeadlines.get(socket);
+        if (pending) {
+          clearTimeout(pending);
+          metadataDeadlines.delete(socket);
         }
 
         const detected = getDetectedDevices();
@@ -366,6 +442,12 @@ export const startWebSocketServer = (
     });
 
     socket.on('close', () => {
+      const pending = metadataDeadlines.get(socket);
+      if (pending) {
+        clearTimeout(pending);
+        metadataDeadlines.delete(socket);
+      }
+
       const deviceId = socketToDeviceId.get(socket);
       if (!deviceId) {
         console.log('[radar] Unregistered client disconnected');
@@ -403,6 +485,7 @@ export const startWebSocketServer = (
       device?.socket.send(data);
     },
     close: () => {
+      clearInterval(livenessCheckInterval);
       wss.close();
     },
   };

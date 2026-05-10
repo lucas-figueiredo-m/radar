@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpContext } from '../types';
+import { fenceUntrusted } from './fenceUntrusted';
+import { UNTRUSTED_DATA_WARNING } from './untrustedDataWarning';
 
 export const registerGetProfilerData = (
   server: McpServer,
@@ -29,17 +31,20 @@ export const registerGetProfilerData = (
           commitIndex: c.commit_index,
           duration: c.duration,
           timestamp: c.timestamp,
-          components: JSON.parse(c.components),
+          components: fenceUntrusted(
+            JSON.parse(c.components),
+            `profiler.session[${sessionId}].commit[${c.commit_index}].components`,
+          ),
         }));
         return {
           content: [
             {
               type: 'text' as const,
-              text: JSON.stringify(
+              text: `${UNTRUSTED_DATA_WARNING}\n${JSON.stringify(
                 { sessionId, commitCount: parsed.length, commits: parsed },
                 null,
                 2,
-              ),
+              )}`,
             },
           ],
         };
@@ -63,14 +68,17 @@ export const registerGetProfilerData = (
         commitIndex: c.commit_index,
         duration: c.duration,
         timestamp: c.timestamp,
-        components: JSON.parse(c.components),
+        components: fenceUntrusted(
+          JSON.parse(c.components),
+          `profiler.session[${latestSession.id}].commit[${c.commit_index}].components`,
+        ),
       }));
 
       return {
         content: [
           {
             type: 'text' as const,
-            text: JSON.stringify(
+            text: `${UNTRUSTED_DATA_WARNING}\n${JSON.stringify(
               {
                 sessionId: latestSession.id,
                 deviceId: latestSession.device_id,
@@ -80,7 +88,7 @@ export const registerGetProfilerData = (
               },
               null,
               2,
-            ),
+            )}`,
           },
         ],
       };

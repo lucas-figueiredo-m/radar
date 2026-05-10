@@ -1,35 +1,8 @@
-import { dialog } from 'electron';
-import { autoUpdater } from 'electron-updater';
-
-export const setupAutoUpdater = () => {
-  autoUpdater.autoDownload = true;
-  autoUpdater.autoInstallOnAppQuit = true;
-
-  autoUpdater.on('update-available', info => {
-    console.log('Update available:', info.version);
-  });
-
-  autoUpdater.on('update-downloaded', info => {
-    dialog
-      .showMessageBox({
-        type: 'info',
-        title: 'Update Ready',
-        message: `Version ${info.version} has been downloaded. Restart to apply the update.`,
-        buttons: ['Restart Now', 'Later'],
-      })
-      .then(result => {
-        if (result.response === 0) {
-          autoUpdater.quitAndInstall();
-        }
-      })
-      .catch((err: unknown) => {
-        console.error('[radar] Failed to show update dialog:', err);
-      });
-  });
-
-  autoUpdater.on('error', err => {
-    console.error('Auto-updater error:', err);
-  });
-
-  autoUpdater.checkForUpdatesAndNotify();
+// Auto-updates DISABLED until app signing + notarization land (audit B13).
+// The unsigned .dmg/.app means a compromised RELEASES_GITHUB_TOKEN could
+// silently swap every Radar user's binary. Re-enable only when the macOS
+// hardenedRuntime + notarize block in package.json is wired AND APPLE_API_KEY
+// env vars are set. See SECURITY_AUDIT.md → B13 option B for the requirements.
+export const setupAutoUpdater = (): void => {
+  return;
 };

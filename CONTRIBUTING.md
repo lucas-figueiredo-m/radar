@@ -54,7 +54,7 @@ radar/
     database/       # SQLite persistence layer
     mcp/            # MCP server for AI tool integration
     types/          # Shared TypeScript types
-    designSystem/   # Tailwind design tokens
+    design-system/  # Tailwind design tokens
 ```
 
 ## Development Workflow

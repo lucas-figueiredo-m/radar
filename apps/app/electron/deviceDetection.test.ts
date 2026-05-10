@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { BrowserWindow } from 'electron';
 
-const { mockExecSync } = vi.hoisted(() => ({
-  mockExecSync: vi.fn(),
+const { mockExecFileSync } = vi.hoisted(() => ({
+  mockExecFileSync: vi.fn(),
 }));
 
 vi.mock('node:child_process', () => ({
-  default: { execSync: mockExecSync },
-  execSync: mockExecSync,
+  default: { execFileSync: mockExecFileSync },
+  execFileSync: mockExecFileSync,
 }));
 
 vi.mock('electron', () => ({
@@ -36,6 +36,9 @@ emulator-5554          device product:sdk_gphone model:Pixel_6 transport_id:1
 emulator-5556          device product:sdk_gphone transport_id:2
 `;
 
+const argsEqual = (a: string[], b: string[]): boolean =>
+  a.length === b.length && a.every((v, i) => v === b[i]);
+
 describe('startDeviceDetection', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -46,7 +49,7 @@ describe('startDeviceDetection', () => {
     vi.useRealTimers();
   });
 
-  const setupExecSync = ({
+  const setupExecFileSync = ({
     xcrunCheckOk = true,
     adbCheckOk = true,
     simctlJson = SIMCTL_BOOTED_JSON,
@@ -57,40 +60,52 @@ describe('startDeviceDetection', () => {
     simctlJson?: string;
     adbOutput?: string;
   } = {}) => {
-    mockExecSync.mockImplementation((command: string) => {
-      const cmd = String(command);
+    mockExecFileSync.mockImplementation(
+      (command: string, args: string[] = []) => {
+        if (
+          command === 'xcrun' &&
+          argsEqual(args, ['simctl', 'list', '--json'])
+        ) {
+          if (!xcrunCheckOk) throw new Error('xcrun not found');
+          return '';
+        }
 
-      if (cmd === 'xcrun simctl list --json') {
-        if (!xcrunCheckOk) throw new Error('xcrun not found');
+        if (command === 'adb' && argsEqual(args, ['version'])) {
+          if (!adbCheckOk) throw new Error('adb not found');
+          return '';
+        }
+
+        if (
+          command === 'xcrun' &&
+          argsEqual(args, ['simctl', 'list', 'devices', 'booted', '--json'])
+        ) {
+          return simctlJson;
+        }
+
+        if (command === 'adb' && argsEqual(args, ['devices', '-l'])) {
+          return adbOutput;
+        }
+
+        if (
+          command === 'adb' &&
+          args[0] === '-s' &&
+          args[2] === 'shell' &&
+          args[3] === 'getprop' &&
+          args[4] === 'ro.build.version.sdk'
+        ) {
+          const serial = args[1];
+          if (serial === 'emulator-5554') return '34\n';
+          if (serial === 'emulator-5556') return '33\n';
+          return '34\n';
+        }
+
         return '';
-      }
-
-      if (cmd === 'adb version') {
-        if (!adbCheckOk) throw new Error('adb not found');
-        return '';
-      }
-
-      if (cmd === 'xcrun simctl list devices booted --json') {
-        return simctlJson;
-      }
-
-      if (cmd === 'adb devices -l') {
-        return adbOutput;
-      }
-
-      if (cmd.startsWith('adb -s') && cmd.includes('ro.build.version.sdk')) {
-        const serial = cmd.split(' ')[2];
-        if (serial === 'emulator-5554') return '34\n';
-        if (serial === 'emulator-5556') return '33\n';
-        return '34\n';
-      }
-
-      return '';
-    });
+      },
+    );
   };
 
   it('sends cli-status with both tools available', () => {
-    setupExecSync();
+    setupExecFileSync();
     const win = createMockWin();
 
     startDeviceDetection(win);
@@ -102,7 +117,7 @@ describe('startDeviceDetection', () => {
   });
 
   it('marks xcrun unavailable when check throws', () => {
-    setupExecSync({ xcrunCheckOk: false });
+    setupExecFileSync({ xcrunCheckOk: false });
     const win = createMockWin();
 
     startDeviceDetection(win);
@@ -118,7 +133,7 @@ describe('startDeviceDetection', () => {
   });
 
   it('marks adb unavailable when check throws', () => {
-    setupExecSync({ adbCheckOk: false });
+    setupExecFileSync({ adbCheckOk: false });
     const win = createMockWin();
 
     startDeviceDetection(win);
@@ -133,7 +148,7 @@ describe('startDeviceDetection', () => {
   });
 
   it('parses booted iOS simulators with correct OS versions', () => {
-    setupExecSync();
+    setupExecFileSync();
     const win = createMockWin();
 
     startDeviceDetection(win);
@@ -159,7 +174,7 @@ describe('startDeviceDetection', () => {
   });
 
   it('filters out non-booted iOS simulators', () => {
-    setupExecSync();
+    setupExecFileSync();
     const win = createMockWin();
 
     startDeviceDetection(win);
@@ -174,7 +189,7 @@ describe('startDeviceDetection', () => {
   });
 
   it('parses Android devices from adb output', () => {
-    setupExecSync();
+    setupExecFileSync();
     const win = createMockWin();
 
     startDeviceDetection(win);
@@ -202,7 +217,7 @@ describe('startDeviceDetection', () => {
   });
 
   it('falls back to serial as name when model is missing in adb output', () => {
-    setupExecSync({
+    setupExecFileSync({
       adbOutput: `List of devices attached
 emulator-5554          device transport_id:1
 `,
@@ -221,7 +236,7 @@ emulator-5554          device transport_id:1
   });
 
   it('skips iOS detection when xcrun is unavailable', () => {
-    setupExecSync({ xcrunCheckOk: false });
+    setupExecFileSync({ xcrunCheckOk: false });
     const win = createMockWin();
 
     startDeviceDetection(win);
@@ -236,7 +251,7 @@ emulator-5554          device transport_id:1
   });
 
   it('skips Android detection when adb is unavailable', () => {
-    setupExecSync({ adbCheckOk: false });
+    setupExecFileSync({ adbCheckOk: false });
     const win = createMockWin();
 
     startDeviceDetection(win);
@@ -251,7 +266,7 @@ emulator-5554          device transport_id:1
   });
 
   it('sends detected-devices on every poll', () => {
-    setupExecSync();
+    setupExecFileSync();
     const win = createMockWin();
 
     startDeviceDetection(win);
@@ -273,7 +288,7 @@ emulator-5554          device transport_id:1
   });
 
   it('returns a cleanup function that clears the interval', () => {
-    setupExecSync();
+    setupExecFileSync();
     const win = createMockWin();
 
     const { cleanup } = startDeviceDetection(win);
@@ -289,7 +304,7 @@ emulator-5554          device transport_id:1
   });
 
   it('exposes current detected devices via getDetectedDevices', () => {
-    setupExecSync();
+    setupExecFileSync();
     const win = createMockWin();
 
     const { getDetectedDevices } = startDeviceDetection(win);
@@ -308,7 +323,7 @@ emulator-5554          device transport_id:1
   });
 
   it('handles invalid JSON from simctl gracefully', () => {
-    setupExecSync({ simctlJson: 'not-json' });
+    setupExecFileSync({ simctlJson: 'not-json' });
     const win = createMockWin();
 
     expect(() => startDeviceDetection(win)).not.toThrow();
@@ -320,5 +335,62 @@ emulator-5554          device transport_id:1
     );
 
     expect(iosDevices).toHaveLength(0);
+  });
+
+  it('uses execFileSync (no shell) when probing Android os version (B8)', () => {
+    setupExecFileSync();
+    const win = createMockWin();
+
+    startDeviceDetection(win);
+
+    const adbCalls = mockExecFileSync.mock.calls.filter(
+      ([command, args]) =>
+        command === 'adb' &&
+        Array.isArray(args) &&
+        (args as string[])[0] === '-s',
+    );
+
+    expect(adbCalls.length).toBeGreaterThan(0);
+    for (const call of adbCalls) {
+      expect(call[0]).toBe('adb');
+      expect(call[1]).toEqual([
+        '-s',
+        expect.any(String),
+        'shell',
+        'getprop',
+        'ro.build.version.sdk',
+      ]);
+    }
+  });
+
+  it('skips Android devices whose serial fails the safe-character regex (B8)', () => {
+    setupExecFileSync({
+      adbOutput: `List of devices attached
+1;touch/tmp/pwn          device product:evil model:Evil_Phone transport_id:1
+emulator-5554          device product:sdk_gphone model:Pixel_6 transport_id:2
+`,
+    });
+    const win = createMockWin();
+
+    startDeviceDetection(win);
+
+    const devices = (win.webContents.send as ReturnType<typeof vi.fn>).mock
+      .calls[1][1];
+    const androidIds = devices
+      .filter((d: { platform: string }) => d.platform === 'android')
+      .map((d: { id: string }) => d.id);
+
+    expect(androidIds).not.toContain('1;touch/tmp/pwn');
+    expect(androidIds).toContain('emulator-5554');
+
+    const adbProbeCalls = mockExecFileSync.mock.calls.filter(
+      ([command, args]) =>
+        command === 'adb' &&
+        Array.isArray(args) &&
+        (args as string[])[0] === '-s',
+    );
+    for (const [, args] of adbProbeCalls) {
+      expect((args as string[])[1]).toMatch(/^[A-Za-z0-9._:-]+$/);
+    }
   });
 });

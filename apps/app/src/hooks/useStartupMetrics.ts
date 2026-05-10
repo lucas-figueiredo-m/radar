@@ -1,48 +1,37 @@
-import { useCallback, useState } from 'react';
-import type { StartupMetricsMessage } from '@radar/types';
+import { useCallback } from 'react';
+import type { StartupMetricRow } from '@radar/database';
+import { databaseClient } from '../services';
 import type { StartupData } from '../types';
+import { useDatabaseSubscription } from './useDatabaseSubscription';
 
-type StampedMessage = Record<string, unknown> & {
-  type: string;
-  deviceId: string;
-};
-
-type StampedStartupMessage = StartupMetricsMessage & {
-  deviceId: string;
-};
+const rowToStartup = (row: StartupMetricRow): StartupData => ({
+  jsBundleEval: row.js_bundle_eval,
+  nativeLaunch: row.native_launch,
+  tti: row.tti,
+  deviceId: row.device_id,
+});
 
 export const useStartupMetrics = (selectedDeviceId: string | null) => {
-  const [startupMap, setStartupMap] = useState<Map<string, StartupData>>(
-    new Map(),
-  );
-
-  const handleMessage = useCallback(
-    (_event: unknown, message: StampedMessage) => {
-      if (message.type !== 'startupMetrics') return;
-
-      const msg = message as StampedStartupMessage;
-
-      setStartupMap(prev => {
-        const next = new Map(prev);
-        next.set(msg.deviceId, {
-          jsBundleEval: msg.jsBundleEval,
-          nativeLaunch: msg.nativeLaunch,
-          tti: msg.tti,
-          deviceId: msg.deviceId,
-        });
-        return next;
-      });
+  const queryFn = useCallback(
+    async (deviceId: string): Promise<StartupData | null> => {
+      const row = await databaseClient.startup.get(deviceId);
+      return row ? rowToStartup(row) : null;
     },
     [],
   );
 
-  const startupData = selectedDeviceId
-    ? startupMap.get(selectedDeviceId) ?? null
-    : null;
+  const { data: startupData, refetch } = useDatabaseSubscription(
+    'radar:db:startup:changed',
+    selectedDeviceId,
+    queryFn,
+    null as StartupData | null,
+  );
 
-  const clearStartup = useCallback(() => {
-    setStartupMap(new Map());
-  }, []);
+  const clearStartup = useCallback(async () => {
+    if (!selectedDeviceId) return;
+    await databaseClient.startup.clear(selectedDeviceId);
+    refetch();
+  }, [selectedDeviceId, refetch]);
 
-  return { startupData, handleMessage, clearStartup };
+  return { startupData, clearStartup };
 };

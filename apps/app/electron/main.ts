@@ -6,9 +6,11 @@ import {
   Menu,
   nativeImage,
   clipboard,
+  session,
 } from 'electron';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { resolveEditorTarget } from './resolveEditorTarget';
 import {
   detectEditors,
   getPreferredEditor,
@@ -52,8 +54,13 @@ const createWindow = () => {
     height: 800,
     title: 'Radar',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+      experimentalFeatures: false,
+      preload: path.join(__dirname, 'preload.js'),
     },
   });
 
@@ -354,10 +361,13 @@ ipcMain.handle(
       };
     }
 
-    const absolutePath = path.join(root, payload.file);
+    const resolution = resolveEditorTarget(root, payload.file, payload.line);
+    if (!resolution.ok) {
+      return { success: false, error: resolution.error };
+    }
 
     try {
-      openInEditor(preferred, absolutePath, payload.line);
+      openInEditor(preferred, resolution.absolutePath, resolution.line);
       return { success: true };
     } catch (err) {
       return { success: false, error: String(err) };
@@ -365,7 +375,22 @@ ipcMain.handle(
   },
 );
 
+// Production CSP — strict. Skipped entirely in dev mode because Vite's HMR
+// injects an inline `<script type="module">` for React Fast Refresh that
+// can't be unblocked via 'unsafe-inline' (CSP3 ignores 'unsafe-inline' for
+// inline module scripts; only nonce/hash work, which Vite doesn't supply).
+const CSP_PROD =
+  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none';";
+
 app.whenReady().then(() => {
+  if (!VITE_DEV_SERVER_URL) {
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+      const responseHeaders = { ...details.responseHeaders };
+      responseHeaders['Content-Security-Policy'] = [CSP_PROD];
+      callback({ responseHeaders });
+    });
+  }
+
   createWindow();
   createTray();
 

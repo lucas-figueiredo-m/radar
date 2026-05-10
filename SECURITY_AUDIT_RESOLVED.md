@@ -234,6 +234,71 @@ Origin and token checks are extracted into pure helpers (`verifyMcpOrigin`, `ver
 
 ---
 
+### B6 — DONE 2026-05-09 — Electron renderer hardened (preload + contextIsolation + sandbox)
+
+**Where:** `apps/app/electron/main.ts`, `apps/app/electron/preload.ts` (new), `apps/app/src/services/ipc.ts`, `apps/app/vite.config.ts`
+
+**Status:** `BrowserWindow.webPreferences` flipped from the legacy `nodeIntegration: true` / `contextIsolation: false` configuration to the modern hardened defaults:
+
+```ts
+webPreferences: {
+  nodeIntegration: false,
+  contextIsolation: true,
+  sandbox: true,
+  webSecurity: true,
+  allowRunningInsecureContent: false,
+  experimentalFeatures: false,
+  preload: path.join(__dirname, 'preload.js'),
+},
+```
+
+The new `electron/preload.ts` exposes a narrow typed surface via `contextBridge.exposeInMainWorld('radar', { invoke, send, on })`. Channel names are allowlisted to the `radar:` prefix — any attempt to invoke/send/listen on a non-allowed channel is rejected (invoke rejects, send/on become no-ops). Listeners are wrapped to strip the raw `IpcRendererEvent` before crossing the bridge — only the payload args reach renderer code, so the renderer can never reach back into `event.sender` or other Electron internals. `on(channel, listener)` returns an unsubscribe function; the renderer-side `ipcRenderer` shim in `services/ipc.ts` keeps the `(channel, listener)` / `removeListener` API the existing hooks depend on by holding the listener-to-unsubscribe mapping in a renderer-local `Map`.
+
+`vite-plugin-electron-renderer` was removed from `vite.config.ts` (it was the plugin that previously made `(window as any).require('electron')` work in the renderer — no longer needed once Node integration is off). A second `vite-plugin-electron` entry was added so `electron/preload.ts` is bundled to `dist-electron/preload.js` alongside the main process bundle.
+
+**Why this matters:** Before this change, any XSS-equivalent gadget anywhere in the renderer (a future markdown viewer, a JSON viewer that uses `eval`, a captured URL in an `<a href>`, or a renderer-side dependency compromise) became RCE on the developer's machine via `window.require('child_process').exec(...)`. Captured data from a debugged React Native app is *untrusted* — a malicious dep in the dev's RN app could send poisoned payloads through the WebSocket and into the renderer. With Node integration off and contextIsolation on, the renderer has no `require`, no Node globals, and no path to spawn processes; `sandbox: true` additionally drops the renderer process to the OS sandbox so even native code execution within the renderer is contained.
+
+**Verified:** `bun run typecheck` clean; `bun run lint` clean; `bun run build` produces `dist-electron/preload.js` (0.43 kB) alongside `dist-electron/main.js`; full workspace test suite green (radar-app 234 + radar-devtools 171 + @radar/mcp 18 = 423 tests). End-to-end manual smoke pending the maintainer's local boot.
+
+---
+
+### B7/B8/B11/B12/B13/S1/S6 (release.yml half)/S7/S9/S10/S12/S17/N4/N5/N6/N11 — DONE 2026-05-09 — Audit closeout sweep landed (8 PRs stacked on B6)
+
+**Where:** see per-PR file lists below.
+
+**Status:** Eight PRs (#26–#33) opened by a 6-agent team and stacked on the `security/b6-electron-preload-context-isolation` integration branch close every remaining BLOCKER, SHOULD-FIX, and NICE-TO-FIX item from the active audit. PRs target B6 rather than `main` so the maintainer can merge them all into B6, smoke-test the integrated state once, then merge B6 → `main` as a single integration commit (PR #25).
+
+**Per-PR breakdown:**
+
+- **PR #26 (B12)** — `radarCommandSchema` (zod `discriminatedUnion`) added to `packages/types/src/schemas.ts` mirroring the existing `radarMessageSchema` from B2; SDK's `connection.ts` `safeParse`s every inbound payload before invoking the command handler, drops on parse fail with zod issues logged. New `connection.test.ts` covers valid forward + 3 drop paths.
+- **PR #27 (B13)** — option A: `setupAutoUpdater()` is a no-op early-return; `electron-updater` import dropped; re-enable gate documented at top of file. 1-line `SECURITY.md` note for users to verify checksums on releases.
+- **PR #28 (S6/S7/S9/S10)** — `release.yml` `permissions: {}` top-level + per-job; S7 option (a): in-memory version sync only, commit-back step removed; `--ignore-scripts` on lint/typecheck/test/audit jobs only; `trustedDependencies` allowlist added to root `package.json`; `environment: production` on publish jobs (secrets already in the GitHub Environment per the 2026-05-05 UI configuration).
+- **PR #29 (B7/B8/S1)** — B7 path-traversal validation extracted to `apps/app/electron/resolveEditorTarget.ts` (rejects absolute / NUL / `..`; `realpathSync` + prefix check; integer-validates line). B8 `execFileSync` everywhere (`adb` + `editors.ts:84` `which`); serial regex `/^[A-Za-z0-9._:-]+$/`. S1 strict CSP enforced via `session.defaultSession.webRequest.onHeadersReceived` in production; **dev mode skips CSP injection entirely** (Vite's React-Refresh injects an inline `<script type="module">` that CSP `'unsafe-inline'` cannot unblock for ES modules — `unsafe-inline` is ignored for inline modules per CSP3, only nonce/hash work and Vite doesn't supply one). The original meta-tag CSP added in `index.html` was removed in the same follow-up. Google Fonts CDN `<link>`s dropped; the design-system CSS already has system-font fallbacks (`Inter`/`JetBrains Mono` self-hosting tracked as a visual follow-up).
+- **PR #30 (B11/S17)** — `AFTER INSERT` trim triggers on `console_logs`, `network_requests`, `profiler_commits`, `state_actions`, `performance_metrics` with per-device caps (10k for most, 5k for profiler). 256 KB per-message size guard in `persistMessage` (drops oversized payloads with a warn log). WS connection cap at 16 (close 1013 on overflow), 5 s metadata-deadline timer, 30 s `ping`/`pong` heartbeat with `terminate()` on no-pong.
+- **PR #31 (S12)** — `fenceUntrusted(value, id)` helper wraps captured-string fields in `<<<UNTRUSTED_DATA id="…">>>...<<<END>>>` with a 16 KiB byte cap, `<<<TRUNCATED original_length=NNNN>>>` marker, and delimiter/id sanitization (so a malicious payload can't break out of the wrapping). `UNTRUSTED_DATA_WARNING` constant prepended to each tool's textual response. Wired into 10 read tools (console, network ×2, component tree, inspect component, state ×2, storage, profiler, app overview); intentionally skipped numeric-only tools (performance, startup) and all command tools.
+- **PR #32 (N4/N5)** — ESLint 8.57.1 (EOL) → 9.39.4 across the workspace. A single root `eslint.config.mjs` (flat config) replaces 5 `.eslintrc.js` files; React layer scoped to `apps/app/**`. `examples/expo` removed from the root `workspaces` glob; given its own `bun.lock` (root lockfile shrunk 3,826 → 3,354 lines).
+- **PR #33 (N6)** — `packages/designSystem/` → `packages/design-system/`. Folder rename only; the package was already published as `@radar/design-system`. Avoids case-sensitive Linux-CI gotchas where `designSystem` would resolve differently than `design-system` depending on filesystem case sensitivity.
+- **N11** — local stashes from cross-agent worktree contamination (one from `runtime-limits`, two from `mcp-fencing`) verified-and-dropped after the corresponding PRs landed; their contents were duplicates of work already committed on the agents' own branches. `git stash list` is empty.
+
+**Plus dep-override commit `56c05af` on B6** — once the closeout PRs merged into B6, `bun audit --audit-level=low` flagged 8 transitive vulnerabilities, none from first-party Radar code:
+
+| Advisory | Severity | Dep path |
+|---|---|---|
+| `fast-xml-builder` GHSA-5wm8-gmm8-39j9 + GHSA-45c6-75p6-83cc | high + moderate | `RadarTestApp → @react-native-community/cli → fast-xml-builder` |
+| `fast-uri` GHSA-v39h-62p7-jpjc + GHSA-q3j6-qgpj-74h6 | high ×2 | `@radar/mcp → @modelcontextprotocol/sdk → fast-uri` and `radar-app → electron-builder → fast-uri` |
+| `@babel/plugin-transform-modules-systemjs` GHSA-fv7c-fp4j-7gwp | high | `RadarTestApp → @babel/preset-env → @babel/plugin-transform-modules-systemjs` |
+| `hono` GHSA-qp7p-654g-cw7p, GHSA-hm8q-7f3q-5f36, GHSA-p77w-8qqv-26rm | moderate ×2 + low | `@radar/mcp → @modelcontextprotocol/sdk → hono` |
+
+Closed with four `overrides` entries in root `package.json`: `hono >=4.12.18` (bumped from `>=4.12.14`), `fast-uri >=3.1.2`, `fast-xml-builder >=1.1.7`, `@babel/plugin-transform-modules-systemjs >=7.29.4`. `bun audit --audit-level=low` now returns "No vulnerabilities found".
+
+**Verified:** every PR's tests + lint + typecheck pass on its own branch; the integrated B6 builds + boots successfully (Electron + WebSocket on 8347 + MCP on 127.0.0.1:8348 with bearer-token gate; an iPhone 17 Pro Max sim registered cleanly via the example RN app). Final end-to-end manual smoke (panel exercises, "Open in editor" flow, MCP token tray entry, cross-panel data flow) is the gate before merging PR #25 → `main`.
+
+**Open follow-ups (out of audit scope):**
+- **B13 option B** — full Apple notarization + Windows signing wiring required before re-enabling auto-update.
+- **S1 visual** — self-host Inter/JetBrains fonts if system-font fallbacks aren't visually acceptable.
+
+---
+
 ## Dropped after threat-model review
 
 ### B4 — Default header/body redaction in `radar-devtools` capture

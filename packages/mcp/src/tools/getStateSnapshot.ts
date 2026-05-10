@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpContext } from '../types';
+import { fenceUntrusted } from './fenceUntrusted';
+import { UNTRUSTED_DATA_WARNING } from './untrustedDataWarning';
 
 export const registerGetStateSnapshot = (
   server: McpServer,
@@ -49,7 +51,10 @@ export const registerGetStateSnapshot = (
           name: c.store_name,
           type: c.store_type,
           sliceName: sliceName ?? null,
-          state,
+          state:
+            state !== null
+              ? fenceUntrusted(state, `state.snapshot[${c.store_name}]`)
+              : null,
           timestamp: snapshot?.timestamp ?? null,
         };
       });
@@ -73,7 +78,11 @@ export const registerGetStateSnapshot = (
         content: [
           {
             type: 'text' as const,
-            text: JSON.stringify({ stores: filtered }, null, 2),
+            text: `${UNTRUSTED_DATA_WARNING}\n${JSON.stringify(
+              { stores: filtered },
+              null,
+              2,
+            )}`,
           },
         ],
       };
