@@ -31,6 +31,10 @@ const WS_PORT = 8347;
 const WS_HOST = '0.0.0.0';
 const WS_MAX_PAYLOAD_BYTES = 32 * 1024 * 1024;
 const WS_MAX_PERSIST_BYTES = 256 * 1024;
+// profilerSession is a one-shot batched payload at Stop-Profiling time —
+// bounded by user action, not by adversarial streaming. Long sessions
+// routinely exceed 256 KB; cap at 8 MB so the Stop button works.
+const WS_MAX_PERSIST_BYTES_PROFILER = 8 * 1024 * 1024;
 const WS_MAX_CONNECTIONS = 16;
 const WS_METADATA_DEADLINE_MS = 5_000;
 const WS_HEARTBEAT_INTERVAL_MS = 30_000;
@@ -73,9 +77,14 @@ const persistMessage = (
   message: RadarMessage,
 ): void => {
   try {
-    if (JSON.stringify(message).length > WS_MAX_PERSIST_BYTES) {
+    const maxBytes =
+      message.type === 'profilerSession'
+        ? WS_MAX_PERSIST_BYTES_PROFILER
+        : WS_MAX_PERSIST_BYTES;
+    const messageBytes = JSON.stringify(message).length;
+    if (messageBytes > maxBytes) {
       console.warn(
-        `[radar] Dropping oversized ${message.type} message from device ${deviceId} (>${WS_MAX_PERSIST_BYTES} bytes)`,
+        `[radar] Dropping oversized ${message.type} message from device ${deviceId} (${messageBytes} > ${maxBytes} bytes)`,
       );
       return;
     }

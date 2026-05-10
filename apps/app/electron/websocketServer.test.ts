@@ -268,5 +268,42 @@ describe('websocketServer', () => {
       expect(db.console.insert).toHaveBeenCalledTimes(1);
       handle.close();
     });
+
+    it('persists profilerSession messages above the streaming-type cap (up to 8 MB)', () => {
+      const db = createMockDb();
+      const handle = startWebSocketServer(createMockWin(), () => [], db);
+
+      const socket = connect(currentServer);
+      sendMessage(socket, buildMetadata('device-a'));
+
+      // Build a profilerSession ~1 MB — well above the 256 KB streaming cap
+      // but well under the 8 MB profilerSession cap.
+      const padName = 'x'.repeat(200); // pads each component to fatten the payload
+      const commits = Array.from({ length: 200 }, (_, i) => ({
+        index: i,
+        timestamp: i,
+        duration: 1,
+        components: Array.from({ length: 50 }, (_, j) => ({
+          id: `c-${i}-${j}`,
+          name: `Component-${padName}`,
+          actualDuration: 1,
+          selfBaseDuration: 1,
+          treeBaseDuration: 1,
+          phase: 'update' as const,
+          skipped: false,
+          triggers: [],
+          children: [],
+        })),
+      }));
+
+      sendMessage(socket, {
+        type: 'profilerSession',
+        commits,
+        timestamp: 1,
+      });
+
+      expect(db.profiler.insertSession).toHaveBeenCalledTimes(1);
+      handle.close();
+    });
   });
 });
