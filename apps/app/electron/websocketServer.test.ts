@@ -184,8 +184,8 @@ describe('websocketServer', () => {
     });
   });
 
-  describe('heartbeat', () => {
-    it('pings on the first interval and terminates if no pong before the next', () => {
+  describe('liveness check', () => {
+    it('does not ping (RN pong unreliable; data flow is the liveness signal)', () => {
       const handle = startWebSocketServer(
         createMockWin(),
         () => [],
@@ -195,16 +195,33 @@ describe('websocketServer', () => {
       const socket = connect(currentServer);
       sendMessage(socket, buildMetadata('device-a'));
 
-      vi.advanceTimersByTime(30_000);
-      expect(socket.ping).toHaveBeenCalledTimes(1);
+      // Run several check intervals; verify ping is never called.
+      vi.advanceTimersByTime(30_000 * 4);
+      expect(socket.ping).not.toHaveBeenCalled();
+      handle.close();
+    });
+
+    it('terminates a socket that has sent no frames within the 5-min timeout', () => {
+      const handle = startWebSocketServer(
+        createMockWin(),
+        () => [],
+        createMockDb(),
+      );
+
+      const socket = connect(currentServer);
+      sendMessage(socket, buildMetadata('device-a'));
+
+      // Just under the 5-minute timeout — still alive.
+      vi.advanceTimersByTime(4 * 60_000 + 30_000);
       expect(socket.terminate).not.toHaveBeenCalled();
 
-      vi.advanceTimersByTime(30_000);
+      // Cross the timeout — next check tick terminates.
+      vi.advanceTimersByTime(60_000);
       expect(socket.terminate).toHaveBeenCalledTimes(1);
       handle.close();
     });
 
-    it('keeps the socket alive when pongs arrive between intervals', () => {
+    it('keeps the socket alive when ANY data frame arrives within the timeout', () => {
       const handle = startWebSocketServer(
         createMockWin(),
         () => [],
@@ -214,12 +231,25 @@ describe('websocketServer', () => {
       const socket = connect(currentServer);
       sendMessage(socket, buildMetadata('device-a'));
 
-      vi.advanceTimersByTime(30_000);
-      socket.emit('pong');
-      vi.advanceTimersByTime(30_000);
+      // Active RN client streams a performanceMetric every couple minutes —
+      // each one refreshes liveness, so the socket should never terminate.
+      for (let i = 0; i < 5; i++) {
+        vi.advanceTimersByTime(2 * 60_000);
+        sendMessage(socket, {
+          type: 'performanceMetric',
+          jsFps: 60,
+          uiFps: 60,
+          jsHeap: null,
+          nativeRam: null,
+          cpuUsage: null,
+          droppedFrames: 0,
+          gcEvents: 0,
+          timestamp: i,
+        });
+      }
+      vi.advanceTimersByTime(2 * 60_000);
 
       expect(socket.terminate).not.toHaveBeenCalled();
-      expect(socket.ping).toHaveBeenCalledTimes(2);
       handle.close();
     });
   });

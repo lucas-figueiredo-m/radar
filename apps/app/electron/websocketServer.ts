@@ -37,7 +37,16 @@ const WS_MAX_PERSIST_BYTES = 256 * 1024;
 const WS_MAX_PERSIST_BYTES_PROFILER = 8 * 1024 * 1024;
 const WS_MAX_CONNECTIONS = 16;
 const WS_METADATA_DEADLINE_MS = 5_000;
-const WS_HEARTBEAT_INTERVAL_MS = 30_000;
+// Periodic sweep that closes connections with no inbound traffic in the
+// last LIVENESS_TIMEOUT window. No pings sent — RN's WebSocket polyfill
+// on iOS doesn't reliably surface pong events, and active RN clients
+// stream performanceMetric every 500ms so they keep refreshing liveness
+// on data alone. The timeout is generous enough that a legit idle
+// developer (rare) won't be cut, but still reclaims slots from crashed
+// or network-partitioned clients before they pile up against the 16-
+// connection cap.
+const WS_LIVENESS_CHECK_INTERVAL_MS = 30_000;
+const WS_LIVENESS_TIMEOUT_MS = 5 * 60_000;
 const WS_TRY_AGAIN_LATER_CODE = 1013;
 
 const NOTIFICATION_CHANNELS: Record<string, string> = {
@@ -296,22 +305,20 @@ export const startWebSocketServer = (
   });
 
   const metadataDeadlines = new WeakMap<WsWebSocket, NodeJS.Timeout>();
-  const aliveSockets = new WeakSet<WsWebSocket>();
+  const lastSeen = new WeakMap<WsWebSocket, number>();
 
-  const heartbeatInterval = setInterval(() => {
+  const livenessCheckInterval = setInterval(() => {
+    const now = Date.now();
     for (const client of wss.clients) {
-      if (!aliveSockets.has(client)) {
+      const last = lastSeen.get(client) ?? now;
+      if (now - last > WS_LIVENESS_TIMEOUT_MS) {
+        console.warn(
+          `[radar] Terminating idle WebSocket: no frames received in ${WS_LIVENESS_TIMEOUT_MS}ms`,
+        );
         client.terminate();
-        continue;
-      }
-      aliveSockets.delete(client);
-      try {
-        client.ping();
-      } catch {
-        // ignore — socket may already be closing
       }
     }
-  }, WS_HEARTBEAT_INTERVAL_MS);
+  }, WS_LIVENESS_CHECK_INTERVAL_MS);
 
   wss.on('connection', socket => {
     if (wss.clients.size > WS_MAX_CONNECTIONS) {
@@ -324,10 +331,7 @@ export const startWebSocketServer = (
 
     console.log('[radar] Client connected, waiting for metadata...');
 
-    aliveSockets.add(socket);
-    socket.on('pong', () => {
-      aliveSockets.add(socket);
-    });
+    lastSeen.set(socket, Date.now());
 
     const deadline = setTimeout(() => {
       if (!socketToDeviceId.has(socket)) {
@@ -344,6 +348,7 @@ export const startWebSocketServer = (
     metadataDeadlines.set(socket, deadline);
 
     socket.on('message', data => {
+      lastSeen.set(socket, Date.now());
       const result = (() => {
         try {
           return radarMessageSchema.safeParse(JSON.parse(data.toString()));
@@ -480,7 +485,7 @@ export const startWebSocketServer = (
       device?.socket.send(data);
     },
     close: () => {
-      clearInterval(heartbeatInterval);
+      clearInterval(livenessCheckInterval);
       wss.close();
     },
   };
