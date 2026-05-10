@@ -6,6 +6,8 @@
 
 Radar replaces the fragmented React Native debugging ecosystem (React DevTools, Flipper, Reactotron, Xcode Instruments, Android Profiler) with a single desktop app. One tool, every debugging panel, plus AI integration via MCP.
 
+Full documentation: [useradar.dev](https://useradar.dev)
+
 ## Features
 
 - **Console** - Log viewer with recursive serialization, syntax highlighting, collapsible objects, and log grouping
@@ -82,6 +84,10 @@ The repo ships two example apps:
 - **SDK**: TypeScript, WebSocket, React Native TurboModules
 - **MCP**: HTTP StreamableHTTP transport
 - **Build**: Bun workspaces, Vite, electron-builder
+
+## Maintainer
+
+[Lucas Figueiredo](https://www.figueiredolucas.com.br) — [@lucas-figueiredo-m](https://github.com/lucas-figueiredo-m) on GitHub.
 
 ## License
 
