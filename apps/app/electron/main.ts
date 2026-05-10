@@ -375,15 +375,21 @@ ipcMain.handle(
   },
 );
 
-const CSP_HEADER_VALUE =
+// Production CSP — strict. Skipped entirely in dev mode because Vite's HMR
+// injects an inline `<script type="module">` for React Fast Refresh that
+// can't be unblocked via 'unsafe-inline' (CSP3 ignores 'unsafe-inline' for
+// inline module scripts; only nonce/hash work, which Vite doesn't supply).
+const CSP_PROD =
   "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none';";
 
 app.whenReady().then(() => {
-  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    const responseHeaders = { ...details.responseHeaders };
-    responseHeaders['Content-Security-Policy'] = [CSP_HEADER_VALUE];
-    callback({ responseHeaders });
-  });
+  if (!VITE_DEV_SERVER_URL) {
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+      const responseHeaders = { ...details.responseHeaders };
+      responseHeaders['Content-Security-Policy'] = [CSP_PROD];
+      callback({ responseHeaders });
+    });
+  }
 
   createWindow();
   createTray();
