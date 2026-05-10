@@ -16,6 +16,7 @@ import type {
   StateCapabilityRow,
   StateSnapshotRow,
   StateActionRow,
+  StartupMetricRow,
 } from '@radar/database';
 import { ipcRenderer } from './ipc';
 
@@ -147,5 +148,15 @@ export const databaseClient = {
       ),
     clear: (deviceId: string): Promise<number> =>
       ipcRenderer.invoke<number>('radar:db:state:clear', deviceId),
+  },
+
+  startup: {
+    get: (deviceId: string): Promise<StartupMetricRow | null> =>
+      ipcRenderer.invoke<StartupMetricRow | null>(
+        'radar:db:startup:get',
+        deviceId,
+      ),
+    clear: (deviceId: string): Promise<number> =>
+      ipcRenderer.invoke<number>('radar:db:startup:clear', deviceId),
   },
 };
